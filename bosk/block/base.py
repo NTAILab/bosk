@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Dict, List, Any, Mapping, Sequence, TypeVar, Type
+from typing import Mapping, TypeVar, Type
 from .meta import BlockMeta
 from ..slot import BlockInputSlot, BlockOutputSlot
 from ..data import Data
+from ..stages import Stages
 
 
 BlockT = TypeVar('BlockT', bound='BaseBlock')
@@ -111,12 +111,20 @@ def auto_block(cls: Type[BaseBlock]):
         Block class.
     
     """
+    fit_argnames = set(cls.fit.__code__.co_varnames[1:cls.fit.__code__.co_argcount])
+    transform_argnames = set(cls.transform.__code__.co_varnames[1:cls.transform.__code__.co_argcount])
 
     class AutoBlock(BaseBlock):
         meta = BlockMeta(
             inputs=[
-                BlockInputSlot(name=name)
-                for name in cls.fit.__code__.co_varnames[:cls.fit.__code__.co_argcount]
+                BlockInputSlot(
+                    name=name,
+                    stages=Stages(
+                        fit=(name in fit_argnames),
+                        transform=(name in transform_argnames)
+                    )
+                )
+                for name in fit_argnames | transform_argnames
             ],
             outputs=[
                 BlockOutputSlot(name='output')
@@ -129,16 +137,17 @@ def auto_block(cls: Type[BaseBlock]):
         def __prepare_kwargs(self, inputs: BlockInputData) -> Mapping[BlockInputSlot, Data]:
             kwargs = {
                 slot_name: self.get(inputs, slot_name)
-                for slot_name in self.meta.inputs.keys()
+                for slot_name, slot in self.meta.inputs.items()
+                if slot in inputs
             }
             return kwargs
 
         def fit(self, inputs: BlockInputData) -> 'AutoBlock':
-            self.__instance.fit(self, **self.__prepare_kwargs(inputs))
+            self.__instance.fit(**self.__prepare_kwargs(inputs))
             return self
         
         def transform(self, inputs: BlockInputData) -> BlockOutputData:
-            transformed = self.__instance.transform(self, **self.__prepare_kwargs(inputs))
+            transformed = self.__instance.transform(**self.__prepare_kwargs(inputs))
             return self.wrap({'output': transformed})
 
     return AutoBlock
