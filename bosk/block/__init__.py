@@ -1,5 +1,6 @@
 from .meta import BlockMeta, BlockInputSlot, BlockOutputSlot
-from .base import BaseBlock, BlockInputData, BlockOutputData, auto_block
+from .base import BaseBlock, BlockInputData, BlockOutputData
+from .auto import auto_block
 
 
 __all__ = [

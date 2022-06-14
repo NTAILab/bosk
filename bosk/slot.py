@@ -1,9 +1,9 @@
 from dataclasses import dataclass
-from typing import TypeVar
+from typing import List, Mapping, TypeVar
 from .stages import Stages
 
 
-@dataclass(eq=True, frozen=True)
+@dataclass(eq=False, frozen=False)
 class BaseSlot:
     """Base slot.
 
@@ -12,12 +12,18 @@ class BaseSlot:
     Attributes:
         name: Slot name.
         stages: At which stages slot value is needed.
+        debug_info: Debugging info.
+    
     """
     name: str
     stages: Stages = Stages()
+    debug_info: str = ""
+
+    def __hash__(self) -> int:
+        return id(self)
 
 
-@dataclass(eq=True, frozen=True)
+@dataclass(eq=False, frozen=False)
 class BlockInputSlot(BaseSlot):
     """Block input slot.
 
@@ -25,7 +31,7 @@ class BlockInputSlot(BaseSlot):
     """
 
 
-@dataclass(eq=True, frozen=True)
+@dataclass(eq=False, frozen=False)
 class BlockOutputSlot(BaseSlot):
     """Block output slot.
 
@@ -36,3 +42,19 @@ class BlockOutputSlot(BaseSlot):
 SlotT = TypeVar('SlotT', bound=BaseSlot)
 """Slot generic typevar.
 """
+
+
+def list_of_slots_to_mapping(slots_list: List[SlotT]) -> Mapping[str, SlotT]:
+    """Convert list of slots to mapping (name -> slot).
+
+    Args:
+        slots_list: List of slots.
+
+    Returns:
+        Mapping dict (name -> slot).
+
+    """
+    return {
+        slot.name: slot
+        for slot in slots_list
+    }

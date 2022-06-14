@@ -1,4 +1,10 @@
 from dataclasses import dataclass
+from enum import Enum, auto
+
+
+class Stage(Enum):
+    FIT = auto()
+    TRANSFORM = auto()
 
 
 @dataclass(eq=True, frozen=True)
