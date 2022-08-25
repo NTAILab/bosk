@@ -15,13 +15,16 @@ class NaiveExecutor(BaseExecutor):
 
     def __execute_block(self, node: BaseBlock, node_input_mapping: BlockInputData) -> BlockOutputData:
         if self.stage == Stage.FIT:
-            node.fit(node_input_mapping)
+            node.fit({
+                slot.name: values
+                for slot, values in node_input_mapping.items()
+            })
         filtered_node_input_mapping = {
-            slot: values
+            slot.name: values
             for slot, values in node_input_mapping.items()
             if slot.stages.transform
         }
-        return node.transform(filtered_node_input_mapping)
+        return node.wrap(node.transform(filtered_node_input_mapping))
 
     def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:
         slots_values = dict()
