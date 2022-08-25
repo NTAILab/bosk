@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Mapping, TypeVar, Type
+
 from .meta import BlockMeta
-from ..slot import BlockInputSlot, BlockOutputSlot
 from ..data import Data
+from ..slot import BlockOutputSlot
 from ..stages import Stages
 
 
@@ -11,10 +12,16 @@ BlockT = TypeVar('BlockT', bound='BaseBlock')
 """
 
 
-BlockInputData = Mapping[BlockInputSlot, Data]
+BlockInputData = Mapping[str, Data]
 """Block input values container data type.
 
-It is indexed by input slots, not their names.
+It is indexed by input slot names.
+"""
+
+TransformOutputData = Mapping[str, Data]
+"""Block transform output values container data type.
+
+It is indexed by output slot names.
 """
 
 BlockOutputData = Mapping[BlockOutputSlot, Data]
@@ -61,7 +68,7 @@ class BaseBlock(ABC):
         """
 
     @abstractmethod
-    def transform(self, inputs: BlockInputData) -> BlockOutputData:
+    def transform(self, inputs: BlockInputData) -> TransformOutputData:
         """Transform the given input data, i.e. compute values for each output slot.
 
         Args:
@@ -71,19 +78,6 @@ class BaseBlock(ABC):
             Outputs calculated for the given inputs.
 
         """
-
-    def get(self, inputs: BlockInputData, slot_name: str) -> Data:
-        """Get input value by name.
-
-        Args:
-            inputs: Block inputs, passed to the instance.
-            slot_name: Input slot name.
-
-        Returns:
-            Input data value.
-
-        """
-        return inputs[self.meta.inputs[slot_name]]
 
     def wrap(self, output_values: Mapping[str, Data]) -> BlockOutputData:
         """Wrap outputs dictionary into ``BlockOutputs`` object.

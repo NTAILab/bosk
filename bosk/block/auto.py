@@ -1,5 +1,5 @@
 from typing import Type, Mapping
-from .base import BaseBlock, BlockInputData, BlockOutputData
+from .base import BaseBlock, BlockInputData, BlockOutputData, TransformOutputData
 from .meta import BlockMeta
 from ..slot import BlockInputSlot, BlockOutputSlot
 from ..data import Data
@@ -40,11 +40,11 @@ def auto_block(cls: Type[BaseBlock]):
                 ],
             )
 
-        def __prepare_kwargs(self, inputs: BlockInputData) -> Mapping[BlockInputSlot, Data]:
+        def __prepare_kwargs(self, inputs: BlockInputData) -> Mapping[str, Data]:
             kwargs = {
-                slot_name: self.get(inputs, slot_name)
-                for slot_name, slot in self.meta.inputs.items()
-                if slot in inputs
+                slot_name: inputs[slot_name]
+                for slot_name, _slot in self.meta.inputs.items()
+                if slot_name in inputs
             }
             return kwargs
 
@@ -52,8 +52,8 @@ def auto_block(cls: Type[BaseBlock]):
             self.__instance.fit(**self.__prepare_kwargs(inputs))
             return self
         
-        def transform(self, inputs: BlockInputData) -> BlockOutputData:
+        def transform(self, inputs: BlockInputData) -> TransformOutputData:
             transformed = self.__instance.transform(**self.__prepare_kwargs(inputs))
-            return self.wrap({'output': transformed})
+            return {'output': transformed}
 
     return AutoBlock
