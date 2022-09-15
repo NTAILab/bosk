@@ -11,3 +11,4 @@ class Stage(Enum):
 class Stages:
     fit: bool = True
     transform: bool = True
+    transform_on_fit: bool = False
