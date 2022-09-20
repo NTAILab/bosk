@@ -10,19 +10,18 @@ class BasePipeline:
     nodes: Sequence[BaseBlock]
     connections: Sequence[Connection]
 
-
     def find_connections(self, *,
                         src: None | BlockOutputSlot = None,
                         dst: None | BlockInputSlot = None) -> Sequence[Connection]:
         """Find connections by src or dst.
-        
+
         Args:
             src: Source slot.
             dst: Destination slot.
-        
+
         Returns:
             List of connections.
-            
+
         """
         assert src is not None or dst is not None, "Either src or dst should be specified"
         results = []

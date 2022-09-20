@@ -13,7 +13,7 @@ class BaseSlot:
         name: Slot name.
         stages: At which stages slot value is needed.
         debug_info: Debugging info.
-    
+
     """
     name: str
     stages: Stages = Stages()

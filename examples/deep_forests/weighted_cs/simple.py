@@ -11,7 +11,7 @@ from bosk.block import auto_block, BaseBlock, BlockInputData, TransformOutputDat
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.executor.naive import NaiveExecutor
 from bosk.stages import Stage, Stages
-from bosk.block import auto_block, BaseBlock, BlockMeta, BlockInputSlot, BlockOutputSlot
+from bosk.block import BlockMeta, BlockInputSlot, BlockOutputSlot
 from sklearn.datasets import make_moons
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
@@ -54,7 +54,7 @@ class ConcatBlock(BaseBlock):
         self.ordered_input_names = list(inputs.keys())
         self.ordered_input_names.sort()
         return self
-    
+
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         assert self.ordered_input_names is not None
         ordered_inputs = tuple(
@@ -77,7 +77,7 @@ class StackBlock(BaseBlock):
         self.ordered_input_names = list(inputs.keys())
         self.ordered_input_names.sort()
         return self
-    
+
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         assert self.ordered_input_names is not None
         ordered_inputs = tuple(
@@ -97,7 +97,7 @@ class AverageBlock(BaseBlock):
 
     def fit(self, _inputs: BlockInputData) -> 'AverageBlock':
         return self
-    
+
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         assert 'X' in inputs
         averaged = inputs['X'].mean(axis=self.axis)
@@ -113,7 +113,7 @@ class ArgmaxBlock(BaseBlock):
 
     def fit(self, _inputs: BlockInputData) -> 'ArgmaxBlock':
         return self
-    
+
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         assert 'X' in inputs
         ids = inputs['X'].argmax(axis=self.axis)
@@ -128,7 +128,7 @@ class InputBlock(BaseBlock):
 
     def fit(self, _inputs: BlockInputData) -> 'InputBlock':
         return self
-    
+
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         return inputs
 
@@ -154,7 +154,7 @@ class TargetInputBlock(BaseBlock):
 
     def fit(self, _inputs: BlockInputData) -> 'TargetInputBlock':
         return self
-    
+
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         return inputs
 
@@ -183,7 +183,7 @@ class RocAucBlock(BaseBlock):
 
     def fit(self, _inputs: BlockInputData) -> 'InputBlock':
         return self
-    
+
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         return {
             'roc-auc': roc_auc_score(inputs['gt_y'], inputs['pred_probas'][:, 1])
@@ -350,7 +350,7 @@ def make_deep_forest_functional():
 
     rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
     roc_auc = b.RocAuc()(gt_y=y, pred_probas=average_3)
-    
+
     fit_executor = NaiveExecutor(
         b.pipeline,
         stage=Stage.FIT,
@@ -387,7 +387,7 @@ class CSBlock(BaseBlock):
 
     def fit(self, inputs: BlockInputData) -> 'CSBlock':
         return self
-    
+
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         X = inputs['X']
         best_mask = X.max(axis=1) > self.eps
@@ -408,7 +408,7 @@ class CSFilterBlock(BaseBlock):
 
     def fit(self, inputs: BlockInputData) -> 'CSFilterBlock':
         return self
-    
+
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         mask = inputs['mask']
         return {
@@ -425,7 +425,7 @@ class CSJoinBlock(BaseBlock):
 
     def fit(self, inputs: BlockInputData) -> 'CSJoinBlock':
         return self
-    
+
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         best = inputs['best']
         refined = inputs['refined']
@@ -486,7 +486,7 @@ def make_deep_forest_functional_confidence_screening():
 
         def transform(self, X) -> 'np.ndarray':
             return self.weights_
-            
+
     sample_weight_2 = b.new(WeightsBlock, ord=2)(X=average_2, y=filtered_1_y)
 
     average_3 = make_deep_forest_layer(b, X=concat_2, y=filtered_1_y, sample_weight=sample_weight_2)
@@ -502,7 +502,7 @@ def make_deep_forest_functional_confidence_screening():
 
     rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
     roc_auc = b.RocAuc()(gt_y=y, pred_probas=joined_3)
-    
+
     fit_executor = NaiveExecutor(
         b.pipeline,
         stage=Stage.FIT,
