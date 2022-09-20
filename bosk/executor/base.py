@@ -6,7 +6,6 @@ from ..stages import Stage
 from ..slot import BlockInputSlot, BlockOutputSlot, list_of_slots_to_mapping
 
 
-
 class BaseExecutor(ABC):
     """Base pipeline executor.
     """

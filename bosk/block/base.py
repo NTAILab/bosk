@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
-from typing import Mapping, TypeVar, Type
+from abc import ABC, abstractmethod, abstractproperty
+from typing import Mapping, TypeVar
 
 from .meta import BlockMeta
 from ..data import Data
@@ -9,8 +9,9 @@ from ..stages import Stages
 
 BlockT = TypeVar('BlockT', bound='BaseBlock')
 """Block generic typevar.
-"""
 
+Required to constrain a block to return itself in `fit(...)`.
+"""
 
 BlockInputData = Mapping[str, Data]
 """Block input values container data type.
@@ -39,10 +40,6 @@ class BaseBlock(ABC):
 
     """
     @property
-    def meta(self):
-        ...
-
-    @meta.getter
     @abstractmethod
     def meta(self):
         """Meta information property getter.
@@ -56,7 +53,7 @@ class BaseBlock(ABC):
         """
 
     @abstractmethod
-    def fit(self, inputs: BlockInputData) -> BlockT:
+    def fit(self: BlockT, inputs: BlockInputData) -> BlockT:
         """Fit the block on the given input data.
 
         Args:
