@@ -1,9 +1,17 @@
-from typing import Mapping, Sequence
+from typing import Dict, Mapping, Sequence, Union
 
 from ..stages import Stage
 from ..data import Data
 from .base import BaseExecutor
 from ..block.base import BaseBlock, BlockInputData, BlockOutputData
+from ..slot import BlockInputSlot, BlockOutputSlot
+
+
+InputSlotToDataMapping = Mapping[BlockInputSlot, Data]
+"""Block input slot data mapping.
+
+It is indexed by input slots.
+"""
 
 
 class NaiveExecutor(BaseExecutor):
@@ -13,21 +21,32 @@ class NaiveExecutor(BaseExecutor):
 
     """
 
-    def __execute_block(self, node: BaseBlock, node_input_mapping: BlockInputData) -> BlockOutputData:
+    def __is_input_slot_required(self, input_slot: BlockInputSlot) -> bool:
+        if self.stage == Stage.FIT:
+            return input_slot.stages.fit \
+                or input_slot.stages.transform \
+                or input_slot.stages.transform_on_fit
+        elif self.stage == Stage.TRANSFORM:
+            return input_slot.stages.transform
+        else:
+            raise NotImplementedError()
+
+    def __execute_block(self, node: BaseBlock, node_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
         if self.stage == Stage.FIT:
             node.fit({
                 slot.name: values
                 for slot, values in node_input_mapping.items()
+                if slot.stages.fit
             })
         filtered_node_input_mapping = {
             slot.name: values
             for slot, values in node_input_mapping.items()
-            if slot.stages.transform
+            if slot.stages.transform or (self.stage == Stage.FIT and slot.stages.transform_on_fit)
         }
         return node.wrap(node.transform(filtered_node_input_mapping))
 
     def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:
-        slots_values = dict()
+        slots_values: Dict[Union[BlockInputSlot, BlockOutputSlot], Data] = dict()
         # fill slots values
         for input_name, input_data in input_values.items():
             input_or_inputs = self.inputs[input_name]
@@ -40,7 +59,8 @@ class NaiveExecutor(BaseExecutor):
 
         # recursively compute outputs
 
-        def _compute_output(out_slot):
+        def _compute_output(out_slot: BlockOutputSlot):
+            assert isinstance(out_slot, BlockOutputSlot)
             if out_slot in slots_values:
                 return slots_values[out_slot]
             # search for node which computes the slot value
@@ -55,10 +75,12 @@ class NaiveExecutor(BaseExecutor):
             node_input_slots = node.meta.inputs.values()
             node_input_mapping = dict()
             for input in node_input_slots:
+                if not self.__is_input_slot_required(input):
+                    continue
                 if input in slots_values:
                     node_input_mapping[input] = slots_values[input]
                     continue
-                
+
                 connections = self.pipeline.find_connections(dst=input)
                 if len(connections) == 0:
                     continue
@@ -68,7 +90,7 @@ class NaiveExecutor(BaseExecutor):
                 slots_values[conn.src] = conn_value
                 slots_values[conn.dst] = conn_value
                 node_input_mapping[input] = conn_value
-            
+
             outputs = self.__execute_block(node, node_input_mapping)
             slots_values.update(outputs)
             return slots_values[out_slot]
