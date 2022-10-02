@@ -17,31 +17,31 @@ It is indexed by input slots.
 class NaiveExecutor(BaseExecutor):
     """Naive executor implementation.
 
-    Considers only input-output meta information to match slots.
+    Considers only input-output slots information to match slots.
 
     """
 
     def __is_input_slot_required(self, input_slot: BlockInputSlot) -> bool:
         if self.stage == Stage.FIT:
-            return input_slot.stages.fit \
-                or input_slot.stages.transform \
-                or input_slot.stages.transform_on_fit
+            return input_slot.meta.stages.fit \
+                or input_slot.meta.stages.transform \
+                or input_slot.meta.stages.transform_on_fit
         elif self.stage == Stage.TRANSFORM:
-            return input_slot.stages.transform
+            return input_slot.meta.stages.transform
         else:
             raise NotImplementedError()
 
     def __execute_block(self, node: BaseBlock, node_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
         if self.stage == Stage.FIT:
             node.fit({
-                slot.name: values
+                slot.meta.name: values
                 for slot, values in node_input_mapping.items()
-                if slot.stages.fit
+                if slot.meta.stages.fit
             })
         filtered_node_input_mapping = {
-            slot.name: values
+            slot.meta.name: values
             for slot, values in node_input_mapping.items()
-            if slot.stages.transform or (self.stage == Stage.FIT and slot.stages.transform_on_fit)
+            if slot.meta.stages.transform or (self.stage == Stage.FIT and slot.meta.stages.transform_on_fit)
         }
         return node.wrap(node.transform(filtered_node_input_mapping))
 
@@ -65,14 +65,14 @@ class NaiveExecutor(BaseExecutor):
                 return slots_values[out_slot]
             # search for node which computes the slot value
             for node in self.pipeline.nodes:
-                if out_slot not in node.meta.outputs.values():
+                if out_slot not in node.slots.outputs.values():
                     continue
                 break
             else:
                 raise RuntimeError(f'Node that can compute value for the slot not found: {out_slot}')
             # print("Computing output for node", node._AutoBlock__instance.name, node)
 
-            node_input_slots = node.meta.inputs.values()
+            node_input_slots = node.slots.inputs.values()
             node_input_mapping = dict()
             for input in node_input_slots:
                 if not self.__is_input_slot_required(input):
