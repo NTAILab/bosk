@@ -11,7 +11,8 @@ from bosk.block import auto_block, BaseBlock, BlockInputData, TransformOutputDat
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.executor.naive import NaiveExecutor
 from bosk.stages import Stage, Stages
-from bosk.block import BlockMeta, BlockInputSlot, BlockOutputSlot
+from bosk.block import BlockMeta
+from bosk.slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
 from sklearn.datasets import make_moons
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
@@ -32,11 +33,11 @@ class ETCBlock(ExtraTreesClassifier):
 def make_simple_meta(input_names: List[str], output_names: List[str]):
     return BlockMeta(
         inputs=[
-            BlockInputSlot(name=name)
+            InputSlotMeta(name=name)
             for name in input_names
         ],
         outputs=[
-            BlockOutputSlot(name=name)
+            OutputSlotMeta(name=name)
             for name in output_names
         ]
     )
@@ -46,9 +47,10 @@ class ConcatBlock(BaseBlock):
     meta = None
 
     def __init__(self, input_names: List[str], axis: int = -1):
+        self.meta = make_simple_meta(input_names, ['output'])
+        super().__init__()
         self.axis = axis
         self.ordered_input_names = None
-        self.meta = make_simple_meta(input_names, ['output'])
 
     def fit(self, inputs: BlockInputData) -> 'ConcatBlock':
         self.ordered_input_names = list(inputs.keys())
@@ -69,9 +71,10 @@ class StackBlock(BaseBlock):
     meta = None
 
     def __init__(self, input_names: List[str], axis: int = -1):
+        self.meta = make_simple_meta(input_names, ['output'])
+        super().__init__()
         self.axis = axis
         self.ordered_input_names = None
-        self.meta = make_simple_meta(input_names, ['output'])
 
     def fit(self, inputs: BlockInputData) -> 'StackBlock':
         self.ordered_input_names = list(inputs.keys())
@@ -89,11 +92,11 @@ class StackBlock(BaseBlock):
 
 
 class AverageBlock(BaseBlock):
-    meta = None
+    meta = make_simple_meta(['X'], ['output'])
 
     def __init__(self, axis: int = -1):
+        super().__init__()
         self.axis = axis
-        self.meta = make_simple_meta(['X'], ['output'])
 
     def fit(self, _inputs: BlockInputData) -> 'AverageBlock':
         return self
@@ -105,11 +108,11 @@ class AverageBlock(BaseBlock):
 
 
 class ArgmaxBlock(BaseBlock):
-    meta = None
+    meta = make_simple_meta(['X'], ['output'])
 
     def __init__(self, axis: int = -1):
+        super().__init__()
         self.axis = axis
-        self.meta = make_simple_meta(['X'], ['output'])
 
     def fit(self, _inputs: BlockInputData) -> 'ArgmaxBlock':
         return self
@@ -121,10 +124,10 @@ class ArgmaxBlock(BaseBlock):
 
 
 class InputBlock(BaseBlock):
-    meta = None
+    meta = make_simple_meta(['X'], ['X'])
 
     def __init__(self):
-        self.meta = make_simple_meta(['X'], ['X'])
+        super().__init__()
 
     def fit(self, _inputs: BlockInputData) -> 'InputBlock':
         return self
@@ -134,23 +137,24 @@ class InputBlock(BaseBlock):
 
 
 class TargetInputBlock(BaseBlock):
-    meta = None
+    TARGET_NAME = 'y'
+
+    meta = BlockMeta(
+        inputs=[
+            InputSlotMeta(
+                name=TARGET_NAME,
+                stages=Stages(transform=False, transform_on_fit=True),
+            )
+        ],
+        outputs=[
+            OutputSlotMeta(
+                name=TARGET_NAME,
+            )
+        ]
+    )
 
     def __init__(self):
-        TARGET_NAME = 'y'
-        self.meta = BlockMeta(
-            inputs=[
-                BlockInputSlot(
-                    name=TARGET_NAME,
-                    stages=Stages(transform=False, transform_on_fit=True),
-                )
-            ],
-            outputs=[
-                BlockOutputSlot(
-                    name=TARGET_NAME,
-                )
-            ]
-        )
+        super().__init__()
 
     def fit(self, _inputs: BlockInputData) -> 'TargetInputBlock':
         return self
@@ -160,26 +164,26 @@ class TargetInputBlock(BaseBlock):
 
 
 class RocAucBlock(BaseBlock):
-    meta = None
+    meta = BlockMeta(
+        inputs=[
+            InputSlotMeta(
+                name='pred_probas',
+                stages=Stages(transform=False, transform_on_fit=True),
+            ),
+            InputSlotMeta(
+                name='gt_y',
+                stages=Stages(transform=False, transform_on_fit=True),
+            )
+        ],
+        outputs=[
+            OutputSlotMeta(
+                name='roc-auc',
+            )
+        ]
+    )
 
     def __init__(self):
-        self.meta = BlockMeta(
-            inputs=[
-                BlockInputSlot(
-                    name='pred_probas',
-                    stages=Stages(transform=False, transform_on_fit=True),
-                ),
-                BlockInputSlot(
-                    name='gt_y',
-                    stages=Stages(transform=False, transform_on_fit=True),
-                )
-            ],
-            outputs=[
-                BlockOutputSlot(
-                    name='roc-auc',
-                )
-            ]
-        )
+        super().__init__()
 
     def fit(self, _inputs: BlockInputData) -> 'InputBlock':
         return self
@@ -275,19 +279,19 @@ class FunctionalBlockWrapper:
 
     def get_input_slot(self, slot_name: Optional[str] = None):
         if slot_name is None:
-            if len(self.block.meta.inputs) == 1:
-                return list(self.block.meta.inputs.values())[0]
+            if len(self.block.slots.inputs) == 1:
+                return list(self.block.slots.inputs.values())[0]
             else:
                 raise RuntimeError('Block has more than one input (please, specify it)')
         return self.block.meta.inputs[slot_name]
 
     def get_output_slot(self) -> BlockOutputSlot:
         if self.output_name is None:
-            if len(self.block.meta.outputs) == 1:
-                return list(self.block.meta.outputs.values())[0]
+            if len(self.block.slots.outputs) == 1:
+                return list(self.block.slots.outputs.values())[0]
             else:
                 raise RuntimeError('Block has more than one output')
-        return self.block.meta.outputs[self.output_name]
+        return self.block.slots.outputs[self.output_name]
 
     def __getitem__(self, output_name: str):
         return FunctionalBlockWrapper(self.block, output_name=output_name)
@@ -316,7 +320,7 @@ class FunctionalBuilder:
                     self.connections.append(
                         Connection(
                             src=input_block_wrapper.get_output_slot(),
-                            dst=block.meta.inputs[input_name],
+                            dst=block.slots.inputs[input_name],
                         )
                     )
                 return FunctionalBlockWrapper(block)
@@ -379,11 +383,11 @@ def make_deep_forest_functional():
 
 
 class CSBlock(BaseBlock):
-    meta = None
+    meta = make_simple_meta(['X'], ['mask', 'best'])
 
     def __init__(self, eps: float = 1.0):
+        super().__init__()
         self.eps = eps
-        self.meta = make_simple_meta(['X'], ['mask', 'best'])
 
     def fit(self, inputs: BlockInputData) -> 'CSBlock':
         return self
@@ -405,6 +409,7 @@ class CSFilterBlock(BaseBlock):
         output_names = input_names
         self.input_names = input_names
         self.meta = make_simple_meta(input_names + ['mask'], output_names)
+        super().__init__()
 
     def fit(self, inputs: BlockInputData) -> 'CSFilterBlock':
         return self
@@ -418,10 +423,10 @@ class CSFilterBlock(BaseBlock):
 
 
 class CSJoinBlock(BaseBlock):
-    meta = None
+    meta = make_simple_meta(['best', 'refined', 'mask'], ['output'])
 
     def __init__(self):
-        self.meta = make_simple_meta(['best', 'refined', 'mask'], ['output'])
+        super().__init__()
 
     def fit(self, inputs: BlockInputData) -> 'CSJoinBlock':
         return self
