@@ -3,7 +3,7 @@ from typing import Mapping, TypeVar
 
 from .meta import BlockMeta
 from ..data import Data
-from ..slot import BlockOutputSlot
+from ..slot import BlockInputSlot, BlockOutputSlot, BlockSlots
 from ..stages import Stages
 
 
@@ -39,6 +39,23 @@ class BaseBlock(ABC):
         meta: Meta information of the block.
 
     """
+    def __init__(self):
+        super().__init__()
+        self.slots = self._make_slots()
+
+    def _make_slots(self):
+        """Make slots"""
+        return BlockSlots(
+            inputs={
+                name: BlockInputSlot(meta=input_slot_meta)
+                for name, input_slot_meta in self.meta.inputs.items()
+            },
+            outputs={
+                name: BlockOutputSlot(meta=output_slot_meta)
+                for name, output_slot_meta in self.meta.outputs.items()
+            },
+        )
+
     @property
     @abstractmethod
     def meta(self):
@@ -87,6 +104,6 @@ class BaseBlock(ABC):
 
         """
         return {
-            self.meta.outputs[slot_name]: value
+            self.slots.outputs[slot_name]: value
             for slot_name, value in output_values.items()
         }
