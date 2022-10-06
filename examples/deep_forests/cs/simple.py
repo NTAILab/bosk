@@ -16,7 +16,8 @@ from bosk.block import auto_block, BaseBlock, BlockInputData, TransformOutputDat
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.executor.naive import NaiveExecutor
 from bosk.stages import Stage, Stages
-from bosk.block import BlockMeta, BlockInputSlot, BlockOutputSlot
+from bosk.block import BlockMeta
+from bosk.slot import BlockOutputSlot, InputSlotMeta, OutputSlotMeta
 
 
 @auto_block
@@ -42,11 +43,11 @@ class ETCBlock(ExtraTreesClassifier):
 def make_simple_meta(input_names: List[str], output_names: List[str]):
     return BlockMeta(
         inputs=[
-            BlockInputSlot(name=name)
+            InputSlotMeta(name=name)
             for name in input_names
         ],
         outputs=[
-            BlockOutputSlot(name=name)
+            OutputSlotMeta(name=name)
             for name in output_names
         ]
     )
@@ -56,22 +57,23 @@ class ConcatBlock(BaseBlock):
     meta = None
 
     def __init__(self, input_names: List[str], axis: int = -1):
-        self._axis = axis
-        self._ordered_input_names = None
         self.meta = make_simple_meta(input_names, ['output'])
+        super().__init__()
+        self.axis = axis
+        self.ordered_input_names = None
 
     def fit(self, inputs: BlockInputData) -> 'ConcatBlock':
-        self._ordered_input_names = list(inputs.keys())
-        self._ordered_input_names.sort()
+        self.ordered_input_names = list(inputs.keys())
+        self.ordered_input_names.sort()
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        assert self._ordered_input_names is not None
+        assert self.ordered_input_names is not None
         ordered_inputs = tuple(
             inputs[name]
-            for name in self._ordered_input_names
+            for name in self.ordered_input_names
         )
-        concatenated = np.concatenate(ordered_inputs, axis=self._axis)
+        concatenated = np.concatenate(ordered_inputs, axis=self.axis)
         return {'output': concatenated}
 
 
@@ -79,62 +81,63 @@ class StackBlock(BaseBlock):
     meta = None
 
     def __init__(self, input_names: List[str], axis: int = -1):
-        self._axis = axis
-        self._ordered_input_names = None
         self.meta = make_simple_meta(input_names, ['output'])
+        super().__init__()
+        self.axis = axis
+        self.ordered_input_names = None
 
     def fit(self, inputs: BlockInputData) -> 'StackBlock':
-        self._ordered_input_names = list(inputs.keys())
-        self._ordered_input_names.sort()
+        self.ordered_input_names = list(inputs.keys())
+        self.ordered_input_names.sort()
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        assert self._ordered_input_names is not None
+        assert self.ordered_input_names is not None
         ordered_inputs = tuple(
             inputs[name]
-            for name in self._ordered_input_names
+            for name in self.ordered_input_names
         )
-        stacked = np.stack(ordered_inputs, axis=self._axis)
+        stacked = np.stack(ordered_inputs, axis=self.axis)
         return {'output': stacked}
 
 
 class AverageBlock(BaseBlock):
-    meta = None
+    meta = make_simple_meta(['X'], ['output'])
 
     def __init__(self, axis: int = -1):
-        self._axis = axis
-        self.meta = make_simple_meta(['X'], ['output'])
+        super().__init__()
+        self.axis = axis
 
     def fit(self, _inputs: BlockInputData) -> 'AverageBlock':
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         assert 'X' in inputs
-        averaged = inputs['X'].mean(axis=self._axis)
+        averaged = inputs['X'].mean(axis=self.axis)
         return {'output': averaged}
 
 
 class ArgmaxBlock(BaseBlock):
-    meta = None
+    meta = make_simple_meta(['X'], ['output'])
 
     def __init__(self, axis: int = -1):
-        self._axis = axis
-        self.meta = make_simple_meta(['X'], ['output'])
+        super().__init__()
+        self.axis = axis
 
     def fit(self, _inputs: BlockInputData) -> 'ArgmaxBlock':
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         assert 'X' in inputs
-        ids = inputs['X'].argmax(axis=self._axis)
+        ids = inputs['X'].argmax(axis=self.axis)
         return {'output': ids}
 
 
 class InputBlock(BaseBlock):
-    meta = None
+    meta = make_simple_meta(['X'], ['X'])
 
     def __init__(self):
-        self.meta = make_simple_meta(['X'], ['X'])
+        super().__init__()
 
     def fit(self, _inputs: BlockInputData) -> 'InputBlock':
         return self
@@ -144,23 +147,24 @@ class InputBlock(BaseBlock):
 
 
 class TargetInputBlock(BaseBlock):
-    meta = None
+    TARGET_NAME = 'y'
+
+    meta = BlockMeta(
+        inputs=[
+            InputSlotMeta(
+                name=TARGET_NAME,
+                stages=Stages(transform=False, transform_on_fit=True),
+            )
+        ],
+        outputs=[
+            OutputSlotMeta(
+                name=TARGET_NAME,
+            )
+        ]
+    )
 
     def __init__(self):
-        TARGET_NAME = 'y'
-        self.meta = BlockMeta(
-            inputs=[
-                BlockInputSlot(
-                    name=TARGET_NAME,
-                    stages=Stages(transform=False, transform_on_fit=True),
-                )
-            ],
-            outputs=[
-                BlockOutputSlot(
-                    name=TARGET_NAME,
-                )
-            ]
-        )
+        super().__init__()
 
     def fit(self, _inputs: BlockInputData) -> 'TargetInputBlock':
         return self
@@ -170,28 +174,28 @@ class TargetInputBlock(BaseBlock):
 
 
 class RocAucBlock(BaseBlock):
-    meta = None
+    meta = BlockMeta(
+        inputs=[
+            InputSlotMeta(
+                name='pred_probas',
+                stages=Stages(transform=False, transform_on_fit=True),
+            ),
+            InputSlotMeta(
+                name='gt_y',
+                stages=Stages(transform=False, transform_on_fit=True),
+            )
+        ],
+        outputs=[
+            OutputSlotMeta(
+                name='roc-auc',
+            )
+        ]
+    )
 
     def __init__(self):
-        self.meta = BlockMeta(
-            inputs=[
-                BlockInputSlot(
-                    name='pred_probas',
-                    stages=Stages(transform=False, transform_on_fit=True),
-                ),
-                BlockInputSlot(
-                    name='gt_y',
-                    stages=Stages(transform=False, transform_on_fit=True),
-                )
-            ],
-            outputs=[
-                BlockOutputSlot(
-                    name='roc-auc',
-                )
-            ]
-        )
+        super().__init__()
 
-    def fit(self, _inputs: BlockInputData) -> 'InputBlock':
+    def fit(self, _inputs: BlockInputData) -> 'RocAucBlock':
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
@@ -280,33 +284,33 @@ def make_deep_forest():
 
 class FunctionalBlockWrapper:
     def __init__(self, block: BaseBlock, output_name: Optional[str] = None):
-        self._block = block
-        self._output_name = output_name
+        self.block = block
+        self.output_name = output_name
 
     def get_input_slot(self, slot_name: Optional[str] = None):
         if slot_name is None:
-            if len(self._block.meta.inputs) == 1:
-                return list(self._block.meta.inputs.values())[0]
+            if len(self.block.slots.inputs) == 1:
+                return list(self.block.slots.inputs.values())[0]
             else:
                 raise RuntimeError('Block has more than one input (please, specify it)')
-        return self._block.meta.inputs[slot_name]
+        return self.block.meta.inputs[slot_name]
 
     def get_output_slot(self) -> BlockOutputSlot:
-        if self._output_name is None:
-            if len(self._block.meta.outputs) == 1:
-                return list(self._block.meta.outputs.values())[0]
+        if self.output_name is None:
+            if len(self.block.slots.outputs) == 1:
+                return list(self.block.slots.outputs.values())[0]
             else:
                 raise RuntimeError('Block has more than one output')
-        return self._block.meta.outputs[self._output_name]
+        return self.block.slots.outputs[self.output_name]
 
     def __getitem__(self, output_name: str):
-        return FunctionalBlockWrapper(self._block, output_name=output_name)
+        return FunctionalBlockWrapper(self.block, output_name=output_name)
 
 
 class FunctionalBuilder:
     def __init__(self):
-        self._nodes = []
-        self._connections = []
+        self.nodes = []
+        self.connections = []
 
     def __getattr__(self, name: str) -> Callable:
         block_name = name + 'Block'
@@ -318,15 +322,15 @@ class FunctionalBuilder:
     def _get_block_init(self, block_cls: Callable) -> Callable:
         def block_init(*args, **kwargs):
             block = block_cls(*args, **kwargs)
-            self._nodes.append(block)
+            self.nodes.append(block)
 
             def placeholder_fn(*pfn_args, **pfn_kwargs):
                 assert len(pfn_args) == 0, "Only kwargs are supported"
                 for input_name, input_block_wrapper in pfn_kwargs.items():
-                    self._connections.append(
+                    self.connections.append(
                         Connection(
                             src=input_block_wrapper.get_output_slot(),
-                            dst=block.meta.inputs[input_name],
+                            dst=block.slots.inputs[input_name],
                         )
                     )
                 return FunctionalBlockWrapper(block)
@@ -340,7 +344,7 @@ class FunctionalBuilder:
 
     @property
     def pipeline(self) -> BasePipeline:
-        return BasePipeline(self._nodes, self._connections)
+        return BasePipeline(self.nodes, self.connections)
 
 
 def make_deep_forest_functional():
@@ -389,18 +393,18 @@ def make_deep_forest_functional():
 
 
 class CSBlock(BaseBlock):
-    meta = None
+    meta = make_simple_meta(['X'], ['mask', 'best'])
 
     def __init__(self, eps: float = 1.0):
-        self._eps = eps
-        self.meta = make_simple_meta(['X'], ['mask', 'best'])
+        super().__init__()
+        self.eps = eps
 
     def fit(self, inputs: BlockInputData) -> 'CSBlock':
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         X = inputs['X']
-        best_mask = X.max(axis=1) > self._eps
+        best_mask = X.max(axis=1) > self.eps
         best = X[best_mask]
         return {
             'mask': ~best_mask,
@@ -413,8 +417,9 @@ class CSFilterBlock(BaseBlock):
 
     def __init__(self, input_names: List[str]):
         output_names = input_names
-        self._input_names = input_names
+        self.input_names = input_names
         self.meta = make_simple_meta(input_names + ['mask'], output_names)
+        super().__init__()
 
     def fit(self, inputs: BlockInputData) -> 'CSFilterBlock':
         return self
@@ -423,15 +428,15 @@ class CSFilterBlock(BaseBlock):
         mask = inputs['mask']
         return {
             name: inputs[name][mask]
-            for name in self._input_names
+            for name in self.input_names
         }
 
 
 class CSJoinBlock(BaseBlock):
-    meta = None
+    meta = make_simple_meta(['best', 'refined', 'mask'], ['output'])
 
     def __init__(self):
-        self.meta = make_simple_meta(['best', 'refined', 'mask'], ['output'])
+        super().__init__()
 
     def fit(self, inputs: BlockInputData) -> 'CSJoinBlock':
         return self

@@ -3,7 +3,7 @@ from typing import Mapping, Sequence
 
 from ..data import Data
 from ..stages import Stage
-from ..slot import BlockInputSlot, BlockOutputSlot, list_of_slots_to_mapping
+from ..slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
 from ..pipeline import BasePipeline
 
 
@@ -13,8 +13,8 @@ class BaseExecutor(ABC):
 
     def __init__(self, pipeline: BasePipeline, *,
                  stage: None | Stage = None,
-                 inputs: None | Mapping[str, BlockInputSlot | Sequence[BlockInputSlot]] = None,
-                 outputs: None | Mapping[str, BlockOutputSlot] = None):
+                 inputs: None | Mapping[str, InputSlotMeta | Sequence[InputSlotMeta]] = None,
+                 outputs: None | Mapping[str, OutputSlotMeta] = None):
         assert stage is not None, "Stage must be specified"
         assert inputs is not None, "Inputs must be specified"
         assert outputs is not None, "Outputs must be specified"

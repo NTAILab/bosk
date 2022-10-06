@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from ..slot import BlockInputSlot, BlockOutputSlot
+from ..slot import BlockInputSlot, BlockOutputSlot, OutputSlotMeta, InputSlotMeta
 
 
 @dataclass(eq=True, frozen=True)
 class Connection:
-    src: BlockOutputSlot
-    dst: BlockInputSlot
+    src: OutputSlotMeta
+    dst: InputSlotMeta
