@@ -4,6 +4,7 @@ from .meta import BlockMeta
 from ..slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
 from ..data import Data
 from ..stages import Stages
+from functools import wraps
 
 
 def auto_block(cls: Type[BaseBlock]):
@@ -19,6 +20,7 @@ def auto_block(cls: Type[BaseBlock]):
     fit_argnames = set(cls.fit.__code__.co_varnames[1:cls.fit.__code__.co_argcount])
     transform_argnames = set(cls.transform.__code__.co_varnames[1:cls.transform.__code__.co_argcount])
 
+    @wraps(cls, updated=())
     class AutoBlock(BaseBlock):
         meta: Optional[BlockMeta] = BlockMeta(
             inputs=[
