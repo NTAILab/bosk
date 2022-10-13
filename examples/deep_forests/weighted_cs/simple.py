@@ -1,210 +1,38 @@
 """Example of simple Adaptive Weighted Deep Forest definition.
 
 """
+from typing import Callable, Optional
+
 import numpy as np
-from typing import Callable, List, Optional
-from sklearn.ensemble import (
-    RandomForestClassifier,
-    ExtraTreesClassifier,
-)
-from bosk.block import auto_block, BaseBlock, BlockInputData, TransformOutputData
-from bosk.pipeline.base import BasePipeline, Connection
-from bosk.executor.naive import NaiveExecutor
-from bosk.stages import Stage, Stages
-from bosk.block import BlockMeta
-from bosk.slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
+
 from sklearn.datasets import make_moons
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
-
-@auto_block
-class RFCBlock(RandomForestClassifier):
-    def transform(self, X):
-        return self.predict_proba(X)
-
-
-@auto_block
-class ETCBlock(ExtraTreesClassifier):
-    def transform(self, X):
-        return self.predict_proba(X)
-
-
-def make_simple_meta(input_names: List[str], output_names: List[str]):
-    return BlockMeta(
-        inputs=[
-            InputSlotMeta(name=name)
-            for name in input_names
-        ],
-        outputs=[
-            OutputSlotMeta(name=name)
-            for name in output_names
-        ]
-    )
-
-
-class ConcatBlock(BaseBlock):
-    meta = None
-
-    def __init__(self, input_names: List[str], axis: int = -1):
-        self.meta = make_simple_meta(input_names, ['output'])
-        super().__init__()
-        self.axis = axis
-        self.ordered_input_names = None
-
-    def fit(self, inputs: BlockInputData) -> 'ConcatBlock':
-        self.ordered_input_names = list(inputs.keys())
-        self.ordered_input_names.sort()
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        assert self.ordered_input_names is not None
-        ordered_inputs = tuple(
-            inputs[name]
-            for name in self.ordered_input_names
-        )
-        concatenated = np.concatenate(ordered_inputs, axis=self.axis)
-        return {'output': concatenated}
-
-
-class StackBlock(BaseBlock):
-    meta = None
-
-    def __init__(self, input_names: List[str], axis: int = -1):
-        self.meta = make_simple_meta(input_names, ['output'])
-        super().__init__()
-        self.axis = axis
-        self.ordered_input_names = None
-
-    def fit(self, inputs: BlockInputData) -> 'StackBlock':
-        self.ordered_input_names = list(inputs.keys())
-        self.ordered_input_names.sort()
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        assert self.ordered_input_names is not None
-        ordered_inputs = tuple(
-            inputs[name]
-            for name in self.ordered_input_names
-        )
-        stacked = np.stack(ordered_inputs, axis=self.axis)
-        return {'output': stacked}
-
-
-class AverageBlock(BaseBlock):
-    meta = make_simple_meta(['X'], ['output'])
-
-    def __init__(self, axis: int = -1):
-        super().__init__()
-        self.axis = axis
-
-    def fit(self, _inputs: BlockInputData) -> 'AverageBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        assert 'X' in inputs
-        averaged = inputs['X'].mean(axis=self.axis)
-        return {'output': averaged}
-
-
-class ArgmaxBlock(BaseBlock):
-    meta = make_simple_meta(['X'], ['output'])
-
-    def __init__(self, axis: int = -1):
-        super().__init__()
-        self.axis = axis
-
-    def fit(self, _inputs: BlockInputData) -> 'ArgmaxBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        assert 'X' in inputs
-        ids = inputs['X'].argmax(axis=self.axis)
-        return {'output': ids}
-
-
-class InputBlock(BaseBlock):
-    meta = make_simple_meta(['X'], ['X'])
-
-    def __init__(self):
-        super().__init__()
-
-    def fit(self, _inputs: BlockInputData) -> 'InputBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        return inputs
-
-
-class TargetInputBlock(BaseBlock):
-    TARGET_NAME = 'y'
-
-    meta = BlockMeta(
-        inputs=[
-            InputSlotMeta(
-                name=TARGET_NAME,
-                stages=Stages(transform=False, transform_on_fit=True),
-            )
-        ],
-        outputs=[
-            OutputSlotMeta(
-                name=TARGET_NAME,
-            )
-        ]
-    )
-
-    def __init__(self):
-        super().__init__()
-
-    def fit(self, _inputs: BlockInputData) -> 'TargetInputBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        return inputs
-
-
-class RocAucBlock(BaseBlock):
-    meta = BlockMeta(
-        inputs=[
-            InputSlotMeta(
-                name='pred_probas',
-                stages=Stages(transform=False, transform_on_fit=True),
-            ),
-            InputSlotMeta(
-                name='gt_y',
-                stages=Stages(transform=False, transform_on_fit=True),
-            )
-        ],
-        outputs=[
-            OutputSlotMeta(
-                name='roc-auc',
-            )
-        ]
-    )
-
-    def __init__(self):
-        super().__init__()
-
-    def fit(self, _inputs: BlockInputData) -> 'InputBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        return {
-            'roc-auc': roc_auc_score(inputs['gt_y'], inputs['pred_probas'][:, 1])
-        }
+from bosk.block import BaseBlock
+from bosk.pipeline.base import BasePipeline, Connection
+from bosk.executor.naive import NaiveExecutor
+from bosk.stages import Stage
+from bosk.slot import BlockOutputSlot
+from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
+from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
+from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
+from bosk.block.zoo.metrics import RocAucBlock, AccuracyBlock, F1ScoreBlock
+from bosk.block.zoo.routing import CSBlock, CSJoinBlock, CSFilterBlock
+from bosk.block.zoo.data_weighting import WeightsBlock
 
 
 def make_deep_forest():
     input_x = InputBlock()
     input_y = TargetInputBlock()
-    rf_1 = RFCBlock()
-    et_1 = ETCBlock()
+    rf_1 = RFCBlock(seed=42)
+    et_1 = ETCBlock(seed=42)
     concat_1 = ConcatBlock(['X_0', 'X_1'], axis=1)
-    rf_2 = RFCBlock()
-    et_2 = ETCBlock()
+    rf_2 = RFCBlock(seed=42)
+    et_2 = ETCBlock(seed=42)
     concat_2 = ConcatBlock(['X_0', 'X_1'], axis=1)
-    rf_3 = RFCBlock()
-    et_3 = ETCBlock()
+    rf_3 = RFCBlock(seed=42)
+    et_3 = ETCBlock(seed=42)
     stack_3 = StackBlock(['X_0', 'X_1'], axis=1)
     average_3 = AverageBlock(axis=1)
     argmax_3 = ArgmaxBlock(axis=1)
@@ -340,14 +168,14 @@ class FunctionalBuilder:
 def make_deep_forest_functional():
     b = FunctionalBuilder()
     X, y = b.Input()(), b.TargetInput()()
-    rf_1 = b.RFC()(X=X, y=y)
-    et_1 = b.ETC()(X=X, y=y)
+    rf_1 = b.RFC(seed=42)(X=X, y=y)
+    et_1 = b.ETC(seed=42)(X=X, y=y)
     concat_1 = b.Concat(['X', 'rf_1', 'et_1'])(X=X, rf_1=rf_1, et_1=et_1)
-    rf_2 = b.RFC()(X=concat_1, y=y)
-    et_2 = b.ETC()(X=concat_1, y=y)
+    rf_2 = b.RFC(seed=42)(X=concat_1, y=y)
+    et_2 = b.ETC(seed=42)(X=concat_1, y=y)
     concat_2 = b.Concat(['X', 'rf_2', 'et_2'])(X=X, rf_2=rf_2, et_2=et_2)
-    rf_3 = b.RFC()(X=concat_2, y=y)
-    et_3 = b.ETC()(X=concat_2, y=y)
+    rf_3 = b.RFC(seed=42)(X=concat_2, y=y)
+    et_3 = b.ETC(seed=42)(X=concat_2, y=y)
     stack_3 = b.Stack(['rf_3', 'et_3'], axis=1)(rf_3=rf_3, et_3=et_3)
     average_3 = b.Average(axis=1)(X=stack_3)
     argmax_3 = b.Argmax(axis=1)(X=average_3)
@@ -382,70 +210,9 @@ def make_deep_forest_functional():
     return b.pipeline, fit_executor, transform_executor
 
 
-class CSBlock(BaseBlock):
-    meta = make_simple_meta(['X'], ['mask', 'best'])
-
-    def __init__(self, eps: float = 1.0):
-        super().__init__()
-        self.eps = eps
-
-    def fit(self, inputs: BlockInputData) -> 'CSBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        X = inputs['X']
-        best_mask = X.max(axis=1) > self.eps
-        best = X[best_mask]
-        return {
-            'mask': ~best_mask,
-            'best': best,
-        }
-
-
-class CSFilterBlock(BaseBlock):
-    meta = None
-
-    def __init__(self, input_names: List[str]):
-        output_names = input_names
-        self.input_names = input_names
-        self.meta = make_simple_meta(input_names + ['mask'], output_names)
-        super().__init__()
-
-    def fit(self, inputs: BlockInputData) -> 'CSFilterBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        mask = inputs['mask']
-        return {
-            name: inputs[name][mask]
-            for name in self.input_names
-        }
-
-
-class CSJoinBlock(BaseBlock):
-    meta = make_simple_meta(['best', 'refined', 'mask'], ['output'])
-
-    def __init__(self):
-        super().__init__()
-
-    def fit(self, inputs: BlockInputData) -> 'CSJoinBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        best = inputs['best']
-        refined = inputs['refined']
-        mask = inputs['mask']
-        n_samples = mask.shape[0]
-        rest_dims = best.shape[1:]
-        result = np.empty((n_samples, *rest_dims), dtype=best.dtype)
-        result[~mask] = best
-        result[mask] = refined
-        return {'output': result}
-
-
 def make_deep_forest_layer(b, **inputs):
-    rf = b.RFC()(**inputs)
-    et = b.ETC()(**inputs)
+    rf = b.RFC(seed=42)(**inputs)
+    et = b.ETC(seed=42)(**inputs)
     stack = b.Stack(['rf', 'et'], axis=1)(rf=rf, et=et)
     average = b.Average(axis=1)(X=stack)
     return average
@@ -454,8 +221,8 @@ def make_deep_forest_layer(b, **inputs):
 def make_deep_forest_functional_confidence_screening():
     b = FunctionalBuilder()
     X, y = b.Input()(), b.TargetInput()()
-    rf_1 = b.RFC()(X=X, y=y)
-    et_1 = b.ETC()(X=X, y=y)
+    rf_1 = b.RFC(seed=42)(X=X, y=y)
+    et_1 = b.ETC(seed=42)(X=X, y=y)
     concat_1 = b.Concat(['rf_1', 'et_1'])(rf_1=rf_1, et_1=et_1)
     stack_1 = b.Stack(['rf_1', 'et_1'], axis=1)(rf_1=rf_1, et_1=et_1)
     average_1 = b.Average(axis=1)(X=stack_1)
@@ -477,20 +244,6 @@ def make_deep_forest_functional_confidence_screening():
 
     average_2 = make_deep_forest_layer(b, X=concat_all_1, y=filtered_1_y)
     concat_2 = b.Concat(['X', 'average_2'])(X=filtered_1['X'], average_2=average_2)
-
-    # apply sample weighting (see An Adaptive Weighted Deep Forest)
-    @auto_block
-    class WeightsBlock:
-        def __init__(self, ord: int = 1):
-            self.ord = ord
-
-        def fit(self, X, y) -> 'WeightsBlock':
-            weights = 1 - (np.take_along_axis(X, y[:, np.newaxis], axis=1)) ** self.ord
-            self.weights_ = weights.reshape((-1,))
-            return self
-
-        def transform(self, X) -> 'np.ndarray':
-            return self.weights_
 
     sample_weight_2 = b.new(WeightsBlock, ord=2)(X=average_2, y=filtered_1_y)
 
@@ -540,8 +293,8 @@ def main():
     # _pipeline, fit_executor, transform_executor = make_deep_forest_functional()
     _pipeline, fit_executor, transform_executor = make_deep_forest_functional_confidence_screening()
 
-    all_X, all_y = make_moons(noise=0.5)
-    train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2)
+    all_X, all_y = make_moons(noise=0.5, random_state=42)
+    train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
     fit_result = fit_executor({'X': train_X, 'y': train_y})
     print("Fit successful")
     train_result = transform_executor({'X': train_X})
