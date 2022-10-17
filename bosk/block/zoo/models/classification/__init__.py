@@ -1,1 +1,1 @@
-from .classification_models import RFCBlock, ETCBlock
+from .classification_models import RFCBlock, ETCBlock, CatBoostClassifierBlock, XGBClassifierBlock

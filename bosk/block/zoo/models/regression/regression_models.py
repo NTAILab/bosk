@@ -1,8 +1,11 @@
-from bosk.block import auto_block
+from catboost import CatBoostRegressor
+from xgboost import XGBRegressor
 from sklearn.ensemble import (
     RandomForestRegressor,
     ExtraTreesRegressor,
 )
+
+from bosk.block import auto_block
 
 
 @auto_block
@@ -12,7 +15,7 @@ class RFRBlock(RandomForestRegressor):
         self.random_state = seed
 
     def transform(self, X):
-        return self.predict_proba(X)
+        return self.predict(X)
 
 
 @auto_block
@@ -22,4 +25,22 @@ class ETRBlock(ExtraTreesRegressor):
         self.random_state = seed
 
     def transform(self, X):
-        return self.predict_proba(X)
+        return self.predict(X)
+
+
+@auto_block
+class CatBoostRegressorBlock(CatBoostRegressor):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+    def transform(self, X):
+        return self.predict(X)
+
+
+@auto_block
+class XGBCRegressorBlock(XGBRegressor):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+    def transform(self, X):
+        return self.predict(X)

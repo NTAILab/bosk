@@ -1,4 +1,4 @@
-from sklearn.metrics import roc_auc_score, accuracy_score, f1_score
+from sklearn.metrics import roc_auc_score, accuracy_score, f1_score, r2_score
 
 from bosk.block import BaseBlock, BlockInputData, TransformOutputData
 from bosk.stages import Stages
@@ -51,7 +51,7 @@ class AccuracyBlock(BaseBlock):
         ],
         outputs=[
             OutputSlotMeta(
-                name='roc-auc',
+                name='accuracy',
             )
         ]
     )
@@ -96,4 +96,35 @@ class F1ScoreBlock(BaseBlock):
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         return {
             'f1-score': f1_score(inputs['gt_y'], inputs['pred_probas'][:, 1])
+        }
+
+
+class R2ScoreBlock(BaseBlock):
+    meta = BlockMeta(
+        inputs=[
+            InputSlotMeta(
+                name='pred_probas',
+                stages=Stages(transform=False, transform_on_fit=True),
+            ),
+            InputSlotMeta(
+                name='gt_y',
+                stages=Stages(transform=False, transform_on_fit=True),
+            )
+        ],
+        outputs=[
+            OutputSlotMeta(
+                name='r2-score',
+            )
+        ]
+    )
+
+    def __init__(self):
+        super().__init__()
+
+    def fit(self, _inputs: BlockInputData) -> 'R2ScoreBlock':
+        return self
+
+    def transform(self, inputs: BlockInputData) -> TransformOutputData:
+        return {
+            'r2-score': r2_score(inputs['gt_y'], inputs['pred_probas'][:, 1])
         }
