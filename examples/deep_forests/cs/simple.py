@@ -1,207 +1,24 @@
 """Example of simple Confidence Screening Deep Forest definition.
 
 """
-from typing import Callable, List, Optional
+from typing import Callable, Optional
 
 import numpy as np
-from sklearn.ensemble import (
-    RandomForestClassifier,
-    ExtraTreesClassifier,
-)
+
 from sklearn.datasets import make_moons
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
-from bosk.block import auto_block, BaseBlock, BlockInputData, TransformOutputData
+from bosk.block import BaseBlock
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.executor.naive import NaiveExecutor
-from bosk.stages import Stage, Stages
-from bosk.block import BlockMeta
-from bosk.slot import BlockOutputSlot, InputSlotMeta, OutputSlotMeta
-
-
-@auto_block
-class RFCBlock(RandomForestClassifier):
-    def __init__(self, seed):
-        super().__init__()
-        self.random_state = seed
-
-    def transform(self, X):
-        return self.predict_proba(X)
-
-
-@auto_block
-class ETCBlock(ExtraTreesClassifier):
-    def __init__(self, seed):
-        super().__init__()
-        self.random_state = seed
-
-    def transform(self, X):
-        return self.predict_proba(X)
-
-
-def make_simple_meta(input_names: List[str], output_names: List[str]):
-    return BlockMeta(
-        inputs=[
-            InputSlotMeta(name=name)
-            for name in input_names
-        ],
-        outputs=[
-            OutputSlotMeta(name=name)
-            for name in output_names
-        ]
-    )
-
-
-class ConcatBlock(BaseBlock):
-    meta = None
-
-    def __init__(self, input_names: List[str], axis: int = -1):
-        self.meta = make_simple_meta(input_names, ['output'])
-        super().__init__()
-        self.axis = axis
-        self.ordered_input_names = None
-
-    def fit(self, inputs: BlockInputData) -> 'ConcatBlock':
-        self.ordered_input_names = list(inputs.keys())
-        self.ordered_input_names.sort()
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        assert self.ordered_input_names is not None
-        ordered_inputs = tuple(
-            inputs[name]
-            for name in self.ordered_input_names
-        )
-        concatenated = np.concatenate(ordered_inputs, axis=self.axis)
-        return {'output': concatenated}
-
-
-class StackBlock(BaseBlock):
-    meta = None
-
-    def __init__(self, input_names: List[str], axis: int = -1):
-        self.meta = make_simple_meta(input_names, ['output'])
-        super().__init__()
-        self.axis = axis
-        self.ordered_input_names = None
-
-    def fit(self, inputs: BlockInputData) -> 'StackBlock':
-        self.ordered_input_names = list(inputs.keys())
-        self.ordered_input_names.sort()
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        assert self.ordered_input_names is not None
-        ordered_inputs = tuple(
-            inputs[name]
-            for name in self.ordered_input_names
-        )
-        stacked = np.stack(ordered_inputs, axis=self.axis)
-        return {'output': stacked}
-
-
-class AverageBlock(BaseBlock):
-    meta = make_simple_meta(['X'], ['output'])
-
-    def __init__(self, axis: int = -1):
-        super().__init__()
-        self.axis = axis
-
-    def fit(self, _inputs: BlockInputData) -> 'AverageBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        assert 'X' in inputs
-        averaged = inputs['X'].mean(axis=self.axis)
-        return {'output': averaged}
-
-
-class ArgmaxBlock(BaseBlock):
-    meta = make_simple_meta(['X'], ['output'])
-
-    def __init__(self, axis: int = -1):
-        super().__init__()
-        self.axis = axis
-
-    def fit(self, _inputs: BlockInputData) -> 'ArgmaxBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        assert 'X' in inputs
-        ids = inputs['X'].argmax(axis=self.axis)
-        return {'output': ids}
-
-
-class InputBlock(BaseBlock):
-    meta = make_simple_meta(['X'], ['X'])
-
-    def __init__(self):
-        super().__init__()
-
-    def fit(self, _inputs: BlockInputData) -> 'InputBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        return inputs
-
-
-class TargetInputBlock(BaseBlock):
-    TARGET_NAME = 'y'
-
-    meta = BlockMeta(
-        inputs=[
-            InputSlotMeta(
-                name=TARGET_NAME,
-                stages=Stages(transform=False, transform_on_fit=True),
-            )
-        ],
-        outputs=[
-            OutputSlotMeta(
-                name=TARGET_NAME,
-            )
-        ]
-    )
-
-    def __init__(self):
-        super().__init__()
-
-    def fit(self, _inputs: BlockInputData) -> 'TargetInputBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        return inputs
-
-
-class RocAucBlock(BaseBlock):
-    meta = BlockMeta(
-        inputs=[
-            InputSlotMeta(
-                name='pred_probas',
-                stages=Stages(transform=False, transform_on_fit=True),
-            ),
-            InputSlotMeta(
-                name='gt_y',
-                stages=Stages(transform=False, transform_on_fit=True),
-            )
-        ],
-        outputs=[
-            OutputSlotMeta(
-                name='roc-auc',
-            )
-        ]
-    )
-
-    def __init__(self):
-        super().__init__()
-
-    def fit(self, _inputs: BlockInputData) -> 'RocAucBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        return {
-            'roc-auc': roc_auc_score(inputs['gt_y'], inputs['pred_probas'][:, 1])
-        }
+from bosk.stages import Stage
+from bosk.slot import BlockOutputSlot
+from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
+from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
+from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
+from bosk.block.zoo.metrics import RocAucBlock, AccuracyBlock, F1ScoreBlock
+from bosk.block.zoo.routing import CSBlock, CSJoinBlock, CSFilterBlock
 
 
 def make_deep_forest():
@@ -390,67 +207,6 @@ def make_deep_forest_functional():
         },
     )
     return b.pipeline, fit_executor, transform_executor
-
-
-class CSBlock(BaseBlock):
-    meta = make_simple_meta(['X'], ['mask', 'best'])
-
-    def __init__(self, eps: float = 1.0):
-        super().__init__()
-        self.eps = eps
-
-    def fit(self, inputs: BlockInputData) -> 'CSBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        X = inputs['X']
-        best_mask = X.max(axis=1) > self.eps
-        best = X[best_mask]
-        return {
-            'mask': ~best_mask,
-            'best': best,
-        }
-
-
-class CSFilterBlock(BaseBlock):
-    meta = None
-
-    def __init__(self, input_names: List[str]):
-        output_names = input_names
-        self.input_names = input_names
-        self.meta = make_simple_meta(input_names + ['mask'], output_names)
-        super().__init__()
-
-    def fit(self, inputs: BlockInputData) -> 'CSFilterBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        mask = inputs['mask']
-        return {
-            name: inputs[name][mask]
-            for name in self.input_names
-        }
-
-
-class CSJoinBlock(BaseBlock):
-    meta = make_simple_meta(['best', 'refined', 'mask'], ['output'])
-
-    def __init__(self):
-        super().__init__()
-
-    def fit(self, inputs: BlockInputData) -> 'CSJoinBlock':
-        return self
-
-    def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        best = inputs['best']
-        refined = inputs['refined']
-        mask = inputs['mask']
-        n_samples = mask.shape[0]
-        rest_dims = best.shape[1:]
-        result = np.empty((n_samples, *rest_dims), dtype=best.dtype)
-        result[~mask] = best
-        result[mask] = refined
-        return {'output': result}
 
 
 def make_deep_forest_layer(b, **inputs):
