@@ -74,22 +74,22 @@ class NaiveExecutor(BaseExecutor):
 
             node_input_slots = node.slots.inputs.values()
             node_input_mapping = dict()
-            for input in node_input_slots:
-                if not self.__is_input_slot_required(input):
+            for _input in node_input_slots:
+                if not self.__is_input_slot_required(_input):
                     continue
-                if input in slots_values:
-                    node_input_mapping[input] = slots_values[input]
+                if _input in slots_values:
+                    node_input_mapping[_input] = slots_values[_input]
                     continue
 
-                connections = self.pipeline.find_connections(dst=input)
+                connections = self.pipeline.find_connections(dst=_input)
                 if len(connections) == 0:
                     continue
-                assert len(connections) == 1, f'len(connections) == {len(connections)} for dst {input}'
+                assert len(connections) == 1, f'len(connections) == {len(connections)} for dst {_input}'
                 conn = connections[0]
                 conn_value = _compute_output(conn.src)
                 slots_values[conn.src] = conn_value
                 slots_values[conn.dst] = conn_value
-                node_input_mapping[input] = conn_value
+                node_input_mapping[_input] = conn_value
 
             outputs = self.__execute_block(node, node_input_mapping)
             slots_values.update(outputs)
