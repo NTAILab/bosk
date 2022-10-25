@@ -9,12 +9,14 @@ from sklearn.ensemble import (
 )
 from bosk.block import auto_block, BaseBlock, BlockInputData, TransformOutputData
 from bosk.pipeline.base import BasePipeline, Connection
-from bosk.executor.naive import NaiveExecutor
+from bosk.executor.naive import NaiveExecutor, LessNaiveExecutor
 from bosk.stages import Stage, Stages
 from bosk.block import BlockMeta, BlockInputSlot, BlockOutputSlot
 from sklearn.datasets import make_moons
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
+
+from bosk.executor.painter import PipelinePainter
 
 
 @auto_block
@@ -29,17 +31,17 @@ class ETCBlock(ExtraTreesClassifier):
         return self.predict_proba(X)
 
 
-def make_simple_meta(input_names: List[str], output_names: List[str]):
-    return BlockMeta(
-        inputs=[
-            BlockInputSlot(name=name)
-            for name in input_names
-        ],
-        outputs=[
-            BlockOutputSlot(name=name)
-            for name in output_names
-        ]
-    )
+# def make_simple_meta(input_names: List[str], output_names: List[str]):
+#     return BlockMeta(
+#         inputs=[
+#             BlockInputSlot(name=name)
+#             for name in input_names
+#         ],
+#         outputs=[
+#             BlockOutputSlot(name=name)
+#             for name in output_names
+#         ]
+#     )
 
 
 class ConcatBlock(BaseBlock):
@@ -48,7 +50,7 @@ class ConcatBlock(BaseBlock):
     def __init__(self, input_names: List[str], axis: int = -1):
         self.axis = axis
         self.ordered_input_names = None
-        self.meta = make_simple_meta(input_names, ['output'])
+        self.meta = self.make_simple_meta(input_names, ['output'])
 
     def fit(self, inputs: BlockInputData) -> 'ConcatBlock':
         self.ordered_input_names = list(inputs.keys())
@@ -71,7 +73,7 @@ class StackBlock(BaseBlock):
     def __init__(self, input_names: List[str], axis: int = -1):
         self.axis = axis
         self.ordered_input_names = None
-        self.meta = make_simple_meta(input_names, ['output'])
+        self.meta = self.make_simple_meta(input_names, ['output'])
 
     def fit(self, inputs: BlockInputData) -> 'StackBlock':
         self.ordered_input_names = list(inputs.keys())
@@ -93,7 +95,7 @@ class AverageBlock(BaseBlock):
 
     def __init__(self, axis: int = -1):
         self.axis = axis
-        self.meta = make_simple_meta(['X'], ['output'])
+        self.meta = self.make_simple_meta(['X'], ['output'])
 
     def fit(self, _inputs: BlockInputData) -> 'AverageBlock':
         return self
@@ -109,7 +111,7 @@ class ArgmaxBlock(BaseBlock):
 
     def __init__(self, axis: int = -1):
         self.axis = axis
-        self.meta = make_simple_meta(['X'], ['output'])
+        self.meta = self.make_simple_meta(['X'], ['output'])
 
     def fit(self, _inputs: BlockInputData) -> 'ArgmaxBlock':
         return self
@@ -124,7 +126,7 @@ class InputBlock(BaseBlock):
     meta = None
 
     def __init__(self):
-        self.meta = make_simple_meta(['X'], ['X'])
+        self.meta = self.make_simple_meta(['X'], ['X'])
 
     def fit(self, _inputs: BlockInputData) -> 'InputBlock':
         return self
@@ -143,11 +145,13 @@ class TargetInputBlock(BaseBlock):
                 BlockInputSlot(
                     name=TARGET_NAME,
                     stages=Stages(transform=False, transform_on_fit=True),
+                    parent_block=self
                 )
             ],
             outputs=[
                 BlockOutputSlot(
                     name=TARGET_NAME,
+                    parent_block=self
                 )
             ]
         )
@@ -168,15 +172,18 @@ class RocAucBlock(BaseBlock):
                 BlockInputSlot(
                     name='pred_probas',
                     stages=Stages(transform=False, transform_on_fit=True),
+                    parent_block=self
                 ),
                 BlockInputSlot(
                     name='gt_y',
                     stages=Stages(transform=False, transform_on_fit=True),
+                    parent_block=self
                 )
             ],
             outputs=[
                 BlockOutputSlot(
                     name='roc-auc',
+                    parent_block=self
                 )
             ]
         )
@@ -383,7 +390,7 @@ class CSBlock(BaseBlock):
 
     def __init__(self, eps: float = 1.0):
         self.eps = eps
-        self.meta = make_simple_meta(['X'], ['mask', 'best'])
+        self.meta = self.make_simple_meta(['X'], ['mask', 'best'])
 
     def fit(self, inputs: BlockInputData) -> 'CSBlock':
         return self
@@ -404,7 +411,7 @@ class CSFilterBlock(BaseBlock):
     def __init__(self, input_names: List[str]):
         output_names = input_names
         self.input_names = input_names
-        self.meta = make_simple_meta(input_names + ['mask'], output_names)
+        self.meta = self.make_simple_meta(input_names + ['mask'], output_names)
 
     def fit(self, inputs: BlockInputData) -> 'CSFilterBlock':
         return self
@@ -421,7 +428,7 @@ class CSJoinBlock(BaseBlock):
     meta = None
 
     def __init__(self):
-        self.meta = make_simple_meta(['best', 'refined', 'mask'], ['output'])
+        self.meta = self.make_simple_meta(['best', 'refined', 'mask'], ['output'])
 
     def fit(self, inputs: BlockInputData) -> 'CSJoinBlock':
         return self
@@ -503,7 +510,7 @@ def make_deep_forest_functional_confidence_screening():
     rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
     roc_auc = b.RocAuc()(gt_y=y, pred_probas=joined_3)
 
-    fit_executor = NaiveExecutor(
+    fit_executor = LessNaiveExecutor(
         b.pipeline,
         stage=Stage.FIT,
         inputs={
@@ -516,7 +523,7 @@ def make_deep_forest_functional_confidence_screening():
             'roc-auc': roc_auc.get_output_slot(),
         },
     )
-    transform_executor = NaiveExecutor(
+    transform_executor = LessNaiveExecutor(
         b.pipeline,
         stage=Stage.TRANSFORM,
         inputs={
@@ -528,6 +535,61 @@ def make_deep_forest_functional_confidence_screening():
         },
     )
     return b.pipeline, fit_executor, transform_executor
+
+
+def my_graph():
+    b = FunctionalBuilder()
+    x, y = b.Input()(), b.TargetInput()()
+    z = b.Input()()
+    fake_rf = b.RFC()(X=z, y=z)
+    rf_1 = b.RFC()(X=x, y=y)
+    concat_1 = b.Concat(['x', 'rf_1'])(x=x, rf_1=rf_1)
+    rf_2 = b.RFC()(X=concat_1, y=y)
+    fake_rf_2 = b.RFC()(X=concat_1, y=y)
+    rf_3 = b.RFC()(X=x, y=y)
+    stack = b.Stack(['rf_2', 'rf_3'], axis=1)(rf_2=rf_2, rf_3=rf_3)
+    avg = b.Average()(X=stack)
+    fit_executor = LessNaiveExecutor(
+        b.pipeline,
+        stage=Stage.FIT,
+        inputs={
+            'x': x.get_input_slot(),
+            'y': y.get_input_slot(),
+        },
+        outputs={
+            'result': avg.get_output_slot(),
+        },
+    )
+    transform_executor = LessNaiveExecutor(
+        b.pipeline,
+        stage=Stage.TRANSFORM,
+        inputs={
+            'x': x.get_input_slot(),
+        },
+        outputs={
+            'result': avg.get_output_slot(),
+        },
+    )
+    return fit_executor, transform_executor
+
+def check_my_graph():
+    fit_executor, transform_executor = my_graph()
+    train_X, train_y = make_moons(noise=0.5)
+    print('fit topological order:')
+    fit_executor({'x': train_X, 'y': train_y})
+    print("Fit successful")
+    print('transform topological order:')
+    transform_executor({'x': train_X})
+
+def paint_my_graph():
+    fit_executor, _ = my_graph()
+    painter = PipelinePainter(fit_executor.pipeline, fit_executor.inputs, fit_executor.outputs)
+    painter.draw()
+
+def paint_cs_graph():
+    pipeline, fit_executor, transform_executor = make_deep_forest_functional_confidence_screening()
+    painter = PipelinePainter(pipeline, fit_executor.inputs, fit_executor.outputs)
+    painter.draw()
 
 
 def main():
@@ -556,4 +618,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # from time import time
+    # np.random.seed(15)
+    # time_start = time()
+    # check_my_graph()
+    # print('time elapded:', round(time() - time_start, 3), ' seconds')
+
+    # paint_my_graph()
+    paint_cs_graph()
+

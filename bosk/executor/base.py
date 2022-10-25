@@ -3,18 +3,18 @@ from typing import Mapping, Sequence
 
 from ..data import Data
 from ..stages import Stage
-from ..slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
-from ..pipeline import BasePipeline
+# from ..block.slot import BlockInputSlot, BlockOutputSlot, list_of_slots_to_mapping
+from ..block.base import BlockInputSlot, BlockOutputSlot, list_of_slots_to_mapping
 
 
 class BaseExecutor(ABC):
     """Base pipeline executor.
     """
 
-    def __init__(self, pipeline: BasePipeline, *,
+    def __init__(self, pipeline, *,
                  stage: None | Stage = None,
-                 inputs: None | Mapping[str, InputSlotMeta | Sequence[InputSlotMeta]] = None,
-                 outputs: None | Mapping[str, OutputSlotMeta] = None):
+                 inputs: None | Mapping[str, BlockInputSlot | Sequence[BlockInputSlot]] = None,
+                 outputs: None | Mapping[str, BlockOutputSlot] = None):
         assert stage is not None, "Stage must be specified"
         assert inputs is not None, "Inputs must be specified"
         assert outputs is not None, "Outputs must be specified"
