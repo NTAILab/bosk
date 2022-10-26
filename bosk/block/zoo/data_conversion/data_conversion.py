@@ -3,7 +3,7 @@ from typing import List
 import numpy as np
 
 from bosk.block import BaseBlock, BlockInputData, TransformOutputData
-from bosk.util.util import make_simple_meta
+from bosk.block.meta import make_simple_meta
 
 
 class ConcatBlock(BaseBlock):
