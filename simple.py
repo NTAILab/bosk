@@ -16,7 +16,6 @@ from sklearn.datasets import make_moons
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
-from bosk.executor.painter import PipelinePainter
 
 
 @auto_block
@@ -583,13 +582,11 @@ def check_my_graph():
 
 def paint_my_graph():
     fit_executor, _ = my_graph()
-    painter = PipelinePainter(fit_executor.pipeline, fit_executor.inputs, fit_executor.outputs)
-    painter.draw()
+    fit_executor.draw('Mygraph')
 
 def paint_cs_graph():
     pipeline, fit_executor, transform_executor = make_deep_forest_functional_confidence_screening()
-    painter = PipelinePainter(pipeline, fit_executor.inputs, fit_executor.outputs)
-    painter.draw()
+    fit_executor.draw('Csgraph.pdf')
 
 
 def main():
