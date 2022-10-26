@@ -20,17 +20,14 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 import logging
 
-# TODO: change import source to the package root
-from pathlib import Path
-import sys
-sys.path.append(str((Path(__file__).parent.parent / "weighted_cs").absolute()))
-from simple import (
-    InputBlock, TargetInputBlock, RFCBlock, ETCBlock,
-    ConcatBlock, StackBlock, AverageBlock, ArgmaxBlock,
-    make_simple_meta,
-    BlockInputData, TransformOutputData,
-    RocAucBlock
+from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
+from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
+from bosk.block.zoo.data_conversion import (
+    ConcatBlock, StackBlock, AverageBlock, ArgmaxBlock
 )
+from bosk.block.base import BlockInputData, TransformOutputData
+from bosk.block.zoo.metrics import RocAucBlock
+from bosk.block.meta import make_simple_meta
 
 
 class InputEmbeddingBlock(BaseBlock):
@@ -223,6 +220,98 @@ class DynamicExecutor:
         return self._transform_executor(input_data)
 
 
+class EmptyGrower(BaseGrower):
+    def need_grow(self, *args, **kwargs) -> bool:
+        return False
+
+    def grow(self, *args, **kwargs) -> GrowingResult:
+        raise NotImplementedError()
+
+
+class EarlyStoppingGrower(BaseGrower):
+    def __init__(self, val_X, val_y, min_layers: int = 1, max_layers: int = 5):
+        self.min_layers = min_layers
+        self.max_layers = max_layers
+        self._layer_num = 0
+        self._prev_val_outputs = None
+        self._prev_val_score = None
+        self.val_X = val_X
+        self.val_y = val_y
+
+    def need_grow(self, cur_output_data: Mapping[str, Data], transform_executor: BaseExecutor) -> bool:
+        if self._layer_num >= self.max_layers:
+            return False
+        if self._layer_num == 0:
+            cur_input = {
+                'X': self.val_X,
+            }
+        else:
+            cur_input = {
+                'X': self._prev_val_outputs['X'],
+                'concat': self._prev_val_outputs['concat']
+            }
+        self._prev_val_outputs = transform_executor(cur_input)
+        score = roc_auc_score(self.val_y, self._prev_val_outputs['probas'][:, 1])
+        prev_score = self._prev_val_score
+        self._prev_val_score = score
+        if prev_score is None:
+            return True
+        if self._layer_num < self.min_layers:
+            return True
+        if score < prev_score:
+            logging.info(
+                'Stopping after %d iterations. Val scores: %lf -> %lf',
+                self._layer_num,
+                prev_score,
+                score
+            )
+            return False
+        return True
+
+    def grow(self, prev_layer_outputs: Mapping[str, BlockOutputSlot]) -> GrowingResult:
+        self._layer_num += 1
+
+        cur_input_x = InputEmbeddingBlock()
+        cur_input_embedding = InputEmbeddingBlock()
+        cur_input_y = TargetInputBlock()
+        cur_layer_pipeline, cur_layer_concat, cur_layer_average, cur_layer_roc_auc = make_df_layer(
+            cur_input_x,
+            cur_input_embedding,
+            cur_input_y
+        )
+        connections_extension = [
+            Connection(prev_layer_outputs['X'], cur_input_x.slots.inputs['X']),
+            Connection(prev_layer_outputs['y'], cur_input_y.slots.inputs['y']),
+            Connection(prev_layer_outputs['concat'], cur_input_embedding.slots.inputs['X']),
+        ]
+
+        return GrowingResult(
+            pipeline=cur_layer_pipeline,
+            fit_inputs={
+                'X': cur_input_x.slots.inputs['X'],
+                'y': cur_input_y.slots.inputs['y'],
+                'concat': cur_input_embedding.slots.inputs['X'],
+            },
+            transform_inputs={
+                'X': cur_input_x.slots.inputs['X'],
+                'concat': cur_input_embedding.slots.inputs['X'],
+            },
+            fit_outputs={
+                'X': cur_input_x.slots.outputs['output'],
+                'y': cur_input_y.slots.outputs['y'],
+                'concat': cur_layer_concat.slots.outputs['output'],
+                'probas': cur_layer_average.slots.outputs['output'],
+                'roc_auc': cur_layer_roc_auc.slots.outputs['roc-auc'],
+            },
+            transform_outputs={
+                'X': cur_input_x.slots.outputs['output'],
+                'concat': cur_layer_concat.slots.outputs['output'],
+                'probas': cur_layer_average.slots.outputs['output'],
+            },
+            connections_extension=connections_extension,
+        )
+
+
 def make_deep_forest_with_early_stopping(val_X, val_y) -> DynamicExecutor:
     input_x = InputEmbeddingBlock()
     input_y = TargetInputBlock()
@@ -236,99 +325,6 @@ def make_deep_forest_with_early_stopping(val_X, val_y) -> DynamicExecutor:
     )
     dynamic_pipeline.extend(layer_pipeline)
     cur_embedding = layer_concat
-
-
-    class EmptyGrower(BaseGrower):
-        def need_grow(self, *args, **kwargs) -> bool:
-            return False
-
-        def grow(self, *args, **kwargs) -> GrowingResult:
-            raise NotImplementedError()
-
-
-    class EarlyStoppingGrower(BaseGrower):
-        def __init__(self, val_X, val_y, min_layers: int = 1, max_layers: int = 5):
-            self.min_layers = min_layers
-            self.max_layers = max_layers
-            self._layer_num = 0
-            self._prev_val_outputs = None
-            self._prev_val_score = None
-            self.val_X = val_X
-            self.val_y = val_y
-
-        def need_grow(self, cur_output_data: Mapping[str, Data], transform_executor: BaseExecutor) -> bool:
-            if self._layer_num >= self.max_layers:
-                return False
-            if self._layer_num == 0:
-                cur_input = {
-                    'X': self.val_X,
-                }
-            else:
-                cur_input = {
-                    'X': self._prev_val_outputs['X'],
-                    'concat': self._prev_val_outputs['concat']
-                }
-            self._prev_val_outputs = transform_executor(cur_input)
-            score = roc_auc_score(self.val_y, self._prev_val_outputs['probas'][:, 1])
-            prev_score = self._prev_val_score
-            self._prev_val_score = score
-            if prev_score is None:
-                return True
-            if self._layer_num < self.min_layers:
-                return True
-            if score < prev_score:
-                logging.info(
-                    'Stopping after %d iterations. Val scores: %lf -> %lf',
-                    self._layer_num,
-                    prev_score,
-                    score
-                )
-                return False
-            return True
-
-        def grow(self, prev_layer_outputs: Mapping[str, BlockOutputSlot]) -> GrowingResult:
-            self._layer_num += 1
-
-            cur_input_x = InputEmbeddingBlock()
-            cur_input_embedding = InputEmbeddingBlock()
-            cur_input_y = TargetInputBlock()
-            cur_layer_pipeline, cur_layer_concat, cur_layer_average, cur_layer_roc_auc = make_df_layer(
-                cur_input_x,
-                cur_input_embedding,
-                cur_input_y
-            )
-            connections_extension = [
-                Connection(prev_layer_outputs['X'], cur_input_x.slots.inputs['X']),
-                Connection(prev_layer_outputs['y'], cur_input_y.slots.inputs['y']),
-                Connection(prev_layer_outputs['concat'], cur_input_embedding.slots.inputs['X']),
-            ]
-
-            return GrowingResult(
-                pipeline=cur_layer_pipeline,
-                fit_inputs={
-                    'X': cur_input_x.slots.inputs['X'],
-                    'y': cur_input_y.slots.inputs['y'],
-                    'concat': cur_input_embedding.slots.inputs['X'],
-                },
-                transform_inputs={
-                    'X': cur_input_x.slots.inputs['X'],
-                    'concat': cur_input_embedding.slots.inputs['X'],
-                },
-                fit_outputs={
-                    'X': cur_input_x.slots.outputs['output'],
-                    'y': cur_input_y.slots.outputs['y'],
-                    'concat': cur_layer_concat.slots.outputs['output'],
-                    'probas': cur_layer_average.slots.outputs['output'],
-                    'roc_auc': cur_layer_roc_auc.slots.outputs['roc-auc'],
-                },
-                transform_outputs={
-                    'X': cur_input_x.slots.outputs['output'],
-                    'concat': cur_layer_concat.slots.outputs['output'],
-                    'probas': cur_layer_average.slots.outputs['output'],
-                },
-                connections_extension=connections_extension,
-            )
-
 
     dynamic_executor = DynamicExecutor(
         dynamic_pipeline,
