@@ -5,6 +5,7 @@ from ..data import Data
 from .base import BaseExecutor
 from ..block.base import BaseBlock, BlockInputData, BlockOutputData
 from ..slot import BlockInputSlot, BlockOutputSlot
+import warnings
 
 
 InputSlotToDataMapping = Mapping[BlockInputSlot, Data]
@@ -49,7 +50,10 @@ class NaiveExecutor(BaseExecutor):
         slots_values: Dict[Union[BlockInputSlot, BlockOutputSlot], Data] = dict()
         # fill slots values
         for input_name, input_data in input_values.items():
-            input_or_inputs = self.inputs[input_name]
+            input_or_inputs = self.inputs.get(input_name, None)
+            if input_or_inputs is None:
+                warnings.warn('Input is ignored: "%s"' % input_name)
+                continue
             if isinstance(input_or_inputs, Sequence):
                 inputs = input_or_inputs
             else:
@@ -59,7 +63,7 @@ class NaiveExecutor(BaseExecutor):
 
         # recursively compute outputs
 
-        def _compute_output(out_slot: BlockOutputSlot):
+        def _compute_output(out_slot: BlockOutputSlot, dependent_nodes: list):
             assert isinstance(out_slot, BlockOutputSlot)
             if out_slot in slots_values:
                 return slots_values[out_slot]
@@ -86,7 +90,7 @@ class NaiveExecutor(BaseExecutor):
                     continue
                 assert len(connections) == 1, f'len(connections) == {len(connections)} for dst {input}'
                 conn = connections[0]
-                conn_value = _compute_output(conn.src)
+                conn_value = _compute_output(conn.src, dependent_nodes + [node])
                 slots_values[conn.src] = conn_value
                 slots_values[conn.dst] = conn_value
                 node_input_mapping[input] = conn_value
@@ -97,5 +101,5 @@ class NaiveExecutor(BaseExecutor):
 
         result = dict()
         for output_name, output_slot in self.outputs.items():
-            result[output_name] = _compute_output(output_slot)
+            result[output_name] = _compute_output(output_slot, [])
         return result
