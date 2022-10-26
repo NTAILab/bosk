@@ -37,6 +37,37 @@ class RocAucBlock(BaseBlock):
         }
 
 
+class RocAucMultiLabelBlock(BaseBlock):
+    meta = BlockMeta(
+        inputs=[
+            InputSlotMeta(
+                name='pred_probas',
+                stages=Stages(transform=False, transform_on_fit=True),
+            ),
+            InputSlotMeta(
+                name='gt_y',
+                stages=Stages(transform=False, transform_on_fit=True),
+            )
+        ],
+        outputs=[
+            OutputSlotMeta(
+                name='roc-auc',
+            )
+        ]
+    )
+
+    def __init__(self):
+        super().__init__()
+
+    def fit(self, _inputs: BlockInputData) -> 'RocAucMultiLabelBlock':
+        return self
+
+    def transform(self, inputs: BlockInputData) -> TransformOutputData:
+        return {
+            'roc-auc': roc_auc_score(inputs['gt_y'], inputs['pred_probas'], multi_class='ovr')
+        }
+
+
 class AccuracyBlock(BaseBlock):
     meta = BlockMeta(
         inputs=[

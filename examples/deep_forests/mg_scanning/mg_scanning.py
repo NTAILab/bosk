@@ -1,0 +1,229 @@
+"""Example of simple Multi-grained-scanning."""
+from typing import Callable, Optional
+
+import numpy as np
+
+from sklearn.datasets import load_iris, load_digits
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score
+from sklearn.ensemble import (
+    RandomForestClassifier,
+    ExtraTreesClassifier,
+)
+
+from bosk.block import BaseBlock
+from bosk.pipeline.base import BasePipeline, Connection
+from bosk.executor.naive import NaiveExecutor
+from bosk.stages import Stage
+from bosk.slot import BlockOutputSlot
+from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
+from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
+from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
+from bosk.block.zoo.metrics import RocAucMultiLabelBlock, AccuracyBlock, F1ScoreBlock
+from bosk.block.zoo.routing import CSBlock, CSJoinBlock, CSFilterBlock
+from bosk.block.zoo.multi_grained_scanning import \
+    (MultiGrainedScanning1DBlock, MultiGrainedScanning2DBlock)
+
+
+class FunctionalBlockWrapper:
+    def __init__(self, block: BaseBlock, output_name: Optional[str] = None):
+        self.block = block
+        self.output_name = output_name
+
+    def get_input_slot(self, slot_name: Optional[str] = None):
+        if slot_name is None:
+            if len(self.block.slots.inputs) == 1:
+                return list(self.block.slots.inputs.values())[0]
+            else:
+                raise RuntimeError('Block has more than one input (please, specify it)')
+        return self.block.meta.inputs[slot_name]
+
+    def get_output_slot(self) -> BlockOutputSlot:
+        if self.output_name is None:
+            if len(self.block.slots.outputs) == 1:
+                return list(self.block.slots.outputs.values())[0]
+            else:
+                raise RuntimeError('Block has more than one output')
+        return self.block.slots.outputs[self.output_name]
+
+    def __getitem__(self, output_name: str):
+        return FunctionalBlockWrapper(self.block, output_name=output_name)
+
+
+class FunctionalBuilder:
+    def __init__(self):
+        self.nodes = []
+        self.connections = []
+
+    def __getattr__(self, name: str) -> Callable:
+        block_name = name + 'Block'
+        block_cls = globals().get(block_name, None)
+        if block_cls is None:
+            raise ValueError(f'Wrong block class: {name} ({block_name} not found)')
+        return self._get_block_init(block_cls)
+
+    def _get_block_init(self, block_cls: Callable) -> Callable:
+        def block_init(*args, **kwargs):
+            block = block_cls(*args, **kwargs)
+            self.nodes.append(block)
+
+            def placeholder_fn(*pfn_args, **pfn_kwargs):
+                assert len(pfn_args) == 0, "Only kwargs are supported"
+                for input_name, input_block_wrapper in pfn_kwargs.items():
+                    self.connections.append(
+                        Connection(
+                            src=input_block_wrapper.get_output_slot(),
+                            dst=block.slots.inputs[input_name],
+                        )
+                    )
+                return FunctionalBlockWrapper(block)
+
+            return placeholder_fn
+
+        return block_init
+
+    def new(self, block_cls: Callable, *args, **kwargs) -> Callable:
+        return self._get_block_init(block_cls)(*args, **kwargs)
+
+    @property
+    def pipeline(self) -> BasePipeline:
+        return BasePipeline(self.nodes, self.connections)
+
+
+def make_deep_forest_functional_multi_grained_scanning_1d():
+    b = FunctionalBuilder()
+    seed_value = 42
+    X, y = b.Input()(), b.TargetInput()()
+    ms = b.new(MultiGrainedScanning1DBlock, models=(RandomForestClassifier(random_state=seed_value),
+                                                    ExtraTreesClassifier(random_state=seed_value)),
+               window_size=2, stride=1)(X=X, y=y)
+    rf_1 = b.RFC(seed=seed_value)(X=ms, y=y)
+    et_1 = b.ETC(seed=seed_value)(X=ms, y=y)
+    concat_1 = b.Concat(['ms', 'rf_1', 'et_1'])(ms=ms, rf_1=rf_1, et_1=et_1)
+    rf_2 = b.RFC(seed=seed_value)(X=concat_1, y=y)
+    et_2 = b.ETC(seed=seed_value)(X=concat_1, y=y)
+    concat_2 = b.Concat(['ms', 'rf_2', 'et_2'])(ms=ms, rf_2=rf_2, et_2=et_2)
+    rf_3 = b.RFC(seed=seed_value)(X=concat_2, y=y)
+    et_3 = b.ETC(seed=seed_value)(X=concat_2, y=y)
+    stack_3 = b.Stack(['rf_3', 'et_3'], axis=1)(rf_3=rf_3, et_3=et_3)
+    average_3 = b.Average(axis=1)(X=stack_3)
+    argmax_3 = b.Argmax(axis=1)(X=average_3)
+    #
+    rf_1_roc_auc = b.RocAucMultiLabel()(gt_y=y, pred_probas=rf_1)
+    roc_auc = b.RocAucMultiLabel()(gt_y=y, pred_probas=average_3)
+
+    fit_executor = NaiveExecutor(
+        b.pipeline,
+        stage=Stage.FIT,
+        inputs={
+            'X': X.get_input_slot(),
+            'y': y.get_input_slot(),
+        },
+        outputs={
+            'probas': average_3.get_output_slot(),
+            'rf_1_roc-auc': rf_1_roc_auc.get_output_slot(),
+            'roc-auc': roc_auc.get_output_slot(),
+        },
+    )
+    transform_executor = NaiveExecutor(
+        b.pipeline,
+        stage=Stage.TRANSFORM,
+        inputs={
+            'X': X.get_input_slot()
+        },
+        outputs={
+            'probas': average_3.get_output_slot(),
+            'labels': argmax_3.get_output_slot(),
+        },
+    )
+    return b.pipeline, fit_executor, transform_executor
+
+
+def make_deep_forest_functional_multi_grained_scanning_2d():
+    b = FunctionalBuilder()
+    seed_value = 42
+    X, y = b.Input()(), b.TargetInput()()
+    ms = b.new(MultiGrainedScanning2DBlock, models=(RandomForestClassifier(random_state=seed_value),
+                                                    ExtraTreesClassifier(random_state=seed_value)),
+               window_size=4, stride=1, shape_sample=[8, 8])(X=X, y=y)
+    rf_1 = b.RFC(seed=seed_value)(X=ms, y=y)
+    et_1 = b.ETC(seed=seed_value)(X=ms, y=y)
+    concat_1 = b.Concat(['ms', 'rf_1', 'et_1'])(ms=ms, rf_1=rf_1, et_1=et_1)
+    rf_2 = b.RFC(seed=seed_value)(X=concat_1, y=y)
+    et_2 = b.ETC(seed=seed_value)(X=concat_1, y=y)
+    concat_2 = b.Concat(['ms', 'rf_2', 'et_2'])(ms=ms, rf_2=rf_2, et_2=et_2)
+    rf_3 = b.RFC(seed=seed_value)(X=concat_2, y=y)
+    et_3 = b.ETC(seed=seed_value)(X=concat_2, y=y)
+    stack_3 = b.Stack(['rf_3', 'et_3'], axis=1)(rf_3=rf_3, et_3=et_3)
+    average_3 = b.Average(axis=1)(X=stack_3)
+    argmax_3 = b.Argmax(axis=1)(X=average_3)
+    #
+    rf_1_roc_auc = b.RocAucMultiLabel()(gt_y=y, pred_probas=rf_1)
+    roc_auc = b.RocAucMultiLabel()(gt_y=y, pred_probas=average_3)
+
+    fit_executor = NaiveExecutor(
+        b.pipeline,
+        stage=Stage.FIT,
+        inputs={
+            'X': X.get_input_slot(),
+            'y': y.get_input_slot(),
+        },
+        outputs={
+            'probas': average_3.get_output_slot(),
+            'rf_1_roc-auc': rf_1_roc_auc.get_output_slot(),
+            'roc-auc': roc_auc.get_output_slot(),
+        },
+    )
+    transform_executor = NaiveExecutor(
+        b.pipeline,
+        stage=Stage.TRANSFORM,
+        inputs={
+            'X': X.get_input_slot()
+        },
+        outputs={
+            'probas': average_3.get_output_slot(),
+            'labels': argmax_3.get_output_slot(),
+        },
+    )
+    return b.pipeline, fit_executor, transform_executor
+
+
+def example_iris_dataset():
+    print("1D:")
+    _, fit_executor, transform_executor = make_deep_forest_functional_multi_grained_scanning_1d()
+    iris = load_iris()
+    all_X = iris.data
+    all_y = iris.target
+    train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
+    fit_result = fit_executor({'X': train_X, 'y': train_y})
+    print("Fit successful")
+    train_result = transform_executor({'X': train_X})
+    print("Fit probas == probas on train:", np.allclose(fit_result['probas'], train_result['probas']))
+    test_result = transform_executor({'X': test_X})
+    print(train_result.keys())
+    print("Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'], multi_class="ovr"))
+
+
+def example_digits_dataset():
+    print("2D:")
+    _, fit_executor, transform_executor = make_deep_forest_functional_multi_grained_scanning_2d()
+    digits = load_digits()
+    all_X = digits.data
+    all_y = digits.target
+    train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
+    fit_result = fit_executor({'X': train_X, 'y': train_y})
+    print("Fit successful")
+    train_result = transform_executor({'X': train_X})
+    print("Fit probas == probas on train:", np.allclose(fit_result['probas'], train_result['probas']))
+    test_result = transform_executor({'X': test_X})
+    print(train_result.keys())
+    print("Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'], multi_class="ovr"))
+
+
+def main():
+    example_iris_dataset()
+    example_digits_dataset()
+
+
+if __name__ == "__main__":
+    main()
