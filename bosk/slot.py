@@ -3,7 +3,6 @@ from typing import List, Mapping, TypeVar
 from .stages import Stages
 
 
-
 @dataclass(eq=True, frozen=True)
 class BaseSlotMeta:
     """Base slot meta information.
@@ -86,10 +85,10 @@ def list_of_slots_to_mapping(slots_list: List[SlotT]) -> Mapping[str, SlotT]:
 
     """
     raise NotImplementedError()
-    return {
-        slot.name: slot
-        for slot in slots_list
-    }
+    # return {
+    #     slot.name: slot
+    #     for slot in slots_list
+    # }
 
 def list_of_slots_meta_to_mapping(slots_meta_list: List[SlotMetaT]) -> Mapping[str, SlotMetaT]:
     """Convert list of slots meta to mapping (name -> slot meta).
