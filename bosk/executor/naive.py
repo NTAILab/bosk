@@ -228,19 +228,31 @@ class LessNaiveExecutor(BaseExecutor):
             result[output_name] = slots_values[output_slot]
         return result
         
-    def draw(self, output_name):
+    def draw(self, output_name, levels_sep=1.0, dpi=150):
         conn_dict = dict() #Mapping[BlockInputSlot, BlockOutputSlot] # Input to output
         backward_aj_list = defaultdict(set) # Block to block
         
-        # fill ajacency lists
+        # will be rewritten after merge with the main branch
         for conn in self.pipeline.connections:
             assert(conn.dst not in conn_dict), f"Input slot {conn.dst.name} (id {hash(conn.dst)}) is used more than once"
             conn_dict[conn.dst] = conn.src
             backward_aj_list[conn.dst.parent_block].add(conn.src.parent_block)
 
-        g = gv.Digraph('DeepForestGraph', filename='DeepForestGraph',
-                     node_attr={'shape': 'record'})
-        g.attr(rankdir='LR')
+
+        output_blocks = [slot.parent_block for slot in self.outputs.values()]
+        backward_pass = self.__dfs(backward_aj_list, output_blocks)
+        
+        aj_list = defaultdict(set) # Block to block
+        for conn in self.pipeline.connections:
+            if conn.src.parent_block in backward_pass and conn.dst.parent_block in backward_pass:
+                aj_list[conn.src.parent_block].add(conn.dst.parent_block)
+        input_blocks = set([slot.parent_block for slot in self.inputs.values()])
+        forward_pass = self.__dfs(aj_list, input_blocks)
+        used_blocks = backward_pass & forward_pass
+
+
+        g = gv.Digraph('DeepForestGraph', renderer='cairo', formatter='cairo', node_attr={'shape': 'record'})
+        g.attr(rankdir='LR', ranksep=str(levels_sep), dpi=str(dpi))
 
         for block in self.pipeline.nodes:
             inputs = block.meta.inputs
@@ -248,25 +260,44 @@ class LessNaiveExecutor(BaseExecutor):
             inputs_info = '|'.join([f'<i{hash(slot)}> {name}' for name, slot in inputs.items()])
             outputs_info = '|'.join([f'<o{hash(slot)}> {name}' for name, slot in outputs.items()])
             block_name = block.name if hasattr(block, 'name') else block.__class__.__name__
-            g.node(f'block{id(block)}', f'{block_name}|{{{{{inputs_info}}}|{{{outputs_info}}}}}')
-        for inSlot, outSlot in conn_dict.items():
-            g.edge(f'block{id(outSlot.parent_block)}:o{hash(outSlot)}', f'block{id(inSlot.parent_block)}:i{hash(inSlot)}')
+            node_style = 'dashed' if block not in used_blocks else ''
+            g.node(f'block{id(block)}', f'{block_name}|{{{{{inputs_info}}}|{{{outputs_info}}}}}', style=node_style)
+        for inp_slot, out_slot in conn_dict.items():
+            edge_style = 'dashed' if not is_input_slot_required(self.stage, inp_slot) else ''
+            g.edge(f'block{id(out_slot.parent_block)}:o{hash(out_slot)}', f'block{id(inp_slot.parent_block)}:i{hash(inp_slot)}', style=edge_style)
         
         for inp_name, inp_slots in self.inputs.items():
             g.node(f'inp_{inp_name}', f'<I_{inp_name}> Input "{inp_name}"', color='red')
+            f_node_needed = False
             if not isinstance(inp_slots, Iterable):
                 inp_slots = [inp_slots]
             for slot in inp_slots:
-                g.edge(f'inp_{inp_name}:I_{inp_name}', f'block{id(slot.parent_block)}:i{hash(slot)}')
+                if is_input_slot_required(self.stage, slot):
+                    edge_style = ''
+                    f_node_needed = True
+                else:
+                    edge_style = 'dashed'
+                g.edge(f'inp_{inp_name}:I_{inp_name}', f'block{id(slot.parent_block)}:i{hash(slot)}', style=edge_style)
+            node_style = '' if f_node_needed else 'dashed'
+            g.node(f'inp_{inp_name}', style=node_style)
+            
         
         for out_name, out_slots in self.outputs.items():
             g.node(f'out_{out_name}', f'<O_{out_name}> Output "{out_name}"', color='red')
+            f_node_needed = False
             if not isinstance(out_slots, Iterable):
                 out_slots = [out_slots]
             for slot in out_slots:
+                if is_input_slot_required(self.stage, slot):
+                    edge_style = ''
+                    f_node_needed = True
+                else:
+                    edge_style = 'dashed'
                 g.edge(f'block{id(slot.parent_block)}:o{hash(slot)}', f'out_{out_name}:O_{out_name}')
+            node_style = '' if f_node_needed else 'dashed'
+            g.node(f'out_{out_name}', style=node_style)
         
-        g.render(outfile=output_name, cleanup=True, renderer='cairo', formatter='cairo')
+        g.render(outfile=output_name, cleanup=True)
 
 
 

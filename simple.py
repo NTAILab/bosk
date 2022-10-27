@@ -586,7 +586,8 @@ def paint_my_graph():
 
 def paint_cs_graph():
     pipeline, fit_executor, transform_executor = make_deep_forest_functional_confidence_screening()
-    fit_executor.draw('Csgraph.pdf')
+    fit_executor.draw('Csgraph_fit.png', dpi=300)
+    transform_executor.draw('Csgraph_transform.png', dpi=300)
 
 
 def main():
