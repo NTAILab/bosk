@@ -92,19 +92,19 @@ class FunctionalBuilder:
 
 def make_deep_forest_functional_multi_grained_scanning_1d():
     b = FunctionalBuilder()
-    seed_value = 42
+    random_state_value = 42
     X, y = b.Input()(), b.TargetInput()()
-    ms = b.new(MultiGrainedScanning1DBlock, models=(RandomForestClassifier(random_state=seed_value),
-                                                    ExtraTreesClassifier(random_state=seed_value)),
+    ms = b.new(MultiGrainedScanning1DBlock, models=(RandomForestClassifier(random_state=random_state_value),
+                                                    ExtraTreesClassifier(random_state=random_state_value)),
                window_size=2, stride=1)(X=X, y=y)
-    rf_1 = b.RFC(seed=seed_value)(X=ms, y=y)
-    et_1 = b.ETC(seed=seed_value)(X=ms, y=y)
+    rf_1 = b.RFC(random_state=random_state_value)(X=ms, y=y)
+    et_1 = b.ETC(random_state=random_state_value)(X=ms, y=y)
     concat_1 = b.Concat(['ms', 'rf_1', 'et_1'])(ms=ms, rf_1=rf_1, et_1=et_1)
-    rf_2 = b.RFC(seed=seed_value)(X=concat_1, y=y)
-    et_2 = b.ETC(seed=seed_value)(X=concat_1, y=y)
+    rf_2 = b.RFC(random_state=random_state_value)(X=concat_1, y=y)
+    et_2 = b.ETC(random_state=random_state_value)(X=concat_1, y=y)
     concat_2 = b.Concat(['ms', 'rf_2', 'et_2'])(ms=ms, rf_2=rf_2, et_2=et_2)
-    rf_3 = b.RFC(seed=seed_value)(X=concat_2, y=y)
-    et_3 = b.ETC(seed=seed_value)(X=concat_2, y=y)
+    rf_3 = b.RFC(random_state=random_state_value)(X=concat_2, y=y)
+    et_3 = b.ETC(random_state=random_state_value)(X=concat_2, y=y)
     stack_3 = b.Stack(['rf_3', 'et_3'], axis=1)(rf_3=rf_3, et_3=et_3)
     average_3 = b.Average(axis=1)(X=stack_3)
     argmax_3 = b.Argmax(axis=1)(X=average_3)
@@ -141,19 +141,19 @@ def make_deep_forest_functional_multi_grained_scanning_1d():
 
 def make_deep_forest_functional_multi_grained_scanning_2d():
     b = FunctionalBuilder()
-    seed_value = 42
+    random_state_value = 42
     X, y = b.Input()(), b.TargetInput()()
-    ms = b.new(MultiGrainedScanning2DBlock, models=(RandomForestClassifier(random_state=seed_value),
-                                                    ExtraTreesClassifier(random_state=seed_value)),
+    ms = b.new(MultiGrainedScanning2DBlock, models=(RandomForestClassifier(random_state=random_state_value),
+                                                    ExtraTreesClassifier(random_state=random_state_value)),
                window_size=4, stride=1, shape_sample=[8, 8])(X=X, y=y)
-    rf_1 = b.RFC(seed=seed_value)(X=ms, y=y)
-    et_1 = b.ETC(seed=seed_value)(X=ms, y=y)
+    rf_1 = b.RFC(random_state=random_state_value)(X=ms, y=y)
+    et_1 = b.ETC(random_state=random_state_value)(X=ms, y=y)
     concat_1 = b.Concat(['ms', 'rf_1', 'et_1'])(ms=ms, rf_1=rf_1, et_1=et_1)
-    rf_2 = b.RFC(seed=seed_value)(X=concat_1, y=y)
-    et_2 = b.ETC(seed=seed_value)(X=concat_1, y=y)
+    rf_2 = b.RFC(random_state=random_state_value)(X=concat_1, y=y)
+    et_2 = b.ETC(random_state=random_state_value)(X=concat_1, y=y)
     concat_2 = b.Concat(['ms', 'rf_2', 'et_2'])(ms=ms, rf_2=rf_2, et_2=et_2)
-    rf_3 = b.RFC(seed=seed_value)(X=concat_2, y=y)
-    et_3 = b.ETC(seed=seed_value)(X=concat_2, y=y)
+    rf_3 = b.RFC(random_state=random_state_value)(X=concat_2, y=y)
+    et_3 = b.ETC(random_state=random_state_value)(X=concat_2, y=y)
     stack_3 = b.Stack(['rf_3', 'et_3'], axis=1)(rf_3=rf_3, et_3=et_3)
     average_3 = b.Average(axis=1)(X=stack_3)
     argmax_3 = b.Argmax(axis=1)(X=average_3)

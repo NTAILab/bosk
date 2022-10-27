@@ -2,7 +2,7 @@ from bosk.block import BaseBlock, BlockInputData, TransformOutputData
 from bosk.stages import Stages
 from bosk.block import BlockMeta
 from bosk.slot import InputSlotMeta, OutputSlotMeta
-from bosk.util.util import make_simple_meta
+from bosk.block.meta import make_simple_meta
 
 
 class InputBlock(BaseBlock):
