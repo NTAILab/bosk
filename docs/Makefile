@@ -15,12 +15,12 @@ help:
 .PHONY: help Makefile clean
 
 clean:
-	rm _module_list.inc
+	rm api.rst
 
-_module_list.inc:
-	python make_module_list.py
+api.rst:
+	python make_api.py
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
-%: Makefile _module_list.inc
+%: Makefile api.rst
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

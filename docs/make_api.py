@@ -2,7 +2,9 @@ import pkgutil
 from pathlib import Path
 
 
-HEADING = """
+HEADING = """API
+===
+
 .. autosummary::
     :toctree: _autosummary
     :recursive:
@@ -33,9 +35,10 @@ def import_submodules_contents(module_path, base_name: str = ''):
 def make_module_list(package_dir, output_file):
     with open(output_file, 'w') as outf:
         outf.write(HEADING)
-        modules = import_submodules_contents(package_dir, '')
+        DISCARD = {'setup'}
+        modules = filter(lambda x: x not in DISCARD, import_submodules_contents(package_dir, ''))
         outf.write('\n'.join(map(lambda x: ' ' * 4 + x, modules)))
 
 
 if __name__ == "__main__":
-    make_module_list("..", "_module_list.inc")
+    make_module_list("..", "api.rst")
