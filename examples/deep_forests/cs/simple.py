@@ -1,4 +1,4 @@
-"""Example of simple Adaptive Weighted Deep Forest definition.
+"""Example of simple Confidence Screening Deep Forest definition.
 
 """
 from typing import Callable, Optional
@@ -19,7 +19,6 @@ from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBloc
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
 from bosk.block.zoo.metrics import RocAucBlock, AccuracyBlock, F1ScoreBlock
 from bosk.block.zoo.routing import CSBlock, CSJoinBlock, CSFilterBlock
-from bosk.block.zoo.data_weighting import WeightsBlock
 
 
 def make_deep_forest():
@@ -245,9 +244,7 @@ def make_deep_forest_functional_confidence_screening():
     average_2 = make_deep_forest_layer(b, X=concat_all_1, y=filtered_1_y)
     concat_2 = b.Concat(['X', 'average_2'])(X=filtered_1['X'], average_2=average_2)
 
-    sample_weight_2 = b.new(WeightsBlock, ord=2)(X=average_2, y=filtered_1_y)
-
-    average_3 = make_deep_forest_layer(b, X=concat_2, y=filtered_1_y, sample_weight=sample_weight_2)
+    average_3 = make_deep_forest_layer(b, X=concat_2, y=filtered_1_y)
 
     # join confident samples with screened out ones
     joined_3 = b.CSJoin()(
@@ -289,9 +286,9 @@ def make_deep_forest_functional_confidence_screening():
 
 
 def main():
-    # _pipeline, fit_executor, transform_executor = make_deep_forest()
-    # _pipeline, fit_executor, transform_executor = make_deep_forest_functional()
-    _pipeline, fit_executor, transform_executor = make_deep_forest_functional_confidence_screening()
+    # _, fit_executor, transform_executor = make_deep_forest()
+    _, fit_executor, transform_executor = make_deep_forest_functional()
+    # _, fit_executor, transform_executor = make_deep_forest_functional_confidence_screening()
 
     all_X, all_y = make_moons(noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)

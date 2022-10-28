@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Sequence
 from .connection import Connection
-# from ..block.slot import BlockInputSlot, BlockOutputSlot
-from ..block.base import BaseBlock, BlockInputSlot, BlockOutputSlot
+from ..slot import BlockInputSlot, BlockOutputSlot
+from ..block.base import BaseBlock
 
 
 @dataclass
@@ -31,5 +31,3 @@ class BasePipeline:
             if dst is not None and conn.dst == dst:
                 results.append(conn)
         return results
-
-

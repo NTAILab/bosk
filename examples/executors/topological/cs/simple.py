@@ -1,6 +1,7 @@
-"""Example of simple Adaptive Weighted Deep Forest definition.
+"""Example of simple Confidence Screening Deep Forest definition.
 
 """
+from collections import defaultdict
 from typing import Callable, Optional
 
 import numpy as np
@@ -12,6 +13,7 @@ from sklearn.metrics import roc_auc_score
 from bosk.block import BaseBlock
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.executor.naive import NaiveExecutor
+from bosk.executor.topological import TopologicalExecutor
 from bosk.stages import Stage
 from bosk.slot import BlockOutputSlot
 from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
@@ -19,10 +21,9 @@ from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBloc
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
 from bosk.block.zoo.metrics import RocAucBlock, AccuracyBlock, F1ScoreBlock
 from bosk.block.zoo.routing import CSBlock, CSJoinBlock, CSFilterBlock
-from bosk.block.zoo.data_weighting import WeightsBlock
 
 
-def make_deep_forest():
+def make_deep_forest(executor):
     input_x = InputBlock()
     input_y = TargetInputBlock()
     rf_1 = RFCBlock(random_state=42)
@@ -79,7 +80,7 @@ def make_deep_forest():
         ]
     )
 
-    fit_executor = NaiveExecutor(
+    fit_executor = executor(
         pipeline,
         stage=Stage.FIT,
         inputs={
@@ -88,7 +89,7 @@ def make_deep_forest():
         },
         outputs={'probas': average_3.meta.outputs['output']},
     )
-    transform_executor = NaiveExecutor(
+    transform_executor = executor(
         pipeline,
         stage=Stage.TRANSFORM,
         inputs={'X': input_x.meta.inputs['X']},
@@ -98,7 +99,6 @@ def make_deep_forest():
         },
     )
     return pipeline, fit_executor, transform_executor
-
 
 class FunctionalBlockWrapper:
     def __init__(self, block: BaseBlock, output_name: Optional[str] = None):
@@ -165,7 +165,7 @@ class FunctionalBuilder:
         return BasePipeline(self.nodes, self.connections)
 
 
-def make_deep_forest_functional():
+def make_deep_forest_functional(executor):
     b = FunctionalBuilder()
     X, y = b.Input()(), b.TargetInput()()
     rf_1 = b.RFC(random_state=42)(X=X, y=y)
@@ -183,7 +183,7 @@ def make_deep_forest_functional():
     rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
     roc_auc = b.RocAuc()(gt_y=y, pred_probas=average_3)
 
-    fit_executor = NaiveExecutor(
+    fit_executor = executor(
         b.pipeline,
         stage=Stage.FIT,
         inputs={
@@ -196,7 +196,7 @@ def make_deep_forest_functional():
             'roc-auc': roc_auc.get_output_slot(),
         },
     )
-    transform_executor = NaiveExecutor(
+    transform_executor = executor(
         b.pipeline,
         stage=Stage.TRANSFORM,
         inputs={
@@ -218,7 +218,7 @@ def make_deep_forest_layer(b, **inputs):
     return average
 
 
-def make_deep_forest_functional_confidence_screening():
+def make_deep_forest_functional_confidence_screening(executor):
     b = FunctionalBuilder()
     X, y = b.Input()(), b.TargetInput()()
     rf_1 = b.RFC(random_state=42)(X=X, y=y)
@@ -245,9 +245,7 @@ def make_deep_forest_functional_confidence_screening():
     average_2 = make_deep_forest_layer(b, X=concat_all_1, y=filtered_1_y)
     concat_2 = b.Concat(['X', 'average_2'])(X=filtered_1['X'], average_2=average_2)
 
-    sample_weight_2 = b.new(WeightsBlock, ord=2)(X=average_2, y=filtered_1_y)
-
-    average_3 = make_deep_forest_layer(b, X=concat_2, y=filtered_1_y, sample_weight=sample_weight_2)
+    average_3 = make_deep_forest_layer(b, X=concat_2, y=filtered_1_y)
 
     # join confident samples with screened out ones
     joined_3 = b.CSJoin()(
@@ -261,7 +259,7 @@ def make_deep_forest_functional_confidence_screening():
     rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
     roc_auc = b.RocAuc()(gt_y=y, pred_probas=joined_3)
 
-    fit_executor = NaiveExecutor(
+    fit_executor = executor(
         b.pipeline,
         stage=Stage.FIT,
         inputs={
@@ -274,7 +272,7 @@ def make_deep_forest_functional_confidence_screening():
             'roc-auc': roc_auc.get_output_slot(),
         },
     )
-    transform_executor = NaiveExecutor(
+    transform_executor = executor(
         b.pipeline,
         stage=Stage.TRANSFORM,
         inputs={
@@ -289,28 +287,53 @@ def make_deep_forest_functional_confidence_screening():
 
 
 def main():
-    # _pipeline, fit_executor, transform_executor = make_deep_forest()
-    # _pipeline, fit_executor, transform_executor = make_deep_forest_functional()
-    _pipeline, fit_executor, transform_executor = make_deep_forest_functional_confidence_screening()
+    # _, fit_executor, transform_executor = make_deep_forest()
+    # _, fit_executor, transform_executor = make_deep_forest_functional()
+    test_forest_factory = make_deep_forest_functional
 
-    all_X, all_y = make_moons(noise=0.5, random_state=42)
-    train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    fit_result = fit_executor({'X': train_X, 'y': train_y})
-    print("Fit successful")
-    train_result = transform_executor({'X': train_X})
-    print("Fit probas == probas on train:", np.allclose(fit_result['probas'], train_result['probas']))
-    test_result = transform_executor({'X': test_X})
-    print(train_result.keys())
-    print("Train ROC-AUC:", roc_auc_score(train_y, train_result['probas'][:, 1]))
-    print(
-        "Train ROC-AUC calculated by fit_executor:",
-        fit_result['roc-auc']
-    )
-    print(
-        "Train ROC-AUC for RF_1:",
-        fit_result['rf_1_roc-auc']
-    )
-    print("Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'][:, 1]))
+    score_dict = defaultdict(list)
+
+    for name, executor in [('naive', NaiveExecutor), ('topological', TopologicalExecutor)]:
+        print(f'--- Using of the {name} executor ---')
+        _, fit_executor, transform_executor = test_forest_factory(executor)
+
+        all_X, all_y = make_moons(noise=0.5, random_state=42)
+        train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
+        fit_result = fit_executor({'X': train_X, 'y': train_y})
+        print("Fit successful")
+        train_result = transform_executor({'X': train_X})
+        score_dict["Fit probas == probas on train"].append(np.allclose(fit_result['probas'], train_result['probas']))
+        print("Fit probas == probas on train:", score_dict["Fit probas == probas on train"][-1])
+        test_result = transform_executor({'X': test_X})
+        print(train_result.keys())
+        score_dict["Train ROC-AUC"].append(roc_auc_score(train_y, train_result['probas'][:, 1]))
+        print("Train ROC-AUC:", score_dict["Train ROC-AUC"][-1])
+        score_dict["Train ROC-AUC calculated by fit_executor"].append(fit_result['roc-auc'])
+        print(
+            "Train ROC-AUC calculated by fit_executor:",
+            score_dict["Train ROC-AUC calculated by fit_executor"][-1]
+        )
+        score_dict["Train ROC-AUC for RF_1"].append(fit_result['roc-auc'])
+        print(
+            "Train ROC-AUC for RF_1:",
+            score_dict["Train ROC-AUC for RF_1"][-1]
+        )
+        score_dict["Test ROC-AUC"].append(roc_auc_score(test_y, test_result['probas'][:, 1]))
+        print("Test ROC-AUC:", score_dict["Test ROC-AUC"][-1])
+
+        if executor is TopologicalExecutor:
+            print('Drawing the graphs for fit and transform executors')
+            fit_executor.draw('Graph_fit.png', dpi=300)
+            transform_executor.draw('Graph_transform.png', dpi=300)
+    
+    print('Check the scores diff for executor:')
+    tol = 10 ** -6
+    passed = True
+    for key, val in score_dict.items():
+        res = all([abs(score - val[0]) < tol for score in val])
+        passed *= res
+        print(key, 'score:', 'pass' if res else 'fail')
+    print('Test', 'successful' if passed else 'failed')
 
 
 if __name__ == "__main__":

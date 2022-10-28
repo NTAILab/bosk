@@ -1,13 +1,10 @@
 from abc import ABC, abstractmethod, abstractproperty
-from typing import Mapping, TypeVar, List
-from dataclasses import dataclass
+from typing import Mapping, TypeVar
 
-# from .meta import BlockMeta
+from .meta import BlockMeta
 from ..data import Data
-# from .slot import BlockOutputSlot, BlockInputSlot
+from ..slot import BlockInputSlot, BlockOutputSlot, BlockSlots
 from ..stages import Stages
-
-
 
 
 BlockT = TypeVar('BlockT', bound='BaseBlock')
@@ -28,11 +25,11 @@ TransformOutputData = Mapping[str, Data]
 It is indexed by output slot names.
 """
 
-# BlockOutputData = Mapping[BlockOutputSlot, Data]
-# """Block output values container data type.
+BlockOutputData = Mapping[BlockOutputSlot, Data]
+"""Block output values container data type.
 
-# It is indexed by output slots, not their names.
-# """
+It is indexed by output slots, not their names.
+"""
 
 
 class BaseBlock(ABC):
@@ -42,6 +39,23 @@ class BaseBlock(ABC):
         meta: Meta information of the block.
 
     """
+    def __init__(self):
+        super().__init__()
+        self.slots = self._make_slots()
+
+    def _make_slots(self):
+        """Make slots"""
+        return BlockSlots(
+            inputs={
+                name: BlockInputSlot(meta=input_slot_meta)
+                for name, input_slot_meta in self.meta.inputs.items()
+            },
+            outputs={
+                name: BlockOutputSlot(meta=output_slot_meta)
+                for name, output_slot_meta in self.meta.outputs.items()
+            },
+        )
+
     @property
     @abstractmethod
     def meta(self):
@@ -79,7 +93,7 @@ class BaseBlock(ABC):
 
         """
 
-    def wrap(self, output_values: Mapping[str, Data]):# -> BlockOutputData: # change was made!
+    def wrap(self, output_values: Mapping[str, Data]) -> BlockOutputData:
         """Wrap outputs dictionary into ``BlockOutputs`` object.
 
         Args:
@@ -90,92 +104,6 @@ class BaseBlock(ABC):
 
         """
         return {
-            self.meta.outputs[slot_name]: value
+            self.slots.outputs[slot_name]: value
             for slot_name, value in output_values.items()
         }
-
-    def make_simple_meta(self, input_names: List[str], output_names: List[str]):
-        return BlockMeta(
-            inputs=[
-                BlockInputSlot(name=name, parent_block=self)
-                for name in input_names
-            ],
-            outputs=[
-                BlockOutputSlot(name=name, parent_block=self)
-                for name in output_names
-            ]
-        )
-
-
-@dataclass(eq=False, frozen=False)
-class BaseSlot:
-    """Base slot.
-
-    Slot is a named placeholder for data.
-
-    Attributes:
-        name: Slot name.
-        stages: At which stages slot value is needed.
-        debug_info: Debugging info.
-
-    """
-    # suggestion
-    parent_block: BaseBlock # I had to refactor files because of the circular dependency problem
-
-    name: str
-    stages: Stages = Stages()
-    debug_info: str = ""
-
-
-    def __hash__(self) -> int:
-        return id(self)
-
-
-@dataclass(eq=False, frozen=False)
-class BlockInputSlot(BaseSlot):
-    """Block input slot.
-
-    Contains the information required for the input data processing, and input-output matching.
-    """
-
-
-
-@dataclass(eq=False, frozen=False)
-class BlockOutputSlot(BaseSlot):
-    """Block output slot.
-
-    Contains the information about the output data for input-output matching.
-    """
-
-
-SlotT = TypeVar('SlotT', bound=BaseSlot)
-"""Slot generic typevar.
-"""
-
-
-def list_of_slots_to_mapping(slots_list: List[SlotT]) -> Mapping[str, SlotT]:
-    """Convert list of slots to mapping (name -> slot).
-
-    Args:
-        slots_list: List of slots.
-
-    Returns:
-        Mapping dict (name -> slot).
-
-    """
-    return {
-        slot.name: slot
-        for slot in slots_list
-    }
-
-
-@dataclass(init=False)
-class BlockMeta:
-    inputs: Mapping[str, BlockInputSlot]
-    outputs: Mapping[str, BlockOutputSlot]
-
-    def __init__(self, *, inputs=None, outputs=None):
-        assert inputs is not None, 'Meta inputs description is required'
-        assert outputs is not None, 'Meta outputs description is required'
-        self.inputs = list_of_slots_to_mapping(inputs)
-        self.outputs = list_of_slots_to_mapping(outputs)
