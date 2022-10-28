@@ -237,6 +237,10 @@ def make_deep_forest_functional_confidence_screening(executor):
     )
     # y should be filtered separately since it is not used at the Transform stage
     filtered_1_y = b.CSFilter(['y'])(y=y, mask=cs_1['mask'])
+    # also slots stages must be different for this block
+    # for in_slot_meta in filtered_1_y.block.meta.inputs.values():
+    #     in_slot_meta.stages.transform = False
+
     concat_all_1 = b.Concat(['filtered_1_X', 'filtered_concat_1'])(
         filtered_1_X=filtered_1['X'],
         filtered_concat_1=filtered_1['concat_1']
@@ -289,7 +293,7 @@ def make_deep_forest_functional_confidence_screening(executor):
 def main():
     # _, fit_executor, transform_executor = make_deep_forest()
     # _, fit_executor, transform_executor = make_deep_forest_functional()
-    test_forest_factory = make_deep_forest_functional
+    test_forest_factory = make_deep_forest_functional_confidence_screening
 
     score_dict = defaultdict(list)
 
@@ -323,17 +327,17 @@ def main():
 
         if executor is TopologicalExecutor:
             print('Drawing the graphs for fit and transform executors')
-            fit_executor.draw('Graph_fit.png', dpi=300)
-            transform_executor.draw('Graph_transform.png', dpi=300)
+            fit_executor.draw('CSGraph_fit.png', dpi=300)
+            transform_executor.draw('CSGraph_transform.png', dpi=300)
     
-    print('Check the scores diff for executor:')
+    print('Check the scores diff for the executors:')
     tol = 10 ** -6
     passed = True
     for key, val in score_dict.items():
         res = all([abs(score - val[0]) < tol for score in val])
         passed *= res
         print(key, 'score:', 'pass' if res else 'fail')
-    print('Test', 'successful' if passed else 'failed')
+    print('Test is', 'passed' if passed else 'failed')
 
 
 if __name__ == "__main__":
