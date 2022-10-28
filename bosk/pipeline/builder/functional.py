@@ -78,6 +78,7 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
             Assume some block `test_block` was created before builder initialization.
             If we want to add the block into the pipeline,
             it should be wrapped:
+
             >>> test_block = RFCBlock()  # Random Forest Classifier
             >>> b = FunctionalPipelineBuilder()
             >>> rf = b.wrap(test_block)  # register the block in the builder
