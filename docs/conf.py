@@ -32,11 +32,13 @@ release = '0.1'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
+    'sphinx.ext.autodoc.typehints',
     'sphinx.ext.napoleon',
-    'sphinx_autodoc_typehints',
+    'autoapi.extension',
 ]
-autosummary_generate = True
+autoapi_dirs = ['../bosk']
+autoapi_add_toctree_entry = False
+autodoc_typehints = 'description'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
