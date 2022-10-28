@@ -28,6 +28,7 @@ from bosk.block.zoo.data_conversion import (
 from bosk.block.base import BlockInputData, TransformOutputData
 from bosk.block.zoo.metrics import RocAucBlock
 from bosk.block.meta import make_simple_meta
+from bosk.pipeline.builder.functional import FunctionalPipelineBuilder, FunctionalBlockWrapper
 
 
 class InputEmbeddingBlock(BaseBlock):
@@ -43,45 +44,29 @@ class InputEmbeddingBlock(BaseBlock):
         return {'output': inputs['X']}
 
 
-def make_df_layer(input_x: InputBlock, input_embedding: BaseBlock, input_y: TargetInputBlock):
-    rf = RFCBlock()
-    et = ETCBlock()
-    stack = StackBlock(['X_0', 'X_1'], axis=1)
-    average = AverageBlock(axis=1)
-    concat = ConcatBlock(['original', 'transformed'], axis=1)
-    roc_auc = RocAucBlock()
-    pipeline = BasePipeline(
-        nodes=[
-            input_x,
-            input_embedding,
-            input_y,
-            rf,
-            et,
-            stack,
-            average,
-            concat,
-            roc_auc
-        ],
-        connections=[
-            # input X
-            Connection(input_embedding.slots.outputs['output'], rf.slots.inputs['X']),
-            Connection(input_embedding.slots.outputs['output'], et.slots.inputs['X']),
-            # input y
-            Connection(input_y.slots.outputs['y'], rf.slots.inputs['y']),
-            Connection(input_y.slots.outputs['y'], et.slots.inputs['y']),
-            # layers connection
-            Connection(rf.slots.outputs['output'], stack.slots.inputs['X_0']),
-            Connection(et.slots.outputs['output'], stack.slots.inputs['X_1']),
-            Connection(stack.slots.outputs['output'], average.slots.inputs['X']),
-            # concat original & transformed into an embedding
-            Connection(input_x.slots.outputs['output'], concat.slots.inputs['original']),
-            Connection(average.slots.outputs['output'], concat.slots.inputs['transformed']),
-            # roc_auc
-            Connection(average.slots.outputs['output'], roc_auc.slots.inputs['pred_probas']),
-            Connection(input_y.slots.outputs['y'], roc_auc.slots.inputs['gt_y']),
-        ]
+def make_df_layer(input_x_block: InputBlock,
+                  input_embedding_block: BaseBlock,
+                  input_y_block: TargetInputBlock):
+    b = FunctionalPipelineBuilder()
+    input_x = b.wrap(input_x_block)()
+    input_embedding = b.wrap(input_embedding_block)()
+    input_y = b.wrap(input_y_block)()
+    rf = b.RFC()
+    et = b.ETC()
+    stack = b.Stack(['X_0', 'X_1'], axis=1)(
+        X_0=rf(X=input_embedding, y=input_y),
+        X_1=et(X=input_embedding, y=input_y),
     )
-    return pipeline, concat, average, roc_auc
+    average = b.Average(axis=1)(X=stack)
+    concat = b.Concat(['original', 'transformed'], axis=1)(
+        original=input_x,
+        transformed=average,
+    )
+    roc_auc = b.RocAuc()(
+        pred_probas=average,
+        gt_y=input_y,
+    )
+    return b.pipeline, concat.block, average.block, roc_auc.block
 
 
 def make_deep_forest():
