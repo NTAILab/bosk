@@ -29,6 +29,65 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
         block_cls = self._block_repo.get(name)
         return self._get_block_init(block_cls)
 
+    def _register_block(self, block: BaseBlock):
+        """Register block in the builder.
+
+        Args:
+            block: Block to register.
+
+        """
+        self._nodes.append(block)
+
+    def _make_placeholder_fn(self, block: BaseBlock) -> Callable:
+        def placeholder_fn(*pfn_args, **pfn_kwargs):
+            """Placeholder function.
+
+            Placeholder function operates with functional block wrappers:
+            it takes them as inputs and returns one as output.
+
+            The main reason to use placeholder function is that it
+            connects output slots of input wrappers with input slots
+            of the underlying block.
+
+            Args:
+                *pfn_args: Not supported.
+                *pfn_kwargs: Inputs functional wrappers.
+            """
+            assert len(pfn_args) == 0, "Only kwargs are supported"
+            for input_name, input_block_wrapper in pfn_kwargs.items():
+                self._connections.append(
+                    Connection(
+                        src=input_block_wrapper.get_output_slot(),
+                        dst=block.slots.inputs[input_name],
+                    )
+                )
+            return FunctionalBlockWrapper(block)
+
+        return placeholder_fn
+
+    def wrap(self, block: BaseBlock) -> Callable:
+        """Register the block in the builder and wrap it into a placeholder function.
+
+        Args:
+            block: Block to wrap.
+
+        Returns:
+            Placeholder function.
+
+        Examples:
+            Assume some block `test_block` was created before builder initialization.
+            If we want to add the block into the pipeline,
+            it should be wrapped:
+            >>> test_block = RFCBlock()  # Random Forest Classifier
+            >>> b = FunctionalPipelineBuilder()
+            >>> rf = b.wrap(test_block)  # register the block in the builder
+            >>> x = b.Input()
+            >>> result = rf(X=x)
+
+        """
+        self._register_block(block)
+        return self._make_placeholder_fn(block)
+
     def _get_block_init(self, block_cls: Callable) -> Callable:
         """Get a new block initialization wrapper.
 
@@ -53,35 +112,10 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
 
             Returns:
                 Placeholder function for the constructed block.
+
             """
             block = block_cls(*args, **kwargs)
-            self._nodes.append(block)
-
-            def placeholder_fn(*pfn_args, **pfn_kwargs):
-                """Placeholder function.
-
-                Placeholder function operates with functional block wrappers:
-                it takes them as inputs and returns one as output.
-
-                The main reason to use placeholder function is that it
-                connects output slots of input wrappers with input slots
-                of the underlying block.
-
-                Args:
-                    *pfn_args: Not supported.
-                    *pfn_kwargs: Inputs functional wrappers.
-                """
-                assert len(pfn_args) == 0, "Only kwargs are supported"
-                for input_name, input_block_wrapper in pfn_kwargs.items():
-                    self._connections.append(
-                        Connection(
-                            src=input_block_wrapper.get_output_slot(),
-                            dst=block.slots.inputs[input_name],
-                        )
-                    )
-                return FunctionalBlockWrapper(block)
-
-            return placeholder_fn
+            return self.wrap(block)
 
         return block_init
 
