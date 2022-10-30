@@ -165,7 +165,7 @@ class FunctionalBuilder:
         return BasePipeline(self.nodes, self.connections)
 
 
-def make_deep_forest_functional(executor):
+def make_deep_forest_functional(executor, **kwargs):
     b = FunctionalBuilder()
     X, y = b.Input()(), b.TargetInput()()
     rf_1 = b.RFC(random_state=42)(X=X, y=y)
@@ -195,6 +195,7 @@ def make_deep_forest_functional(executor):
             'rf_1_roc-auc': rf_1_roc_auc.get_output_slot(),
             'roc-auc': roc_auc.get_output_slot(),
         },
+        **kwargs
     )
     transform_executor = executor(
         b.pipeline,
@@ -206,6 +207,7 @@ def make_deep_forest_functional(executor):
             'probas': average_3.get_output_slot(),
             'labels': argmax_3.get_output_slot(),
         },
+        **kwargs
     )
     return b.pipeline, fit_executor, transform_executor
 
@@ -218,7 +220,7 @@ def make_deep_forest_layer(b, **inputs):
     return average
 
 
-def make_deep_forest_functional_confidence_screening(executor):
+def make_deep_forest_functional_confidence_screening(executor, **kwargs):
     b = FunctionalBuilder()
     X, y = b.Input()(), b.TargetInput()()
     rf_1 = b.RFC(random_state=42)(X=X, y=y)
@@ -275,6 +277,7 @@ def make_deep_forest_functional_confidence_screening(executor):
             'rf_1_roc-auc': rf_1_roc_auc.get_output_slot(),
             'roc-auc': roc_auc.get_output_slot(),
         },
+        **kwargs
     )
     transform_executor = executor(
         b.pipeline,
@@ -286,6 +289,7 @@ def make_deep_forest_functional_confidence_screening(executor):
             'probas': joined_3.get_output_slot(),
             'labels': argmax_3.get_output_slot(),
         },
+        **kwargs
     )
     return b.pipeline, fit_executor, transform_executor
 
@@ -297,9 +301,9 @@ def main():
 
     score_dict = defaultdict(list)
 
-    for name, executor in [('naive', NaiveExecutor), ('topological', TopologicalExecutor)]:
+    for name, executor, kw in [('naive', NaiveExecutor, {}), ('topological', TopologicalExecutor, {'figure_dpi': 300, 'figure_rankdir': 'TB'})]:
         print(f'--- Using of the {name} executor ---')
-        _, fit_executor, transform_executor = test_forest_factory(executor)
+        _, fit_executor, transform_executor = test_forest_factory(executor, **kw)
 
         all_X, all_y = make_moons(noise=0.5, random_state=42)
         train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
@@ -327,8 +331,8 @@ def main():
 
         if executor is TopologicalExecutor:
             print('Drawing the graphs for fit and transform executors')
-            fit_executor.draw('CSGraph_fit.png', dpi=300)
-            transform_executor.draw('CSGraph_transform.png', dpi=300)
+            fit_executor.draw('CSGraph_fit.png')
+            transform_executor.draw('CSGraph_transform.png')
     
     print('Check the scores diff for the executors:')
     tol = 10 ** -6
