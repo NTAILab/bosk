@@ -23,7 +23,7 @@ from bosk.block.zoo.metrics import RocAucBlock, AccuracyBlock, F1ScoreBlock
 from bosk.block.zoo.routing import CSBlock, CSJoinBlock, CSFilterBlock
 
 
-def make_deep_forest(executor):
+def make_deep_forest(executor, **kwargs):
     input_x = InputBlock()
     input_y = TargetInputBlock()
     rf_1 = RFCBlock(random_state=42)
@@ -37,6 +37,7 @@ def make_deep_forest(executor):
     stack_3 = StackBlock(['X_0', 'X_1'], axis=1)
     average_3 = AverageBlock(axis=1)
     argmax_3 = ArgmaxBlock(axis=1)
+    roc_auc = RocAucBlock()
     pipeline = BasePipeline(
         nodes=[
             input_x,
@@ -52,31 +53,34 @@ def make_deep_forest(executor):
             stack_3,
             average_3,
             argmax_3,
+            roc_auc
         ],
         connections=[
             # input X
-            Connection(input_x.meta.outputs['X'], rf_1.meta.inputs['X']),
-            Connection(input_x.meta.outputs['X'], et_1.meta.inputs['X']),
+            Connection(input_x.slots.outputs['X'], rf_1.slots.inputs['X']),
+            Connection(input_x.slots.outputs['X'], et_1.slots.inputs['X']),
             # input y
-            Connection(input_y.meta.outputs['y'], rf_1.meta.inputs['y']),
-            Connection(input_y.meta.outputs['y'], et_1.meta.inputs['y']),
-            Connection(input_y.meta.outputs['y'], rf_2.meta.inputs['y']),
-            Connection(input_y.meta.outputs['y'], et_2.meta.inputs['y']),
-            Connection(input_y.meta.outputs['y'], rf_3.meta.inputs['y']),
-            Connection(input_y.meta.outputs['y'], et_3.meta.inputs['y']),
+            Connection(input_y.slots.outputs['y'], rf_1.slots.inputs['y']),
+            Connection(input_y.slots.outputs['y'], et_1.slots.inputs['y']),
+            Connection(input_y.slots.outputs['y'], rf_2.slots.inputs['y']),
+            Connection(input_y.slots.outputs['y'], et_2.slots.inputs['y']),
+            Connection(input_y.slots.outputs['y'], rf_3.slots.inputs['y']),
+            Connection(input_y.slots.outputs['y'], et_3.slots.inputs['y']),
             # layers connection
-            Connection(rf_1.meta.outputs['output'], concat_1.meta.inputs['X_0']),
-            Connection(et_1.meta.outputs['output'], concat_1.meta.inputs['X_1']),
-            Connection(concat_1.meta.outputs['output'], rf_2.meta.inputs['X']),
-            Connection(concat_1.meta.outputs['output'], et_2.meta.inputs['X']),
-            Connection(rf_2.meta.outputs['output'], concat_2.meta.inputs['X_0']),
-            Connection(et_2.meta.outputs['output'], concat_2.meta.inputs['X_1']),
-            Connection(concat_2.meta.outputs['output'], rf_3.meta.inputs['X']),
-            Connection(concat_2.meta.outputs['output'], et_3.meta.inputs['X']),
-            Connection(rf_3.meta.outputs['output'], stack_3.meta.inputs['X_0']),
-            Connection(et_3.meta.outputs['output'], stack_3.meta.inputs['X_1']),
-            Connection(stack_3.meta.outputs['output'], average_3.meta.inputs['X']),
-            Connection(average_3.meta.outputs['output'], argmax_3.meta.inputs['X']),
+            Connection(rf_1.slots.outputs['output'], concat_1.slots.inputs['X_0']),
+            Connection(et_1.slots.outputs['output'], concat_1.slots.inputs['X_1']),
+            Connection(concat_1.slots.outputs['output'], rf_2.slots.inputs['X']),
+            Connection(concat_1.slots.outputs['output'], et_2.slots.inputs['X']),
+            Connection(rf_2.slots.outputs['output'], concat_2.slots.inputs['X_0']),
+            Connection(et_2.slots.outputs['output'], concat_2.slots.inputs['X_1']),
+            Connection(concat_2.slots.outputs['output'], rf_3.slots.inputs['X']),
+            Connection(concat_2.slots.outputs['output'], et_3.slots.inputs['X']),
+            Connection(rf_3.slots.outputs['output'], stack_3.slots.inputs['X_0']),
+            Connection(et_3.slots.outputs['output'], stack_3.slots.inputs['X_1']),
+            Connection(stack_3.slots.outputs['output'], average_3.slots.inputs['X']),
+            Connection(average_3.slots.outputs['output'], argmax_3.slots.inputs['X']),
+            Connection(average_3.slots.outputs['output'], roc_auc.slots.inputs['pred_probas']),
+            Connection(input_y.slots.outputs['y'], roc_auc.slots.inputs['gt_y']),
         ]
     )
 
@@ -84,19 +88,24 @@ def make_deep_forest(executor):
         pipeline,
         stage=Stage.FIT,
         inputs={
-            'X': input_x.meta.inputs['X'],
-            'y': input_y.meta.inputs['y'],
+            'X': input_x.slots.inputs['X'],
+            'y': input_y.slots.inputs['y'],
         },
-        outputs={'probas': average_3.meta.outputs['output']},
+        outputs={
+            'probas': average_3.slots.outputs['output'],
+            'roc-auc': roc_auc.slots.outputs['roc-auc'],
+        },
+        **kwargs
     )
     transform_executor = executor(
         pipeline,
         stage=Stage.TRANSFORM,
-        inputs={'X': input_x.meta.inputs['X']},
+        inputs={'X': input_x.slots.inputs['X']},
         outputs={
-            'probas': average_3.meta.outputs['output'],
-            'labels': argmax_3.meta.outputs['output'],
+            'probas': average_3.slots.outputs['output'],
+            'labels': argmax_3.slots.outputs['output'],
         },
+        **kwargs
     )
     return pipeline, fit_executor, transform_executor
 
@@ -297,11 +306,11 @@ def make_deep_forest_functional_confidence_screening(executor, **kwargs):
 def main():
     # _, fit_executor, transform_executor = make_deep_forest()
     # _, fit_executor, transform_executor = make_deep_forest_functional()
-    test_forest_factory = make_deep_forest_functional_confidence_screening
+    test_forest_factory = make_deep_forest
 
     score_dict = defaultdict(list)
 
-    for name, executor, kw in [('naive', NaiveExecutor, {}), ('topological', TopologicalExecutor, {'figure_dpi': 300, 'figure_rankdir': 'TB'})]:
+    for name, executor, kw in [('naive', NaiveExecutor, {}), ('topological', TopologicalExecutor, {'figure_dpi': 300, 'figure_rankdir': 'LR'})]:
         print(f'--- Using of the {name} executor ---')
         _, fit_executor, transform_executor = test_forest_factory(executor, **kw)
 

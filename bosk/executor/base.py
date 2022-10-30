@@ -19,8 +19,8 @@ class BaseExecutor(ABC):
 
     def __init__(self, pipeline: BasePipeline, *,
                  stage: None | Stage = None,
-                 inputs: None | Mapping[str, InputSlotMeta | Sequence[InputSlotMeta]] = None,
-                 outputs: None | Mapping[str, OutputSlotMeta] = None):
+                 inputs: None | Mapping[str, BlockInputSlot | Sequence[BlockInputSlot]] = None,
+                 outputs: None | Mapping[str, BlockOutputSlot] = None):
         assert stage is not None, "Stage must be specified"
         assert inputs is not None, "Inputs must be specified"
         assert outputs is not None, "Outputs must be specified"

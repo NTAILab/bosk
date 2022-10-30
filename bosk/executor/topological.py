@@ -1,4 +1,4 @@
-from typing import Dict, Mapping, Sequence
+from typing import Deque, Dict, List, Mapping, Sequence, Set
 from collections.abc import Iterable
 from collections import defaultdict, deque
 
@@ -6,22 +6,23 @@ from ..stages import Stage
 from ..data import Data
 from .base import BaseExecutor
 from .painter import PainterMixin
-from ..slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
+from ..slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta, BaseSlot
+from ..block import BaseBlock
 from ..pipeline import BasePipeline
 
 import graphviz as gv
 
 
 class TopologicalExecutor(BaseExecutor, PainterMixin):
-    def __check_inputs_concordance(self, input_values: Mapping[str, Data]):
+    def __check_inputs_concordance(self, input_values: Mapping[str, Data]) -> None:
         passed = 0
         for inp_name, inp_slot in self.inputs.items():
             assert (inp_name in input_values), f"Unable to find input slot {inp_name} (id {hash(inp_slot)}) in input data"
             passed += 1
         assert (passed == len(input_values)), "Input values are incompatible with pipeline input slots"
 
-    def _get_slot_to_block_map(self):
-        slot_to_block_map = dict()
+    def _get_slot_to_block_map(self) -> Mapping[BaseSlot, BaseBlock]:
+        slot_to_block_map: Mapping[BaseSlot, BaseBlock] = dict()
         for block in self.pipeline.nodes:
             for slot in block.slots.inputs.values():
                 slot_to_block_map[slot] = block
@@ -29,8 +30,8 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                 slot_to_block_map[slot] = block
         return slot_to_block_map
 
-    # contains extra links for input slots (cyclic)
-    def _get_connection_map(self):
+    # contains extra links for pipeline input slots (cyclic)
+    def _get_connection_map(self) -> Mapping[BlockInputSlot, BlockOutputSlot]:
         conn_dict: Mapping[BlockInputSlot, BlockOutputSlot] = dict()
         for conn in self.pipeline.connections:
             assert (
@@ -48,8 +49,8 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
 
     def __init__(self, pipeline: BasePipeline, *,
                  stage: None | Stage = None,
-                 inputs: None | Mapping[str, InputSlotMeta | Sequence[InputSlotMeta]] = None,
-                 outputs: None | Mapping[str, OutputSlotMeta] = None,
+                 inputs: None | Mapping[str, BlockInputSlot | Sequence[BlockInputSlot]] = None,
+                 outputs: None | Mapping[str, BlockOutputSlot] = None,
                  painter_levels_sep: float = 1.0, figure_dpi: int = 150, figure_rankdir: str = 'LR'):
 
         super().__init__(pipeline, stage=stage, inputs=inputs, outputs=outputs)
@@ -60,10 +61,9 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         self.dpi = figure_dpi
         self.rankdir = figure_rankdir
 
-    # returns set of the visited nodes
-    def _dfs(self, aj_list, begin_nodes):
-        visited = set(begin_nodes)
-        stack = deque(begin_nodes)
+    def _dfs(self, aj_list: Mapping[BaseBlock, BaseBlock], begin_nodes: Sequence[BaseBlock]) -> Set[BaseBlock]:
+        visited: Set[BaseBlock] = set(begin_nodes)
+        stack: Deque[BaseBlock] = deque(begin_nodes)
         while stack:
             node = stack.pop()
             for neig_node in aj_list[node]:
@@ -72,11 +72,11 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                     stack.append(neig_node)
         return visited
 
-    def _topological_sort(self, aj_list, begin_nodes):
-        visited = set()
-        stack = deque()
+    def _topological_sort(self, aj_list: Mapping[BaseBlock, BaseBlock], begin_nodes: Sequence[BaseBlock]) -> List[BaseBlock]:
+        visited: Set[BaseBlock] = set()
+        stack: Deque[BaseBlock] = deque()
 
-        def rec_helper(node):
+        def rec_helper(node) -> None:
             visited.add(node)
             for neig_node in aj_list[node]:
                 if neig_node not in visited:
@@ -91,16 +91,16 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         result.reverse()
         return result
 
-    def _get_backward_aj_list(self, feasible_set=None):
-        backward_aj_list = defaultdict(set)  # Block to block
+    def _get_backward_aj_list(self, feasible_set: Set[BaseBlock] = None) -> Mapping[BaseBlock, Set[BaseBlock]]:
+        backward_aj_list: Mapping[BaseBlock, Set[BaseBlock]] = defaultdict(set)
         for inp_slot, out_slot in self.conn_dict.items():
             if feasible_set is None or \
                self.slot_to_block_map[inp_slot] in feasible_set and self.slot_to_block_map[out_slot] in feasible_set:
                 backward_aj_list[self.slot_to_block_map[inp_slot]].add(self.slot_to_block_map[out_slot])
         return backward_aj_list
 
-    def _get_forward_aj_list(self, feasible_set=None):
-        forward_aj_list = defaultdict(set)  # Block to block
+    def _get_forward_aj_list(self, feasible_set: Set[BaseBlock] = None) -> Mapping[BaseBlock, Set[BaseBlock]]:
+        forward_aj_list: Mapping[BaseBlock, Set[BaseBlock]] = defaultdict(set)
         for inp_slot, out_slot in self.conn_dict.items():
             if feasible_set is None or \
                self.slot_to_block_map[inp_slot] in feasible_set and self.slot_to_block_map[out_slot] in feasible_set:
@@ -116,7 +116,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         input_blocks = set([self.slot_to_block_map[slot] for slot in self.inputs.values()])
         topological_order = self._topological_sort(self._get_forward_aj_list(backward_pass), input_blocks)
 
-        slots_values: Dict[BlockInputSlot, Data] = dict()
+        slots_values: Dict[BaseSlot, Data] = dict()
         for input_name, input_data in input_values.items():
             input_or_inputs = self.inputs[input_name]
             if isinstance(input_or_inputs, Iterable):
@@ -135,12 +135,12 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                 node_input_data[inp_slot] = slots_values[corresponding_output]
             outputs = self._execute_block(node, node_input_data)
             slots_values.update(outputs)
-        result = dict()
+        result: Mapping[str, Data]  = dict()
         for output_name, output_slot in self.outputs.items():
             result[output_name] = slots_values[output_slot]
         return result
 
-    def draw(self, output_filename):
+    def draw(self, output_filename: str) -> None:
         output_blocks = [self.slot_to_block_map[slot] for slot in self.outputs.values()]
         backward_pass = self._dfs(self._get_backward_aj_list(), output_blocks)
 
