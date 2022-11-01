@@ -23,75 +23,11 @@ from bosk.block.zoo.metrics import RocAucMultiLabelBlock, AccuracyBlock, F1Score
 from bosk.block.zoo.routing import CSBlock, CSJoinBlock, CSFilterBlock
 from bosk.block.zoo.multi_grained_scanning import \
     (MultiGrainedScanning1DBlock, MultiGrainedScanning2DBlock)
-
-
-class FunctionalBlockWrapper:
-    def __init__(self, block: BaseBlock, output_name: Optional[str] = None):
-        self.block = block
-        self.output_name = output_name
-
-    def get_input_slot(self, slot_name: Optional[str] = None):
-        if slot_name is None:
-            if len(self.block.slots.inputs) == 1:
-                return list(self.block.slots.inputs.values())[0]
-            else:
-                raise RuntimeError('Block has more than one input (please, specify it)')
-        return self.block.meta.inputs[slot_name]
-
-    def get_output_slot(self) -> BlockOutputSlot:
-        if self.output_name is None:
-            if len(self.block.slots.outputs) == 1:
-                return list(self.block.slots.outputs.values())[0]
-            else:
-                raise RuntimeError('Block has more than one output')
-        return self.block.slots.outputs[self.output_name]
-
-    def __getitem__(self, output_name: str):
-        return FunctionalBlockWrapper(self.block, output_name=output_name)
-
-
-class FunctionalBuilder:
-    def __init__(self):
-        self.nodes = []
-        self.connections = []
-
-    def __getattr__(self, name: str) -> Callable:
-        block_name = name + 'Block'
-        block_cls = globals().get(block_name, None)
-        if block_cls is None:
-            raise ValueError(f'Wrong block class: {name} ({block_name} not found)')
-        return self._get_block_init(block_cls)
-
-    def _get_block_init(self, block_cls: Callable) -> Callable:
-        def block_init(*args, **kwargs):
-            block = block_cls(*args, **kwargs)
-            self.nodes.append(block)
-
-            def placeholder_fn(*pfn_args, **pfn_kwargs):
-                assert len(pfn_args) == 0, "Only kwargs are supported"
-                for input_name, input_block_wrapper in pfn_kwargs.items():
-                    self.connections.append(
-                        Connection(
-                            src=input_block_wrapper.get_output_slot(),
-                            dst=block.slots.inputs[input_name],
-                        )
-                    )
-                return FunctionalBlockWrapper(block)
-
-            return placeholder_fn
-
-        return block_init
-
-    def new(self, block_cls: Callable, *args, **kwargs) -> Callable:
-        return self._get_block_init(block_cls)(*args, **kwargs)
-
-    @property
-    def pipeline(self) -> BasePipeline:
-        return BasePipeline(self.nodes, self.connections)
+from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 
 
 def make_deep_forest_functional_multi_grained_scanning_1d():
-    b = FunctionalBuilder()
+    b = FunctionalPipelineBuilder()
     random_state_value = 42
     X, y = b.Input()(), b.TargetInput()()
     ms = b.new(MultiGrainedScanning1DBlock, models=(RandomForestClassifier(random_state=random_state_value),
@@ -140,7 +76,7 @@ def make_deep_forest_functional_multi_grained_scanning_1d():
 
 
 def make_deep_forest_functional_multi_grained_scanning_2d():
-    b = FunctionalBuilder()
+    b = FunctionalPipelineBuilder()
     random_state_value = 42
     X, y = b.Input()(), b.TargetInput()()
     ms = b.new(MultiGrainedScanning2DBlock, models=(RandomForestClassifier(random_state=random_state_value),
