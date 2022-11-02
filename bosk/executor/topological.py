@@ -17,6 +17,7 @@ from ..block import BaseBlock
 from ..pipeline import BasePipeline
 
 import graphviz as gv
+import warnings
 
 
 class TopologicalExecutor(BaseExecutor, PainterMixin):
@@ -198,11 +199,11 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
 
     def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:
         """The main method for the processing of the computational graph.
-        
+
         Args:
             input_values: The dictionary, containing the pipeline's inputs names as keys 
                 and coresponding to them :data:`Data` as values.
-        
+
         Returns:
             The dictionary, containing the pipeline's outputs names as keys 
             and coresponding to them :data:`Data` as values.
@@ -210,20 +211,14 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         Raises:
             AssertionError: If there are some incompatibility between pipeline's inputs and user's ones.
 
-        Todo:
-            Think of the partial graph use: now the topology sort is performed using pipeline's inputs, 
-            not the inputs in `input_values`.
-
         """
         self.__check_inputs_concordance(input_values)
 
         output_blocks = [self.slot_to_block_map[slot] for slot in self.outputs.values()]
         backward_pass = self._dfs(self._get_backward_aj_list(), output_blocks)
 
-        input_blocks = set([self.slot_to_block_map[slot] for slot in self.inputs.values()])
-        topological_order = self._topological_sort(self._get_forward_aj_list(backward_pass), input_blocks)
-
         slots_values: Dict[BaseSlot, Data] = dict()
+        input_blocks_list = []
         for input_name, input_data in input_values.items():
             input_or_inputs = self.inputs[input_name]
             if isinstance(input_or_inputs, Iterable):
@@ -232,14 +227,24 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                 inputs = [input_or_inputs]
             for inp in inputs:
                 slots_values[inp] = input_data
+                if self.slot_to_block_map[inp] not in backward_pass:
+                    warnings.warn(f"Input slot '{input_name}' is disconnected from the outputs, it won't be calculated")
+                else:
+                    input_blocks_list.append(self.slot_to_block_map[inp])
+        topological_order = self._topological_sort(self._get_forward_aj_list(backward_pass), set(input_blocks_list))
+
         for node in topological_order:
             node_input_data = dict()
-            for inp_slot in node.slots.inputs.values():
+            for name, inp_slot in node.slots.inputs.items():
                 if inp_slot not in self.conn_dict:
                     # input slot was not used
                     continue
                 corresponding_output = self.conn_dict[inp_slot]
-                node_input_data[inp_slot] = slots_values[corresponding_output]
+                inp_data = slots_values.get(corresponding_output, None)
+                if inp_data is None:
+                    block_name = self.slot_to_block_map[inp_slot].__class__.__name__
+                    raise RuntimeError(f"Unable to compute data for the '{name}' input of the '{block_name}' block")
+                node_input_data[inp_slot] = inp_data
             outputs = self._execute_block(node, node_input_data)
             slots_values.update(outputs)
         result: Mapping[str, Data]  = dict()
@@ -265,8 +270,16 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         output_blocks = [self.slot_to_block_map[slot] for slot in self.outputs.values()]
         backward_pass = self._dfs(self._get_backward_aj_list(), output_blocks)
 
-        input_blocks = set([self.slot_to_block_map[slot] for slot in self.inputs.values()])
-        forward_pass = self._dfs(self._get_forward_aj_list(backward_pass), input_blocks)
+
+        input_blocks_list = []
+        for input_or_inputs in self.inputs.values():
+            if isinstance(input_or_inputs, Iterable):
+                inputs = input_or_inputs
+            else:
+                inputs = [input_or_inputs]
+            for inp in inputs:
+                input_blocks_list.append(self.slot_to_block_map[inp])
+        forward_pass = self._dfs(self._get_forward_aj_list(backward_pass), set(input_blocks_list))
         used_blocks = backward_pass & forward_pass
 
         graph = gv.Digraph('DeepForestGraph', renderer='cairo', formatter='cairo', node_attr={'shape': 'record'})
@@ -278,7 +291,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
             outputs = block.slots.outputs
             inputs_info = '|'.join([f'<i{hash(slot)}> {name}' for name, slot in inputs.items()])
             outputs_info = '|'.join([f'<o{hash(slot)}> {name}' for name, slot in outputs.items()])
-            block_name = block.name if hasattr(block, 'name') else block.__class__.__name__
+            block_name = block.__class__.__name__
             node_style = 'dashed' if block not in used_blocks else ''
             graph.node(f'block{id(block)}', f'{block_name}|{{{{{inputs_info}}}|{{{outputs_info}}}}}', style=node_style)
 
