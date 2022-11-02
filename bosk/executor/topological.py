@@ -107,7 +107,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         self.dpi = figure_dpi
         self.rankdir = figure_rankdir
 
-    def _dfs(self, aj_list: Mapping[BaseBlock, BaseBlock], begin_nodes: Sequence[BaseBlock]) -> Set[BaseBlock]:
+    def _dfs(self, aj_list: Mapping[BaseBlock, Set[BaseBlock]], begin_nodes: Sequence[BaseBlock]) -> Set[BaseBlock]:
         """Method that performs the deep first search algorithm in the computational graph.
         The search begins from the nodes `begin_nodes`. The algorithm is written using iterative scheme.
 
@@ -129,7 +129,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                     stack.append(neig_node)
         return visited
 
-    def _topological_sort(self, aj_list: Mapping[BaseBlock, BaseBlock], begin_nodes: Sequence[BaseBlock]) -> List[BaseBlock]:
+    def _topological_sort(self, aj_list: Mapping[BaseBlock, Set[BaseBlock]], begin_nodes: Sequence[BaseBlock]) -> List[BaseBlock]:
         """Method that performs the topological sort of the computational graph.
         The algorithm begins its work from the nodes `begin_nodes`. The algorithm is written using recursive scheme.
 
@@ -141,26 +141,25 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
             List of the graph nodes in topological order.
 
         Todo:
-            Rewrite the sort with the iterative cheme. Also, think of the performing graph computation during the sort.
+            Think of the performing graph computation during the sort.
 
         """
         visited: Set[BaseBlock] = set()
-        stack: Deque[BaseBlock] = deque()
+        outer_stack: Deque[BaseBlock] = deque(begin_nodes)
+        inner_stack: List[BaseBlock] = list()
+        order: List[BaseBlock] = list()
 
-        def rec_helper(node) -> None:
-            visited.add(node)
-            for neig_node in aj_list[node]:
-                if neig_node not in visited:
-                    rec_helper(neig_node)
-            stack.append(node)
-
-        for node in begin_nodes:
+        while outer_stack:
+            node = outer_stack.pop()
             if node not in visited:
-                rec_helper(node)
-
-        result = list(stack)
-        result.reverse()
-        return result
+                visited.add(node)
+                outer_stack.extend(aj_list[node])
+                while inner_stack and node not in aj_list[inner_stack[-1]]:
+                    order.append(inner_stack.pop())
+                inner_stack.append(node)
+        
+        inner_stack.extend(reversed(order))
+        return inner_stack
 
     def _get_backward_aj_list(self, feasible_set: None | Set[BaseBlock] = None) -> Mapping[BaseBlock, Set[BaseBlock]]:
         """The internal helper method for making backwards adjacency list 
