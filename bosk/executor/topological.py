@@ -36,12 +36,10 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         rankdir (str): The direction of the computational graph edges. See https://graphviz.org/docs/attrs/rankdir/.
     
     Args:
-            pipeline: The pipeline of the computational graph.
-            stage: The stage which will be performed by the executor.
-            inputs: The dictionary, containing input names as keys and
-                block input slots as values. Sets start points of the graph computation.
-            outputs: The dictionary, containing output names as keys and
-                block output slots as values. Sets end points of the graph computation.
+            pipeline: Sets :attr:`.BaseExecutor.pipeline`.
+            stage: Sets :attr:`.BaseExecutor.stage`.
+            inputs: Sets :attr:`.BaseExecutor.inputs`.
+            outputs: Sets :attr:`.BaseExecutor.outputs`.
             painter_levels_sep: Sets :attr:`levels_sep`.
             figure_dpi: Sets :attr:`dpi`.
             figure_rankdir: Sets :attr:`rankdir`.

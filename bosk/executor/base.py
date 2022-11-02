@@ -3,8 +3,8 @@ from typing import Mapping, Sequence
 
 from ..data import Data
 from ..stages import Stage
-from ..block.base import BaseBlock, BlockInputData, BlockOutputData
-from ..slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
+from ..block.base import BaseBlock, BlockOutputData
+from ..slot import BlockInputSlot, BlockOutputSlot
 from ..pipeline import BasePipeline
 
 InputSlotToDataMapping = Mapping[BlockInputSlot, Data]
@@ -15,6 +15,21 @@ It is indexed by input slots.
 
 class BaseExecutor(ABC):
     """Base pipeline executor.
+
+    Attributes:
+        pipeline (BasePipeline): The pipeline (computational graph). Contains blocks as nodes
+            and connections between output and input blocks' slots as edges.
+        stage (Stage): The computational mode, which will be performed by the executor.
+        inputs (None | Mapping[str, BlockInputSlot | Sequence[BlockInputSlot]]): The dictionary, containing input names as keys and
+            block input slots as values. Computational graph's start points.
+        outputs (None | Mapping[str, BlockOutputSlot): The dictionary, containing output names as keys and
+            block output slots as values. Computational graph's end points.
+        
+    Args:
+        pipeline: Sets :attr:`pipeline`.
+        stage: Sets :attr:`stage`.
+        inputs: Sets :attr:`inputs`.
+        outputs: Sets :attr:`outputs`.
     """
 
     def __init__(self, pipeline: BasePipeline, *,
