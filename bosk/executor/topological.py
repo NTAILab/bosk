@@ -27,14 +27,15 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
     with the 'draw' method.
     
     Attributes:
-        conn_dict (Mapping[BlockInputSlot, BlockOutputSlot]): Pipeline connections, represented as a hash map,
-            the keys are blocks' input slots, the values are output ones. Each input slot corresponds no more than one 
+        conn_dict: Pipeline connections, represented as a hash map, the keys are blocks' input slots, 
+            the values are output ones. Each input slot corresponds no more than one 
             output slot, so this representation is correct.
-        slot_to_block_map (Mapping[BaseSlot, BaseBlock]): Dictionary that allows to determine to which block
-            some slot does belong. Will be removed in the future versions, when the BaseSlot will contain the link to his parent block.
-        levels_sep (float): The painter's parameter, which determines the distance between the computational graph's levels. See http://graphviz.org/docs/attrs/ranksep/.
-        dpi (int): The dpi of the output computational graph images, formated in raster graphics (.png, .jpeg, etc.).
-        rankdir (str): The direction of the computational graph edges. See https://graphviz.org/docs/attrs/rankdir/.
+        slot_to_block_map: Dictionary that allows to determine to which block some slot does belong. 
+            Will be removed in the future versions, when the BaseSlot will contain the link to his parent block.
+        levels_sep: The painter's parameter, which determines the distance between the computational graph's levels.
+            See http://graphviz.org/docs/attrs/ranksep/.
+        dpi: The dpi of the output computational graph images, formated in raster graphics (.png, .jpeg, etc.).
+        rankdir: The direction of the computational graph edges. See https://graphviz.org/docs/attrs/rankdir/.
     
     Args:
             pipeline: Sets :attr:`.BaseExecutor.pipeline`.
@@ -45,6 +46,12 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
             figure_dpi: Sets :attr:`dpi`.
             figure_rankdir: Sets :attr:`rankdir`.
     """
+
+    conn_dict: Mapping[BlockInputSlot, BlockOutputSlot]
+    slot_to_block_map: Mapping[BaseSlot, BaseBlock]
+    levels_sep: float
+    dpi: int
+    rankdir: str
 
     def __check_inputs_concordance(self, input_values: Mapping[str, Data]) -> None:
         """The function that checks if the input values, provided to the :meth:`__call__` method, agree with the pipeline's inputs.
@@ -141,9 +148,6 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         Returns:
             List of the graph nodes in topological order.
 
-        Todo:
-            Think of the performing graph computation during the sort.
-
         """
         visited: Set[BaseBlock] = set()
         outer_stack: Deque[BaseBlock] = deque(begin_nodes)
@@ -171,7 +175,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                 Other blocks will not be included. If `None`, all blocks of the pipeline will be used. 
 
         Returns:
-            The backwards adjacency list containing blocks from the `feasible set`.
+            The backwards adjacency list containing blocks from the :arg:`feasible set`.
         """
         backward_aj_list: Mapping[BaseBlock, Set[BaseBlock]] = defaultdict(set)
         for inp_slot, out_slot in self.conn_dict.items():
@@ -188,7 +192,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                 Other blocks will not be included. If `None`, all blocks of the pipeline will be used. 
 
         Returns:
-            The adjacency list containing blocks from the `feasible set`.
+            The adjacency list containing blocks from the :arg:`feasible set`.
         """
         forward_aj_list: Mapping[BaseBlock, Set[BaseBlock]] = defaultdict(set)
         for inp_slot, out_slot in self.conn_dict.items():
@@ -210,6 +214,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
 
         Raises:
             AssertionError: If there are some incompatibility between pipeline's inputs and user's ones.
+            RuntimeError: If there were troubles with computing data for some block.
 
         """
         self.__check_inputs_concordance(input_values)
