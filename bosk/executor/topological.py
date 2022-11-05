@@ -175,7 +175,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                 Other blocks will not be included. If `None`, all blocks of the pipeline will be used. 
 
         Returns:
-            The backwards adjacency list containing blocks from the :arg:`feasible set`.
+            The backwards adjacency list containing blocks from the ``feasible set``.
         """
         backward_aj_list: Mapping[BaseBlock, Set[BaseBlock]] = defaultdict(set)
         for inp_slot, out_slot in self.conn_dict.items():
@@ -192,7 +192,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                 Other blocks will not be included. If `None`, all blocks of the pipeline will be used. 
 
         Returns:
-            The adjacency list containing blocks from the :arg:`feasible set`.
+            The adjacency list containing blocks from the ``feasible set``.
         """
         forward_aj_list: Mapping[BaseBlock, Set[BaseBlock]] = defaultdict(set)
         for inp_slot, out_slot in self.conn_dict.items():
@@ -214,7 +214,6 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
 
         Raises:
             AssertionError: If there are some incompatibility between pipeline's inputs and user's ones.
-            RuntimeError: If there were troubles with computing data for some block.
 
         """
         self.__check_inputs_concordance(input_values)
@@ -238,23 +237,29 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                     input_blocks_list.append(self.slot_to_block_map[inp])
         topological_order = self._topological_sort(self._get_forward_aj_list(backward_pass), set(input_blocks_list))
 
-        for node in topological_order:
-            node_input_data = dict()
-            for name, inp_slot in node.slots.inputs.items():
-                if inp_slot not in self.conn_dict:
-                    # input slot was not used
-                    continue
-                corresponding_output = self.conn_dict[inp_slot]
-                inp_data = slots_values.get(corresponding_output, None)
-                if inp_data is None:
-                    block_name = self.slot_to_block_map[inp_slot].__class__.__name__
-                    raise RuntimeError(f"Unable to compute data for the '{name}' input of the '{block_name}' block")
-                node_input_data[inp_slot] = inp_data
-            outputs = self._execute_block(node, node_input_data)
-            slots_values.update(outputs)
+        try:
+            for node in topological_order:
+                node_input_data = dict()
+                for name, inp_slot in node.slots.inputs.items():
+                    if inp_slot not in self.conn_dict:
+                        # input slot was not used
+                        continue
+                    corresponding_output = self.conn_dict[inp_slot]
+                    inp_data = slots_values[corresponding_output]
+                    node_input_data[inp_slot] = inp_data
+                outputs = self._execute_block(node, node_input_data)
+                slots_values.update(outputs)
+        except Exception:
+            block_name = node.__class__.__name__
+            warnings.warn(f"Unable to compute data for the '{name}' input of the '{block_name}' block.")
+            warnings.warn("The execution is terminated.")
+
         result: Mapping[str, Data]  = dict()
         for output_name, output_slot in self.outputs.items():
-            result[output_name] = slots_values[output_slot]
+            slot_data = slots_values.get(output_slot, None)
+            if slot_data is None:
+                warnings.warn(f"Unable to compute data for the '{output_name}' output.")
+            result[output_name] = slot_data
         return result
 
     def draw(self, output_filename: str) -> None:
