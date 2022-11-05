@@ -262,6 +262,23 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
             result[output_name] = slot_data
         return result
 
+    def get_painter_params(self) -> Dict:
+        """See :meth:`.PainterMixin.get_painter_params`. Returns keys
+        `dpi`, `rankdir` and `levels_sep`.
+        """
+        return {'dpi': self.dpi,
+                'rankdir': self.rankdir,
+                'levels_sep': self.levels_sep}
+    
+    def set_painter_params(self, **kwargs) -> None:
+        """See :meth:`.PainterMixin.set_painter_params`. Interacts with keys
+        `dpi`, `rankdir` and `levels_sep`.
+        """
+        keys = ['dpi', 'rankdir', 'levels_sep']
+        for key in keys:
+            if key in kwargs:
+                setattr(self, key, kwargs[key])
+
     def draw(self, output_filename: str) -> None:
         """Method for the computational graph drawing. This executor uses 
         the graphviz library.
