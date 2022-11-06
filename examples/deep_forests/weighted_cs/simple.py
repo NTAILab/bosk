@@ -9,9 +9,6 @@ from sklearn.datasets import make_moons
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
-from bosk.block import BaseBlock
-from bosk.pipeline.base import BasePipeline, Connection
-from bosk.executor.naive import NaiveExecutor
 from bosk.stages import Stage
 from bosk.slot import BlockOutputSlot
 from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
@@ -21,62 +18,12 @@ from bosk.block.zoo.metrics import RocAucBlock, AccuracyBlock, F1ScoreBlock
 from bosk.block.zoo.routing import CSBlock, CSJoinBlock, CSFilterBlock
 from bosk.block.zoo.data_weighting import WeightsBlock
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
+from bosk.executor.naive import NaiveExecutor
+
+from examples.deep_forests.cs.simple import make_deep_forest_layer
 
 
-def make_deep_forest_functional():
-    b = FunctionalPipelineBuilder()
-    X, y = b.Input()(), b.TargetInput()()
-    rf_1 = b.RFC(random_state=42)(X=X, y=y)
-    et_1 = b.ETC(random_state=42)(X=X, y=y)
-    concat_1 = b.Concat(['X', 'rf_1', 'et_1'])(X=X, rf_1=rf_1, et_1=et_1)
-    rf_2 = b.RFC(random_state=42)(X=concat_1, y=y)
-    et_2 = b.ETC(random_state=42)(X=concat_1, y=y)
-    concat_2 = b.Concat(['X', 'rf_2', 'et_2'])(X=X, rf_2=rf_2, et_2=et_2)
-    rf_3 = b.RFC(random_state=42)(X=concat_2, y=y)
-    et_3 = b.ETC(random_state=42)(X=concat_2, y=y)
-    stack_3 = b.Stack(['rf_3', 'et_3'], axis=1)(rf_3=rf_3, et_3=et_3)
-    average_3 = b.Average(axis=1)(X=stack_3)
-    argmax_3 = b.Argmax(axis=1)(X=average_3)
-
-    rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
-    roc_auc = b.RocAuc()(gt_y=y, pred_probas=average_3)
-
-    fit_executor = NaiveExecutor(
-        b.pipeline,
-        stage=Stage.FIT,
-        inputs={
-            'X': X.get_input_slot(),
-            'y': y.get_input_slot(),
-        },
-        outputs={
-            'probas': average_3.get_output_slot(),
-            'rf_1_roc-auc': rf_1_roc_auc.get_output_slot(),
-            'roc-auc': roc_auc.get_output_slot(),
-        },
-    )
-    transform_executor = NaiveExecutor(
-        b.pipeline,
-        stage=Stage.TRANSFORM,
-        inputs={
-            'X': X.get_input_slot()
-        },
-        outputs={
-            'probas': average_3.get_output_slot(),
-            'labels': argmax_3.get_output_slot(),
-        },
-    )
-    return b.pipeline, fit_executor, transform_executor
-
-
-def make_deep_forest_layer(b, **inputs):
-    rf = b.RFC(random_state=42)(**inputs)
-    et = b.ETC(random_state=42)(**inputs)
-    stack = b.Stack(['rf', 'et'], axis=1)(rf=rf, et=et)
-    average = b.Average(axis=1)(X=stack)
-    return average
-
-
-def make_deep_forest_functional_confidence_screening():
+def make_deep_forest_weighted_confidence_screening(exec, **ex_kw):
     b = FunctionalPipelineBuilder()
     X, y = b.Input()(), b.TargetInput()()
     rf_1 = b.RFC(random_state=42)(X=X, y=y)
@@ -119,7 +66,7 @@ def make_deep_forest_functional_confidence_screening():
     rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
     roc_auc = b.RocAuc()(gt_y=y, pred_probas=joined_3)
 
-    fit_executor = NaiveExecutor(
+    fit_executor = exec(
         b.pipeline,
         stage=Stage.FIT,
         inputs={
@@ -131,8 +78,9 @@ def make_deep_forest_functional_confidence_screening():
             'rf_1_roc-auc': rf_1_roc_auc.get_output_slot(),
             'roc-auc': roc_auc.get_output_slot(),
         },
+        **ex_kw,
     )
-    transform_executor = NaiveExecutor(
+    transform_executor = exec(
         b.pipeline,
         stage=Stage.TRANSFORM,
         inputs={
@@ -142,14 +90,13 @@ def make_deep_forest_functional_confidence_screening():
             'probas': joined_3.get_output_slot(),
             'labels': argmax_3.get_output_slot(),
         },
+        **ex_kw,
     )
     return b.pipeline, fit_executor, transform_executor
 
 
 def main():
-    # _pipeline, fit_executor, transform_executor = make_deep_forest()
-    # _pipeline, fit_executor, transform_executor = make_deep_forest_functional()
-    _pipeline, fit_executor, transform_executor = make_deep_forest_functional_confidence_screening()
+    _pipeline, fit_executor, transform_executor = make_deep_forest_weighted_confidence_screening(NaiveExecutor)
 
     all_X, all_y = make_moons(noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)

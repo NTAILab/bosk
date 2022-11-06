@@ -3,16 +3,8 @@ from typing import Dict, Mapping, Sequence, Union
 from ..stages import Stage
 from ..data import Data
 from .base import BaseExecutor
-from ..block.base import BaseBlock, BlockInputData, BlockOutputData
 from ..slot import BlockInputSlot, BlockOutputSlot
 import warnings
-
-
-InputSlotToDataMapping = Mapping[BlockInputSlot, Data]
-"""Block input slot data mapping.
-
-It is indexed by input slots.
-"""
 
 
 class NaiveExecutor(BaseExecutor):
@@ -21,30 +13,6 @@ class NaiveExecutor(BaseExecutor):
     Considers only input-output slots information to match slots.
 
     """
-
-    def __is_input_slot_required(self, input_slot: BlockInputSlot) -> bool:
-        if self.stage == Stage.FIT:
-            return input_slot.meta.stages.fit \
-                or input_slot.meta.stages.transform \
-                or input_slot.meta.stages.transform_on_fit
-        elif self.stage == Stage.TRANSFORM:
-            return input_slot.meta.stages.transform
-        else:
-            raise NotImplementedError()
-
-    def __execute_block(self, node: BaseBlock, node_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
-        if self.stage == Stage.FIT:
-            node.fit({
-                slot.meta.name: values
-                for slot, values in node_input_mapping.items()
-                if slot.meta.stages.fit
-            })
-        filtered_node_input_mapping = {
-            slot.meta.name: values
-            for slot, values in node_input_mapping.items()
-            if slot.meta.stages.transform or (self.stage == Stage.FIT and slot.meta.stages.transform_on_fit)
-        }
-        return node.wrap(node.transform(filtered_node_input_mapping))
 
     def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:
         slots_values: Dict[Union[BlockInputSlot, BlockOutputSlot], Data] = dict()
@@ -79,7 +47,7 @@ class NaiveExecutor(BaseExecutor):
             node_input_slots = node.slots.inputs.values()
             node_input_mapping = dict()
             for _input in node_input_slots:
-                if not self.__is_input_slot_required(_input):
+                if not self._is_input_slot_required(_input):
                     continue
                 if _input in slots_values:
                     node_input_mapping[_input] = slots_values[_input]
@@ -95,7 +63,7 @@ class NaiveExecutor(BaseExecutor):
                 slots_values[conn.dst] = conn_value
                 node_input_mapping[_input] = conn_value
 
-            outputs = self.__execute_block(node, node_input_mapping)
+            outputs = self._execute_block(node, node_input_mapping)
             slots_values.update(outputs)
             return slots_values[out_slot]
 

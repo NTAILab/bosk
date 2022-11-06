@@ -26,7 +26,7 @@ from bosk.block.zoo.multi_grained_scanning import \
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 
 
-def make_deep_forest_functional_multi_grained_scanning_1d():
+def make_deep_forest_functional_multi_grained_scanning_1d(exec, **ex_kw):
     b = FunctionalPipelineBuilder()
     random_state_value = 42
     X, y = b.Input()(), b.TargetInput()()
@@ -48,7 +48,7 @@ def make_deep_forest_functional_multi_grained_scanning_1d():
     rf_1_roc_auc = b.RocAucMultiLabel()(gt_y=y, pred_probas=rf_1)
     roc_auc = b.RocAucMultiLabel()(gt_y=y, pred_probas=average_3)
 
-    fit_executor = NaiveExecutor(
+    fit_executor = exec(
         b.pipeline,
         stage=Stage.FIT,
         inputs={
@@ -60,8 +60,9 @@ def make_deep_forest_functional_multi_grained_scanning_1d():
             'rf_1_roc-auc': rf_1_roc_auc.get_output_slot(),
             'roc-auc': roc_auc.get_output_slot(),
         },
+        **ex_kw,
     )
-    transform_executor = NaiveExecutor(
+    transform_executor = exec(
         b.pipeline,
         stage=Stage.TRANSFORM,
         inputs={
@@ -71,11 +72,12 @@ def make_deep_forest_functional_multi_grained_scanning_1d():
             'probas': average_3.get_output_slot(),
             'labels': argmax_3.get_output_slot(),
         },
+        **ex_kw,
     )
     return b.pipeline, fit_executor, transform_executor
 
 
-def make_deep_forest_functional_multi_grained_scanning_2d():
+def make_deep_forest_functional_multi_grained_scanning_2d(exec, **ex_kw):
     b = FunctionalPipelineBuilder()
     random_state_value = 42
     X, y = b.Input()(), b.TargetInput()()
@@ -97,7 +99,7 @@ def make_deep_forest_functional_multi_grained_scanning_2d():
     rf_1_roc_auc = b.RocAucMultiLabel()(gt_y=y, pred_probas=rf_1)
     roc_auc = b.RocAucMultiLabel()(gt_y=y, pred_probas=average_3)
 
-    fit_executor = NaiveExecutor(
+    fit_executor = exec(
         b.pipeline,
         stage=Stage.FIT,
         inputs={
@@ -109,8 +111,9 @@ def make_deep_forest_functional_multi_grained_scanning_2d():
             'rf_1_roc-auc': rf_1_roc_auc.get_output_slot(),
             'roc-auc': roc_auc.get_output_slot(),
         },
+        **ex_kw,
     )
-    transform_executor = NaiveExecutor(
+    transform_executor = exec(
         b.pipeline,
         stage=Stage.TRANSFORM,
         inputs={
@@ -120,13 +123,14 @@ def make_deep_forest_functional_multi_grained_scanning_2d():
             'probas': average_3.get_output_slot(),
             'labels': argmax_3.get_output_slot(),
         },
+        **ex_kw,
     )
     return b.pipeline, fit_executor, transform_executor
 
 
 def example_iris_dataset():
     print("1D:")
-    _, fit_executor, transform_executor = make_deep_forest_functional_multi_grained_scanning_1d()
+    _, fit_executor, transform_executor = make_deep_forest_functional_multi_grained_scanning_1d(NaiveExecutor)
     iris = load_iris()
     all_X = iris.data
     all_y = iris.target
@@ -142,7 +146,7 @@ def example_iris_dataset():
 
 def example_digits_dataset():
     print("2D:")
-    _, fit_executor, transform_executor = make_deep_forest_functional_multi_grained_scanning_2d()
+    _, fit_executor, transform_executor = make_deep_forest_functional_multi_grained_scanning_2d(NaiveExecutor)
     digits = load_digits()
     all_X = digits.data
     all_y = digits.target
