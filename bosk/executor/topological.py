@@ -30,8 +30,6 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         conn_dict: Pipeline connections, represented as a hash map, the keys are blocks' input slots, 
             the values are output ones. Each input slot corresponds no more than one 
             output slot, so this representation is correct.
-        slot_to_block_map: Dictionary that allows to determine to which block some slot does belong. 
-            Will be removed in the future versions, when the BaseSlot will contain the link to his parent block.
         levels_sep: The painter's parameter, which determines the distance between the computational graph's levels.
             See http://graphviz.org/docs/attrs/ranksep/.
         dpi: The dpi of the output computational graph images, formated in raster graphics (.png, .jpeg, etc.).
@@ -48,7 +46,6 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
     """
 
     conn_dict: Mapping[BlockInputSlot, BlockOutputSlot]
-    slot_to_block_map: Mapping[BaseSlot, BaseBlock]
     levels_sep: float
     dpi: int
     rankdir: str
@@ -67,17 +64,6 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
             assert (inp_name in input_values), f"Unable to find input slot {inp_name} (id {hash(inp_slot)}) in input data"
             passed += 1
         assert (passed == len(input_values)), "Input values are incompatible with pipeline input slots"
-
-    def _get_slot_to_block_map(self) -> Mapping[BaseSlot, BaseBlock]:
-        """Method that creates :attr:`slot_to_block_map`.
-        """
-        slot_to_block_map: Mapping[BaseSlot, BaseBlock] = dict()
-        for block in self.pipeline.nodes:
-            for slot in block.slots.inputs.values():
-                slot_to_block_map[slot] = block
-            for slot in block.slots.outputs.values():
-                slot_to_block_map[slot] = block
-        return slot_to_block_map
 
     # contains extra links for pipeline input slots (cyclic)
     def _get_connection_map(self) -> Mapping[BlockInputSlot, BlockOutputSlot]:
@@ -110,7 +96,6 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         super().__init__(pipeline, stage=stage, inputs=inputs, outputs=outputs)
 
         self.conn_dict = self._get_connection_map()
-        self.slot_to_block_map = self._get_slot_to_block_map()
         self.levels_sep = painter_levels_sep
         self.dpi = figure_dpi
         self.rankdir = figure_rankdir
@@ -180,8 +165,8 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         backward_aj_list: Mapping[BaseBlock, Set[BaseBlock]] = defaultdict(set)
         for inp_slot, out_slot in self.conn_dict.items():
             if feasible_set is None or \
-               self.slot_to_block_map[inp_slot] in feasible_set and self.slot_to_block_map[out_slot] in feasible_set:
-                backward_aj_list[self.slot_to_block_map[inp_slot]].add(self.slot_to_block_map[out_slot])
+               inp_slot.parent_block in feasible_set and out_slot.parent_block in feasible_set:
+                backward_aj_list[inp_slot.parent_block].add(out_slot.parent_block)
         return backward_aj_list
 
     def _get_forward_aj_list(self, feasible_set: None | Set[BaseBlock] = None) -> Mapping[BaseBlock, Set[BaseBlock]]:
@@ -197,8 +182,8 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         forward_aj_list: Mapping[BaseBlock, Set[BaseBlock]] = defaultdict(set)
         for inp_slot, out_slot in self.conn_dict.items():
             if feasible_set is None or \
-               self.slot_to_block_map[inp_slot] in feasible_set and self.slot_to_block_map[out_slot] in feasible_set:
-                forward_aj_list[self.slot_to_block_map[out_slot]].add(self.slot_to_block_map[inp_slot])
+               inp_slot.parent_block in feasible_set and out_slot.parent_block in feasible_set:
+                forward_aj_list[out_slot.parent_block].add(inp_slot.parent_block)
         return forward_aj_list
 
     def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:
@@ -218,7 +203,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         """
         self.__check_inputs_concordance(input_values)
 
-        output_blocks = [self.slot_to_block_map[slot] for slot in self.outputs.values()]
+        output_blocks = [slot.parent_block for slot in self.outputs.values()]
         backward_pass = self._dfs(self._get_backward_aj_list(), output_blocks)
 
         slots_values: Dict[BaseSlot, Data] = dict()
@@ -231,10 +216,10 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                 inputs = [input_or_inputs]
             for inp in inputs:
                 slots_values[inp] = input_data
-                if self.slot_to_block_map[inp] not in backward_pass:
+                if inp.parent_block not in backward_pass:
                     warnings.warn(f"Input slot '{input_name}' is disconnected from the outputs, it won't be calculated")
                 else:
-                    input_blocks_list.append(self.slot_to_block_map[inp])
+                    input_blocks_list.append(inp.parent_block)
         topological_order = self._topological_sort(self._get_forward_aj_list(backward_pass), set(input_blocks_list))
 
         try:
@@ -294,7 +279,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                 The filename determines the format, for example, figure.png will be rendered as a raster graphics file
                 and figure.pdf - as a vector one. The range of the formats depends on the cairo renderer: https://graphviz.org/docs/outputs/.
         """
-        output_blocks = [self.slot_to_block_map[slot] for slot in self.outputs.values()]
+        output_blocks = [slot.parent_block for slot in self.outputs.values()]
         backward_pass = self._dfs(self._get_backward_aj_list(), output_blocks)
 
 
@@ -305,7 +290,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
             else:
                 inputs = [input_or_inputs]
             for inp in inputs:
-                input_blocks_list.append(self.slot_to_block_map[inp])
+                input_blocks_list.append(inp.parent_block)
         forward_pass = self._dfs(self._get_forward_aj_list(backward_pass), set(input_blocks_list))
         used_blocks = backward_pass & forward_pass
 
@@ -326,9 +311,9 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         for conn in self.pipeline.connections:
             is_conn_req = self._is_input_slot_required(conn.dst)
             edge_style = 'dashed' if not is_conn_req else ''
-            edge_color = 'red' if self.slot_to_block_map[conn.dst] not in used_blocks and is_conn_req else 'black'
-            graph.edge(f'block{id(self.slot_to_block_map[conn.src])}:o{hash(conn.src)}',
-                   f'block{id(self.slot_to_block_map[conn.dst])}:i{hash(conn.dst)}', style=edge_style, color=edge_color)
+            edge_color = 'red' if conn.dst.parent_block not in used_blocks and is_conn_req else 'black'
+            graph.edge(f'block{id(conn.src.parent_block)}:o{hash(conn.src)}',
+                   f'block{id(conn.dst.parent_block)}:i{hash(conn.dst)}', style=edge_style, color=edge_color)
 
         # drawing input slots
         for inp_name, inp_slots in self.inputs.items():
@@ -343,7 +328,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                 else:
                     edge_style = 'dashed'
                 graph.edge(f'inp_{inp_name}:I_{inp_name}',
-                       f'block{id(self.slot_to_block_map[slot])}:i{hash(slot)}', style=edge_style)
+                       f'block{id(slot.parent_block)}:i{hash(slot)}', style=edge_style)
             node_style = '' if f_node_needed else 'dashed'
             graph.node(f'inp_{inp_name}', style=node_style)
 
@@ -359,7 +344,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                     f_node_needed = True
                 else:
                     edge_style = 'dashed'
-                graph.edge(f'block{id(self.slot_to_block_map[slot])}:o{hash(slot)}', f'out_{out_name}:O_{out_name}')
+                graph.edge(f'block{id(slot.parent_block)}:o{hash(slot)}', f'out_{out_name}:O_{out_name}')
             node_style = '' if f_node_needed else 'dashed'
             graph.node(f'out_{out_name}', style=node_style)
 

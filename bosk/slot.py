@@ -30,6 +30,8 @@ class OutputSlotMeta(BaseSlotMeta):
     """
 
 
+BaseBlock = TypeVar('BaseBlock') # will be removed later
+
 @dataclass(eq=False, frozen=False)
 class BaseSlot:
     """Base slot.
@@ -43,6 +45,7 @@ class BaseSlot:
 
     """
     meta: BaseSlotMeta
+    parent_block: BaseBlock
     debug_info: str = ""
 
     def __hash__(self) -> int:

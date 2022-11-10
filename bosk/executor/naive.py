@@ -35,15 +35,8 @@ class NaiveExecutor(BaseExecutor):
             assert isinstance(out_slot, BlockOutputSlot)
             if out_slot in slots_values:
                 return slots_values[out_slot]
-            # search for node which computes the slot value
-            for node in self.pipeline.nodes:
-                if out_slot not in node.slots.outputs.values():
-                    continue
-                break
-            else:
-                raise RuntimeError(f'Node that can compute value for the slot not found: {out_slot}')
-            # print("Computing output for node", node._AutoBlock__instance.name, node)
-
+            
+            node = out_slot.parent_block
             node_input_slots = node.slots.inputs.values()
             node_input_mapping = dict()
             for _input in node_input_slots:

@@ -47,11 +47,11 @@ class BaseBlock(ABC):
         """Make slots"""
         return BlockSlots(
             inputs={
-                name: BlockInputSlot(meta=input_slot_meta)
+                name: BlockInputSlot(meta=input_slot_meta, parent_block=self)
                 for name, input_slot_meta in self.meta.inputs.items()
             },
             outputs={
-                name: BlockOutputSlot(meta=output_slot_meta)
+                name: BlockOutputSlot(meta=output_slot_meta, parent_block=self)
                 for name, output_slot_meta in self.meta.outputs.items()
             },
         )
