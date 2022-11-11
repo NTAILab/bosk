@@ -10,7 +10,7 @@ from collections import defaultdict, deque
 
 from ..stages import Stage
 from ..data import Data
-from .base import BaseExecutor
+from .base import BaseExecutor, BaseExecutionStrategy, BaseSlotStrategy
 from .painter import PainterMixin
 from ..slot import BlockInputSlot, BlockOutputSlot, BaseSlot
 from ..block import BaseBlock
@@ -45,10 +45,10 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
             figure_rankdir: Sets :attr:`rankdir`.
     """
 
-    conn_dict: Mapping[BlockInputSlot, BlockOutputSlot]
-    levels_sep: float
-    dpi: int
-    rankdir: str
+    _conn_dict: Mapping[BlockInputSlot, BlockOutputSlot]
+    _levels_sep: float
+    _dpi: int
+    _rankdir: str
 
     def __check_inputs_concordance(self, input_values: Mapping[str, Data]) -> None:
         """The function that checks if the input values, provided to the :meth:`__call__` method, agree with the pipeline's inputs.
@@ -76,7 +76,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         conn_dict: Mapping[BlockInputSlot, BlockOutputSlot] = dict()
         for conn in self.pipeline.connections:
             assert (conn.dst not in conn_dict), f"Input slot {conn.dst.name} (id {hash(conn.dst)}) is used more than once"
-            if self._is_input_slot_required(conn.dst):
+            if self.slots_handler.is_slot_required(conn.dst):
                 conn_dict[conn.dst] = conn.src
         for input_or_inputs in self.inputs.values():
             if isinstance(input_or_inputs, Iterable):
@@ -87,18 +87,19 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                 conn_dict[inp] = inp
         return conn_dict
 
-    def __init__(self, pipeline: BasePipeline, *,
+    def __init__(self, pipeline: BasePipeline, slots_handler: BaseSlotStrategy,
+                 blocks_handler: BaseExecutionStrategy, *,
                  stage: None | Stage = None,
                  inputs: None | Mapping[str, BlockInputSlot | Sequence[BlockInputSlot]] = None,
                  outputs: None | Mapping[str, BlockOutputSlot] = None,
                  painter_levels_sep: float = 1.0, figure_dpi: int = 150, figure_rankdir: str = 'LR'):
 
-        super().__init__(pipeline, stage=stage, inputs=inputs, outputs=outputs)
+        super().__init__(pipeline, slots_handler, blocks_handler, stage=stage, inputs=inputs, outputs=outputs)
 
-        self.conn_dict = self._get_connection_map()
-        self.levels_sep = painter_levels_sep
-        self.dpi = figure_dpi
-        self.rankdir = figure_rankdir
+        self._conn_dict = self._get_connection_map()
+        self._levels_sep = painter_levels_sep
+        self._dpi = figure_dpi
+        self._rankdir = figure_rankdir
 
     def _dfs(self, aj_list: Mapping[BaseBlock, Set[BaseBlock]], begin_nodes: Sequence[BaseBlock]) -> Set[BaseBlock]:
         """Method that performs the deep first search algorithm in the computational graph.
@@ -163,7 +164,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
             The backwards adjacency list containing blocks from the ``feasible set``.
         """
         backward_aj_list: Mapping[BaseBlock, Set[BaseBlock]] = defaultdict(set)
-        for inp_slot, out_slot in self.conn_dict.items():
+        for inp_slot, out_slot in self._conn_dict.items():
             if feasible_set is None or \
                inp_slot.parent_block in feasible_set and out_slot.parent_block in feasible_set:
                 backward_aj_list[inp_slot.parent_block].add(out_slot.parent_block)
@@ -180,7 +181,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
             The adjacency list containing blocks from the ``feasible set``.
         """
         forward_aj_list: Mapping[BaseBlock, Set[BaseBlock]] = defaultdict(set)
-        for inp_slot, out_slot in self.conn_dict.items():
+        for inp_slot, out_slot in self._conn_dict.items():
             if feasible_set is None or \
                inp_slot.parent_block in feasible_set and out_slot.parent_block in feasible_set:
                 forward_aj_list[out_slot.parent_block].add(inp_slot.parent_block)
@@ -226,13 +227,13 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
             for node in topological_order:
                 node_input_data = dict()
                 for name, inp_slot in node.slots.inputs.items():
-                    if inp_slot not in self.conn_dict:
+                    if inp_slot not in self._conn_dict:
                         # input slot was not used
                         continue
-                    corresponding_output = self.conn_dict[inp_slot]
+                    corresponding_output = self._conn_dict[inp_slot]
                     inp_data = slots_values[corresponding_output]
                     node_input_data[inp_slot] = inp_data
-                outputs = self._execute_block(node, node_input_data)
+                outputs = self.blocks_handler.execute_block(node, node_input_data)
                 slots_values.update(outputs)
         except Exception:
             block_name = node.__class__.__name__
@@ -251,9 +252,9 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         """See :meth:`.PainterMixin.get_painter_params`. Returns keys
         `dpi`, `rankdir` and `levels_sep`.
         """
-        return {'dpi': self.dpi,
-                'rankdir': self.rankdir,
-                'levels_sep': self.levels_sep}
+        return {'dpi': self._dpi,
+                'rankdir': self._rankdir,
+                'levels_sep': self._levels_sep}
     
     def set_painter_params(self, **kwargs) -> None:
         """See :meth:`.PainterMixin.set_painter_params`. Interacts with keys
@@ -295,7 +296,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         used_blocks = backward_pass & forward_pass
 
         graph = gv.Digraph('DeepForestGraph', renderer='cairo', formatter='cairo', node_attr={'shape': 'record'})
-        graph.attr(rankdir=self.rankdir, ranksep=str(self.levels_sep), dpi=str(self.dpi))
+        graph.attr(rankdir=self._rankdir, ranksep=str(self._levels_sep), dpi=str(self._dpi))
 
         # drawing blocks
         for block in self.pipeline.nodes:
@@ -309,7 +310,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
 
         # drawing edges
         for conn in self.pipeline.connections:
-            is_conn_req = self._is_input_slot_required(conn.dst)
+            is_conn_req = self.slots_handler.is_slot_required(conn.dst)
             edge_style = 'dashed' if not is_conn_req else ''
             edge_color = 'red' if conn.dst.parent_block not in used_blocks and is_conn_req else 'black'
             graph.edge(f'block{id(conn.src.parent_block)}:o{hash(conn.src)}',
@@ -322,7 +323,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
             if not isinstance(inp_slots, Iterable):
                 inp_slots = [inp_slots]
             for slot in inp_slots:
-                if self._is_input_slot_required(slot):
+                if self.slots_handler.is_slot_required(slot):
                     edge_style = ''
                     f_node_needed = True
                 else:
@@ -339,13 +340,6 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
             if not isinstance(out_slots, Iterable):
                 out_slots = [out_slots]
             for slot in out_slots:
-                if self._is_input_slot_required(slot):
-                    edge_style = ''
-                    f_node_needed = True
-                else:
-                    edge_style = 'dashed'
                 graph.edge(f'block{id(slot.parent_block)}:o{hash(slot)}', f'out_{out_name}:O_{out_name}')
-            node_style = '' if f_node_needed else 'dashed'
-            graph.node(f'out_{out_name}', style=node_style)
 
         graph.render(outfile=output_filename, cleanup=True)

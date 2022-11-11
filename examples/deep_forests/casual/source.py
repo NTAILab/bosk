@@ -9,6 +9,8 @@ from sklearn.metrics import roc_auc_score
 
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.executor.naive import NaiveExecutor
+from bosk.executor.handlers import SimpleExecutionStrategy, InputSlotStrategy
+from bosk.executor.base import BaseExecutor
 from bosk.stages import Stage
 from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
 from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
@@ -17,7 +19,7 @@ from bosk.block.zoo.metrics import RocAucBlock
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 
 
-def make_deep_forest(executor, **ex_kw):
+def make_deep_forest(executor: BaseExecutor, **ex_kw):
     input_x = InputBlock()
     input_y = TargetInputBlock()
     rf_1 = RFCBlock(random_state=42)
@@ -84,6 +86,8 @@ def make_deep_forest(executor, **ex_kw):
 
     fit_executor = executor(
         pipeline,
+        InputSlotStrategy(Stage.FIT),
+        SimpleExecutionStrategy(Stage.FIT),
         stage=Stage.FIT,
         inputs={
             'X': input_x.slots.inputs['X'],
@@ -98,6 +102,8 @@ def make_deep_forest(executor, **ex_kw):
     )
     transform_executor = executor(
         pipeline,
+        InputSlotStrategy(Stage.TRANSFORM),
+        SimpleExecutionStrategy(Stage.TRANSFORM),
         stage=Stage.TRANSFORM,
         inputs={'X': input_x.slots.inputs['X']},
         outputs={
@@ -129,6 +135,8 @@ def make_deep_forest_functional(executor, **ex_kw):
 
     fit_executor = executor(
         b.pipeline,
+        InputSlotStrategy(Stage.FIT),
+        SimpleExecutionStrategy(Stage.FIT),
         stage=Stage.FIT,
         inputs={
             'X': X.get_input_slot(),
@@ -143,6 +151,8 @@ def make_deep_forest_functional(executor, **ex_kw):
     )
     transform_executor = executor(
         b.pipeline,
+        InputSlotStrategy(Stage.TRANSFORM),
+        SimpleExecutionStrategy(Stage.TRANSFORM),
         stage=Stage.TRANSFORM,
         inputs={
             'X': X.get_input_slot()

@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
 from bosk.stages import Stage
-from bosk.slot import BlockOutputSlot
+from bosk.executor.handlers import SimpleExecutionStrategy, InputSlotStrategy
 from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
 from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
@@ -68,6 +68,8 @@ def make_deep_forest_weighted_confidence_screening(exec, **ex_kw):
 
     fit_executor = exec(
         b.pipeline,
+        InputSlotStrategy(Stage.FIT),
+        SimpleExecutionStrategy(Stage.FIT),
         stage=Stage.FIT,
         inputs={
             'X': X.get_input_slot(),
@@ -82,6 +84,8 @@ def make_deep_forest_weighted_confidence_screening(exec, **ex_kw):
     )
     transform_executor = exec(
         b.pipeline,
+        InputSlotStrategy(Stage.TRANSFORM),
+        SimpleExecutionStrategy(Stage.TRANSFORM),
         stage=Stage.TRANSFORM,
         inputs={
             'X': X.get_input_slot()

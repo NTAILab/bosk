@@ -1,6 +1,5 @@
 from typing import Dict, Mapping, Sequence, Union
 
-from ..stages import Stage
 from ..data import Data
 from .base import BaseExecutor
 from ..slot import BlockInputSlot, BlockOutputSlot
@@ -40,7 +39,7 @@ class NaiveExecutor(BaseExecutor):
             node_input_slots = node.slots.inputs.values()
             node_input_mapping = dict()
             for _input in node_input_slots:
-                if not self._is_input_slot_required(_input):
+                if not self.slots_handler.is_slot_required(_input):
                     continue
                 if _input in slots_values:
                     node_input_mapping[_input] = slots_values[_input]
@@ -56,7 +55,7 @@ class NaiveExecutor(BaseExecutor):
                 slots_values[conn.dst] = conn_value
                 node_input_mapping[_input] = conn_value
 
-            outputs = self._execute_block(node, node_input_mapping)
+            outputs = self.blocks_handler.execute_block(node, node_input_mapping)
             slots_values.update(outputs)
             return slots_values[out_slot]
 
