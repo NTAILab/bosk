@@ -46,7 +46,7 @@ class DeepForestWrapper():
     
     def train(self, exec_cls, **exec_kw):
         train_X, self.test_X, train_y, _ = self.dataset_factory()
-        _, self.fit_exec, self.tf_exec = self.df_factory(exec_cls, **exec_kw)
+        self.fit_exec, self.tf_exec = self.df_factory(exec_cls, **exec_kw)
         fit_res = self.fit_exec({'X': train_X, 'y': train_y})
         self.is_fitted = True
         return fit_res

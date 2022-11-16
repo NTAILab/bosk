@@ -81,14 +81,7 @@ def make_deep_forest(executor: BaseExecutor, **ex_kw):
             Connection(input_y.slots.outputs['y'], roc_auc.slots.inputs['gt_y']),
             Connection(rf_1.slots.outputs['output'], roc_auc_rf_1.slots.inputs['pred_probas']),
             Connection(input_y.slots.outputs['y'], roc_auc_rf_1.slots.inputs['gt_y']),
-        ]
-    )
-
-    fit_executor = executor(
-        pipeline,
-        InputSlotStrategy(Stage.FIT),
-        SimpleExecutionStrategy(Stage.FIT),
-        stage=Stage.FIT,
+        ],
         inputs={
             'X': input_x.slots.inputs['X'],
             'y': input_y.slots.inputs['y'],
@@ -97,7 +90,17 @@ def make_deep_forest(executor: BaseExecutor, **ex_kw):
             'probas': average_3.slots.outputs['output'],
             'rf_1_roc-auc': roc_auc_rf_1.slots.outputs['roc-auc'],
             'roc-auc': roc_auc.slots.outputs['roc-auc'],
-        },
+            'labels': argmax_3.slots.outputs['output']
+        }
+    )
+
+    fit_executor = executor(
+        pipeline,
+        InputSlotStrategy(Stage.FIT),
+        SimpleExecutionStrategy(Stage.FIT),
+        stage=Stage.FIT,
+        inputs=['X', 'y'],
+        outputs=['probas', 'rf_1_roc-auc', 'roc-auc'],
         **ex_kw
     )
     transform_executor = executor(
@@ -105,14 +108,11 @@ def make_deep_forest(executor: BaseExecutor, **ex_kw):
         InputSlotStrategy(Stage.TRANSFORM),
         SimpleExecutionStrategy(Stage.TRANSFORM),
         stage=Stage.TRANSFORM,
-        inputs={'X': input_x.slots.inputs['X']},
-        outputs={
-            'probas': average_3.slots.outputs['output'],
-            'labels': argmax_3.slots.outputs['output'],
-        },
+        inputs=['X'],
+        outputs=['probas', 'labels'],
         **ex_kw
     )
-    return pipeline, fit_executor, transform_executor
+    return fit_executor, transform_executor
 
 
 def make_deep_forest_functional(executor, **ex_kw):
@@ -134,42 +134,36 @@ def make_deep_forest_functional(executor, **ex_kw):
     roc_auc = b.RocAuc()(gt_y=y, pred_probas=average_3)
 
     fit_executor = executor(
-        b.pipeline,
+        b.build_pipeline(
+            {'X': X, 'y': y},
+            {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
+        ),
         InputSlotStrategy(Stage.FIT),
         SimpleExecutionStrategy(Stage.FIT),
         stage=Stage.FIT,
-        inputs={
-            'X': X.get_input_slot(),
-            'y': y.get_input_slot(),
-        },
-        outputs={
-            'probas': average_3.get_output_slot(),
-            'rf_1_roc-auc': rf_1_roc_auc.get_output_slot(),
-            'roc-auc': roc_auc.get_output_slot(),
-        },
-        **ex_kw,
+        inputs=['X', 'y'],
+        outputs=['probas', 'rf_1_roc-auc', 'roc-auc'],
+        **ex_kw
     )
     transform_executor = executor(
-        b.pipeline,
+        b.build_pipeline(
+            {'X': X, 'y': y},
+            {'probas': average_3, 'labels': argmax_3}
+        ),
         InputSlotStrategy(Stage.TRANSFORM),
         SimpleExecutionStrategy(Stage.TRANSFORM),
         stage=Stage.TRANSFORM,
-        inputs={
-            'X': X.get_input_slot()
-        },
-        outputs={
-            'probas': average_3.get_output_slot(),
-            'labels': argmax_3.get_output_slot(),
-        },
-        **ex_kw,
+        inputs=['X'],
+        outputs=['probas', 'labels'],
+        **ex_kw
     )
-    return b.pipeline, fit_executor, transform_executor
+    return fit_executor, transform_executor
 
 
 def main():
     executor_class = NaiveExecutor
-    _, fit_executor, transform_executor = make_deep_forest(executor_class)
-    # _, fit_executor, transform_executor = make_deep_forest_functional(executor_class)
+    # fit_executor, transform_executor = make_deep_forest(executor_class)
+    fit_executor, transform_executor = make_deep_forest_functional(executor_class)
 
     all_X, all_y = make_moons(noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)

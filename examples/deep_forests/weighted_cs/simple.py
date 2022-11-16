@@ -1,8 +1,6 @@
 """Example of simple Adaptive Weighted Deep Forest definition in functional style.
 
 """
-from typing import Callable, Optional
-
 import numpy as np
 
 from sklearn.datasets import make_moons
@@ -11,11 +9,6 @@ from sklearn.metrics import roc_auc_score
 
 from bosk.stages import Stage
 from bosk.executor.handlers import SimpleExecutionStrategy, InputSlotStrategy
-from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
-from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
-from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
-from bosk.block.zoo.metrics import RocAucBlock, AccuracyBlock, F1ScoreBlock
-from bosk.block.zoo.routing import CSBlock, CSJoinBlock, CSFilterBlock
 from bosk.block.zoo.data_weighting import WeightsBlock
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.executor.naive import NaiveExecutor
@@ -23,7 +16,7 @@ from bosk.executor.naive import NaiveExecutor
 from examples.deep_forests.cs.simple import make_deep_forest_layer
 
 
-def make_deep_forest_weighted_confidence_screening(exec, **ex_kw):
+def make_deep_forest_weighted_confidence_screening(executor, **ex_kw):
     b = FunctionalPipelineBuilder()
     X, y = b.Input()(), b.TargetInput()()
     rf_1 = b.RFC(random_state=42)(X=X, y=y)
@@ -66,8 +59,11 @@ def make_deep_forest_weighted_confidence_screening(exec, **ex_kw):
     rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
     roc_auc = b.RocAuc()(gt_y=y, pred_probas=joined_3)
 
-    fit_executor = exec(
-        b.pipeline,
+    fit_executor = executor(
+        b.build_pipeline(
+            {'X': X, 'y': y},
+            {'probas': joined_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
+        ),
         InputSlotStrategy(Stage.FIT),
         SimpleExecutionStrategy(Stage.FIT),
         stage=Stage.FIT,
@@ -82,8 +78,11 @@ def make_deep_forest_weighted_confidence_screening(exec, **ex_kw):
         },
         **ex_kw,
     )
-    transform_executor = exec(
-        b.pipeline,
+    transform_executor = executor(
+        b.build_pipeline(
+            {'X': X, 'y': y},
+            {'probas': joined_3, 'labels': argmax_3}
+        ),
         InputSlotStrategy(Stage.TRANSFORM),
         SimpleExecutionStrategy(Stage.TRANSFORM),
         stage=Stage.TRANSFORM,
@@ -96,11 +95,11 @@ def make_deep_forest_weighted_confidence_screening(exec, **ex_kw):
         },
         **ex_kw,
     )
-    return b.pipeline, fit_executor, transform_executor
+    return fit_executor, transform_executor
 
 
 def main():
-    _pipeline, fit_executor, transform_executor = make_deep_forest_weighted_confidence_screening(NaiveExecutor)
+    fit_executor, transform_executor = make_deep_forest_weighted_confidence_screening(NaiveExecutor)
 
     all_X, all_y = make_moons(noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)

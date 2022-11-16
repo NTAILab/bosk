@@ -4,13 +4,13 @@ This file contains the optimizing executor, which also can draw the computationa
 
 """
 
-from typing import Deque, Dict, List, Mapping, Sequence, Set
+from typing import Deque, Dict, List, Mapping, Sequence, Set, Union
 from collections.abc import Iterable
 from collections import defaultdict, deque
 
 from ..stages import Stage
 from ..data import Data
-from .base import BaseExecutor, BaseExecutionStrategy, BaseSlotStrategy
+from .base import BaseExecutor, ExecutionStrategyBase, SlotStrategyBase
 from .painter import PainterMixin
 from ..slot import BlockInputSlot, BlockOutputSlot, BaseSlot
 from ..block import BaseBlock
@@ -50,23 +50,8 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
     _dpi: int
     _rankdir: str
 
-    def __check_inputs_concordance(self, input_values: Mapping[str, Data]) -> None:
-        """The function that checks if the input values, provided to the :meth:`__call__` method, agree with the pipeline's inputs.
-
-        Args:
-            input_values: Values, which were provided in the :meth:`__call__` method.
-        
-        Raises:
-            AssertionError: If there are some incompatibility between pipeline's inputs and user's ones.
-        """
-        passed = 0
-        for inp_name, inp_slot in self.inputs.items():
-            assert (inp_name in input_values), f"Unable to find input slot {inp_name} (id {hash(inp_slot)}) in input data"
-            passed += 1
-        assert (passed == len(input_values)), "Input values are incompatible with pipeline input slots"
-
     # contains extra links for pipeline input slots (cyclic)
-    def _get_connection_map(self) -> Mapping[BlockInputSlot, BlockOutputSlot]:
+    def _get_connection_map(self) -> Mapping[BlockInputSlot, Union[BlockOutputSlot, BlockInputSlot]]:
         """Method that creates :attr:`conn_dict` and checks if every input slot
         has no more than one corresponding output slot.
 
@@ -75,23 +60,19 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
         """
         conn_dict: Mapping[BlockInputSlot, BlockOutputSlot] = dict()
         for conn in self.pipeline.connections:
-            assert (conn.dst not in conn_dict), f"Input slot {conn.dst.name} (id {hash(conn.dst)}) is used more than once"
+            assert (conn.dst not in conn_dict), f'Input slot of block "{conn.dst.parent_block.__class__.__name__}" \
+                (id {hash(conn.dst)}) is used more than once'
             if self.slots_handler.is_slot_required(conn.dst):
                 conn_dict[conn.dst] = conn.src
-        for input_or_inputs in self.inputs.values():
-            if isinstance(input_or_inputs, Iterable):
-                inputs = input_or_inputs
-            else:
-                inputs = [input_or_inputs]
-            for inp in inputs:
+        for inp in self.pipeline.inputs.values():
                 conn_dict[inp] = inp
         return conn_dict
 
-    def __init__(self, pipeline: BasePipeline, slots_handler: BaseSlotStrategy,
-                 blocks_handler: BaseExecutionStrategy, *,
+    def __init__(self, pipeline: BasePipeline, slots_handler: SlotStrategyBase,
+                 blocks_handler: ExecutionStrategyBase, *,
                  stage: None | Stage = None,
-                 inputs: None | Mapping[str, BlockInputSlot | Sequence[BlockInputSlot]] = None,
-                 outputs: None | Mapping[str, BlockOutputSlot] = None,
+                 inputs: None | Sequence[str] = None,
+                 outputs: None | Sequence[str] = None,
                  painter_levels_sep: float = 1.0, figure_dpi: int = 150, figure_rankdir: str = 'LR'):
 
         super().__init__(pipeline, slots_handler, blocks_handler, stage=stage, inputs=inputs, outputs=outputs)
@@ -202,26 +183,27 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
             AssertionError: If there are some incompatibility between pipeline's inputs and user's ones.
 
         """
-        self.__check_inputs_concordance(input_values)
+        self._check_input_values(input_values)
 
-        output_blocks = [slot.parent_block for slot in self.outputs.values()]
+        if self.outputs is not None:
+            out_slots_to_process = [self.pipeline.outputs[name] for name in self.outputs]
+        else:
+            out_slots_to_process = self.pipeline.outputs.values()
+        output_blocks = [slot.parent_block for slot in out_slots_to_process]
         backward_pass = self._dfs(self._get_backward_aj_list(), output_blocks)
 
         slots_values: Dict[BaseSlot, Data] = dict()
-        input_blocks_list = []
+        input_blocks_set = set()
         for input_name, input_data in input_values.items():
-            input_or_inputs = self.inputs[input_name]
-            if isinstance(input_or_inputs, Iterable):
-                inputs = input_or_inputs
+            input_slot = self.pipeline.inputs.get(input_name, None)
+            if input_slot is None:
+                continue
+            slots_values[input_slot] = input_data
+            if input_slot.parent_block not in backward_pass:
+                warnings.warn(f'Input slot "{input_name}" is disconnected from the outputs, it won\'t be calculated')
             else:
-                inputs = [input_or_inputs]
-            for inp in inputs:
-                slots_values[inp] = input_data
-                if inp.parent_block not in backward_pass:
-                    warnings.warn(f"Input slot '{input_name}' is disconnected from the outputs, it won't be calculated")
-                else:
-                    input_blocks_list.append(inp.parent_block)
-        topological_order = self._topological_sort(self._get_forward_aj_list(backward_pass), set(input_blocks_list))
+                input_blocks_set.add(input_slot.parent_block)
+        topological_order = self._topological_sort(self._get_forward_aj_list(backward_pass), input_blocks_set)
 
         try:
             for node in topological_order:
@@ -237,15 +219,17 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                 slots_values.update(outputs)
         except Exception:
             block_name = node.__class__.__name__
-            warnings.warn(f"Unable to compute data for the '{name}' input of the '{block_name}' block.")
-            warnings.warn("The execution is terminated.")
+            warnings.warn(f'Unable to compute data for the "{name}" input of the "{block_name}" block.')
+            warnings.warn('The execution is terminated.')
 
         result: Mapping[str, Data]  = dict()
-        for output_name, output_slot in self.outputs.items():
-            slot_data = slots_values.get(output_slot, None)
-            if slot_data is None:
-                warnings.warn(f"Unable to compute data for the '{output_name}' output.")
-            result[output_name] = slot_data
+        for output_name, output_slot in self.pipeline.outputs.items():
+            if self.outputs is None or output_name in self.outputs:
+                slot_data = slots_values.get(output_slot, None)
+                if slot_data is None:
+                    warnings.warn(f'Unable to compute data for the "{output_name}" output.')
+                    continue
+                result[output_name] = slot_data
         return result
 
     def get_painter_params(self) -> Dict:
@@ -280,12 +264,12 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                 The filename determines the format, for example, figure.png will be rendered as a raster graphics file
                 and figure.pdf - as a vector one. The range of the formats depends on the cairo renderer: https://graphviz.org/docs/outputs/.
         """
-        output_blocks = [slot.parent_block for slot in self.outputs.values()]
+        output_blocks = [slot.parent_block for slot in self.pipeline.outputs.values()]
         backward_pass = self._dfs(self._get_backward_aj_list(), output_blocks)
 
 
         input_blocks_list = []
-        for input_or_inputs in self.inputs.values():
+        for input_or_inputs in self.pipeline.inputs.values():
             if isinstance(input_or_inputs, Iterable):
                 inputs = input_or_inputs
             else:
@@ -317,7 +301,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                    f'block{id(conn.dst.parent_block)}:i{hash(conn.dst)}', style=edge_style, color=edge_color)
 
         # drawing input slots
-        for inp_name, inp_slots in self.inputs.items():
+        for inp_name, inp_slots in self.pipeline.inputs.items():
             graph.node(f'inp_{inp_name}', f'<I_{inp_name}> Input "{inp_name}"', color='red')
             f_node_needed = False
             if not isinstance(inp_slots, Iterable):
@@ -334,7 +318,7 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
             graph.node(f'inp_{inp_name}', style=node_style)
 
         # drawing output slots
-        for out_name, out_slots in self.outputs.items():
+        for out_name, out_slots in self.pipeline.outputs.items():
             graph.node(f'out_{out_name}', f'<O_{out_name}> Output "{out_name}"', color='red')
             f_node_needed = False
             if not isinstance(out_slots, Iterable):

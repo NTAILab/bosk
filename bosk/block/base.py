@@ -58,7 +58,7 @@ class BaseBlock(ABC):
 
     @property
     @abstractmethod
-    def meta(self):
+    def meta(self) -> BlockMeta:
         """Meta information property getter.
 
         Children classes must specify meta.

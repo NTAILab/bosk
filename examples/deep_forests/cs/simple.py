@@ -10,11 +10,6 @@ from sklearn.metrics import roc_auc_score
 from bosk.executor.handlers import SimpleExecutionStrategy, InputSlotStrategy
 from bosk.executor.naive import NaiveExecutor
 from bosk.stages import Stage
-from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
-from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
-from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
-from bosk.block.zoo.metrics import RocAucBlock, AccuracyBlock, F1ScoreBlock
-from bosk.block.zoo.routing import CSBlock, CSJoinBlock, CSFilterBlock
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 
 
@@ -68,7 +63,10 @@ def make_deep_forest_functional_confidence_screening(executor, **ex_kw):
     roc_auc = b.RocAuc()(gt_y=y, pred_probas=joined_3)
 
     fit_executor = executor(
-        b.pipeline,
+        b.build_pipeline(
+            {'X': X, 'y': y},
+            {'probas': joined_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
+        ),
         InputSlotStrategy(Stage.FIT),
         SimpleExecutionStrategy(Stage.FIT),
         stage=Stage.FIT,
@@ -84,7 +82,10 @@ def make_deep_forest_functional_confidence_screening(executor, **ex_kw):
         **ex_kw,
     )
     transform_executor = executor(
-        b.pipeline,
+        b.build_pipeline(
+            {'X': X, 'y': y},
+            {'probas': joined_3, 'labels': argmax_3}
+        ),
         InputSlotStrategy(Stage.TRANSFORM),
         SimpleExecutionStrategy(Stage.TRANSFORM),
         stage=Stage.TRANSFORM,
@@ -97,12 +98,12 @@ def make_deep_forest_functional_confidence_screening(executor, **ex_kw):
         },
         **ex_kw,
     )
-    return b.pipeline, fit_executor, transform_executor
+    return fit_executor, transform_executor
 
 
 def main():
     executor_class = NaiveExecutor
-    _, fit_executor, transform_executor = make_deep_forest_functional_confidence_screening(executor_class)
+    fit_executor, transform_executor = make_deep_forest_functional_confidence_screening(executor_class)
 
     all_X, all_y = make_moons(noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)

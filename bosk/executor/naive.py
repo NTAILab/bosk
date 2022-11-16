@@ -3,33 +3,20 @@ from typing import Dict, Mapping, Sequence, Union
 from ..data import Data
 from .base import BaseExecutor
 from ..slot import BlockInputSlot, BlockOutputSlot
-import warnings
 
 
 class NaiveExecutor(BaseExecutor):
     """Naive executor implementation.
 
     Considers only input-output slots information to match slots.
-
     """
 
     def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:
+        self._check_input_values(input_values)
         slots_values: Dict[Union[BlockInputSlot, BlockOutputSlot], Data] = dict()
-        # fill slots values
-        for input_name, input_data in input_values.items():
-            input_or_inputs = self.inputs.get(input_name, None)
-            if input_or_inputs is None:
-                warnings.warn('Input is ignored: "%s"' % input_name)
-                continue
-            if isinstance(input_or_inputs, Sequence):
-                inputs = input_or_inputs
-            else:
-                inputs = [input_or_inputs]
-            for inp in inputs:
-                slots_values[inp] = input_data
+        slots_values.update(self._map_input_names_to_slots(input_values))
 
         # recursively compute outputs
-
         def _compute_output(out_slot: BlockOutputSlot, dependent_nodes: list):
             assert isinstance(out_slot, BlockOutputSlot)
             if out_slot in slots_values:
@@ -60,6 +47,7 @@ class NaiveExecutor(BaseExecutor):
             return slots_values[out_slot]
 
         result = dict()
-        for output_name, output_slot in self.outputs.items():
-            result[output_name] = _compute_output(output_slot, [])
+        for output_name, output_slot in self.pipeline.outputs.items():
+            if self.outputs is None or output_name in self.outputs:
+                result[output_name] = _compute_output(output_slot, [])
         return result

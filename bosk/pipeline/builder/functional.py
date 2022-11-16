@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from typing import Mapping, Union
 from ...block import BaseBlock
 from ...block.functional import FunctionalBlockWrapper
 from ...block.repo import BaseBlockClassRepository, DEFAULT_BLOCK_CLASS_REPOSITORY
@@ -6,7 +6,7 @@ from ...slot import BlockInputSlot, BlockOutputSlot
 from ..connection import Connection
 from ..base import BasePipeline
 from .base import BasePipelineBuilder
-from typing import List, Optional, Callable, Type
+from typing import List, Optional, Callable
 
 
 class FunctionalPipelineBuilder(BasePipelineBuilder):
@@ -139,12 +139,34 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
         """
         return self._get_block_init(block_cls)(*args, **kwargs)
 
-    @property
-    def pipeline(self) -> BasePipeline:
+    def build_pipeline(self, inputs: Mapping[str, Union[BlockInputSlot, FunctionalBlockWrapper]],
+                        outputs: Mapping[str, Union[BlockOutputSlot, FunctionalBlockWrapper]]) -> BasePipeline:
         """Build and get pipeline.
+
+        Args:
+            inputs: Dictionary containing the information about pipeline's inputs. See :arrt:`BasePipeline.inputs`.
+            outputs: Dictionary containing the information about pipeline's outputs. See :arrt:`BasePipeline.outputs`
 
         Returns:
             Pipeline made from wrapped blocks.
 
         """
-        return BasePipeline(self._nodes, self._connections)
+        inp_dict = dict()
+        for inp_name, inp_obj in inputs.items():
+            if isinstance(inp_obj, FunctionalBlockWrapper):
+                inp_dict[inp_name] = inp_obj.get_input_slot()
+            elif isinstance(inp_obj, BlockInputSlot):
+                inp_dict[inp_name] = inp_obj
+            else:
+                raise RuntimeError(f'Input object {inp_name} has wrong type. \
+                    FunctionalBlockWrapper and BlockInputSlot are only supported')
+        out_dict = dict()
+        for out_name, out_obj in outputs.items():
+            if isinstance(out_obj, FunctionalBlockWrapper):
+                out_dict[out_name] = out_obj.get_output_slot()
+            elif isinstance(out_obj, BlockOutputSlot):
+                out_dict[out_name] = out_obj
+            else:
+                raise RuntimeError(f'Output object {out_name} has wrong type. \
+                    FunctionalBlockWrapper and BlockOutputSlot are only supported')
+        return BasePipeline(self._nodes, self._connections, inp_dict, out_dict)

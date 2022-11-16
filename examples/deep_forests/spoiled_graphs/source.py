@@ -77,7 +77,17 @@ def make_rf_lost_connection(executor, **ex_kw):
             Connection(input_y.slots.outputs['y'], roc_auc.slots.inputs['gt_y']),
             Connection(rf_1.slots.outputs['output'], roc_auc_rf_1.slots.inputs['pred_probas']),
             Connection(input_y.slots.outputs['y'], roc_auc_rf_1.slots.inputs['gt_y']),
-        ]
+        ],
+        inputs={
+            'X': input_x.slots.inputs['X'],
+            'y': input_y.slots.inputs['y'],
+        },
+        outputs={
+            'probas': average_3.slots.outputs['output'],
+            'rf_1_roc-auc': roc_auc_rf_1.slots.outputs['roc-auc'],
+            'roc-auc': roc_auc.slots.outputs['roc-auc'],
+            'labels': argmax_3.slots.outputs['output']
+        }
     )
 
     fit_executor = executor(
@@ -108,11 +118,11 @@ def make_rf_lost_connection(executor, **ex_kw):
         },
         **ex_kw
     )
-    return pipeline, fit_executor, transform_executor
+    return fit_executor, transform_executor
 
 def main():
     executor_class = TopologicalExecutor
-    _, fit_executor, transform_executor = make_rf_lost_connection(executor_class)
+    fit_executor, transform_executor = make_rf_lost_connection(executor_class)
 
     all_X, all_y = make_moons(noise=0.5, random_state=42)
     train_X, test_X, train_y, _ = train_test_split(all_X, all_y, test_size=0.2, random_state=42)

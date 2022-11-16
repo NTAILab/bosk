@@ -1,6 +1,4 @@
 """Example of simple Multi-grained-scanning."""
-from typing import Callable, Optional
-
 import numpy as np
 
 from sklearn.datasets import load_iris, load_digits
@@ -14,17 +12,12 @@ from sklearn.ensemble import (
 from bosk.executor.naive import NaiveExecutor
 from bosk.executor.handlers import SimpleExecutionStrategy, InputSlotStrategy
 from bosk.stages import Stage
-from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
-from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
-from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
-from bosk.block.zoo.metrics import RocAucMultiLabelBlock, AccuracyBlock, F1ScoreBlock
-from bosk.block.zoo.routing import CSBlock, CSJoinBlock, CSFilterBlock
 from bosk.block.zoo.multi_grained_scanning import \
     (MultiGrainedScanning1DBlock, MultiGrainedScanning2DBlock)
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 
 
-def make_deep_forest_functional_multi_grained_scanning_1d(exec, **ex_kw):
+def make_deep_forest_functional_multi_grained_scanning_1d(executor, **ex_kw):
     b = FunctionalPipelineBuilder()
     random_state_value = 42
     X, y = b.Input()(), b.TargetInput()()
@@ -46,8 +39,11 @@ def make_deep_forest_functional_multi_grained_scanning_1d(exec, **ex_kw):
     rf_1_roc_auc = b.RocAucMultiLabel()(gt_y=y, pred_probas=rf_1)
     roc_auc = b.RocAucMultiLabel()(gt_y=y, pred_probas=average_3)
 
-    fit_executor = exec(
-        b.pipeline,
+    fit_executor = executor(
+        b.build_pipeline(
+            {'X': X, 'y': y},
+            {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
+        ),
         InputSlotStrategy(Stage.FIT),
         SimpleExecutionStrategy(Stage.FIT),
         stage=Stage.FIT,
@@ -62,8 +58,11 @@ def make_deep_forest_functional_multi_grained_scanning_1d(exec, **ex_kw):
         },
         **ex_kw,
     )
-    transform_executor = exec(
-        b.pipeline,
+    transform_executor = executor(
+        b.build_pipeline(
+            {'X': X, 'y': y},
+            {'probas': average_3, 'labels': argmax_3}
+        ),
         InputSlotStrategy(Stage.TRANSFORM),
         SimpleExecutionStrategy(Stage.TRANSFORM),
         stage=Stage.TRANSFORM,
@@ -76,10 +75,10 @@ def make_deep_forest_functional_multi_grained_scanning_1d(exec, **ex_kw):
         },
         **ex_kw,
     )
-    return b.pipeline, fit_executor, transform_executor
+    return fit_executor, transform_executor
 
 
-def make_deep_forest_functional_multi_grained_scanning_2d(exec, **ex_kw):
+def make_deep_forest_functional_multi_grained_scanning_2d(executor, **ex_kw):
     b = FunctionalPipelineBuilder()
     random_state_value = 42
     X, y = b.Input()(), b.TargetInput()()
@@ -101,8 +100,11 @@ def make_deep_forest_functional_multi_grained_scanning_2d(exec, **ex_kw):
     rf_1_roc_auc = b.RocAucMultiLabel()(gt_y=y, pred_probas=rf_1)
     roc_auc = b.RocAucMultiLabel()(gt_y=y, pred_probas=average_3)
 
-    fit_executor = exec(
-        b.pipeline,
+    fit_executor = executor(
+        b.build_pipeline(
+            {'X': X, 'y': y},
+            {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
+        ),
         InputSlotStrategy(Stage.FIT),
         SimpleExecutionStrategy(Stage.FIT),
         stage=Stage.FIT,
@@ -117,8 +119,11 @@ def make_deep_forest_functional_multi_grained_scanning_2d(exec, **ex_kw):
         },
         **ex_kw,
     )
-    transform_executor = exec(
-        b.pipeline,
+    transform_executor = executor(
+        b.build_pipeline(
+            {'X': X, 'y': y},
+            {'probas': average_3, 'labels': argmax_3}
+        ),
         InputSlotStrategy(Stage.TRANSFORM),
         SimpleExecutionStrategy(Stage.TRANSFORM),
         stage=Stage.TRANSFORM,
@@ -131,12 +136,12 @@ def make_deep_forest_functional_multi_grained_scanning_2d(exec, **ex_kw):
         },
         **ex_kw,
     )
-    return b.pipeline, fit_executor, transform_executor
+    return fit_executor, transform_executor
 
 
 def example_iris_dataset():
     print("1D:")
-    _, fit_executor, transform_executor = make_deep_forest_functional_multi_grained_scanning_1d(NaiveExecutor)
+    fit_executor, transform_executor = make_deep_forest_functional_multi_grained_scanning_1d(NaiveExecutor)
     iris = load_iris()
     all_X = iris.data
     all_y = iris.target
@@ -152,7 +157,7 @@ def example_iris_dataset():
 
 def example_digits_dataset():
     print("2D:")
-    _, fit_executor, transform_executor = make_deep_forest_functional_multi_grained_scanning_2d(NaiveExecutor)
+    fit_executor, transform_executor = make_deep_forest_functional_multi_grained_scanning_2d(NaiveExecutor)
     digits = load_digits()
     all_X = digits.data
     all_y = digits.target

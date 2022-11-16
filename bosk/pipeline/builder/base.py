@@ -1,21 +1,20 @@
 from ..base import BasePipeline
 from abc import ABC, abstractmethod
+from ...block.functional import FunctionalBlockWrapper
+from typing import Mapping, Union
+from ...block.base import BlockInputSlot, BlockOutputSlot
 
 
 class BasePipelineBuilder(ABC):
     """Base pipeline builder, the parent of every pipeline builder.
 
-    Attributes:
-        pipeline: Built pipeline.
-
     """
-    @property
     @abstractmethod
-    def pipeline(self) -> BasePipeline:
+    def build_pipeline(self, inputs: Mapping[str, Union[BlockInputSlot, FunctionalBlockWrapper]],
+                        outputs: Mapping[str, Union[BlockOutputSlot, FunctionalBlockWrapper]]) -> BasePipeline:
         """Get pipeline (optionally after building).
 
         Returns:
             Build pipeline.
 
         """
-        ...
