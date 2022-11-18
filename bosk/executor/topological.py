@@ -5,50 +5,36 @@ This file contains the optimizing executor, which also can draw the computationa
 """
 
 from typing import Deque, Dict, List, Mapping, Sequence, Set, Union
-from collections.abc import Iterable
 from collections import defaultdict, deque
 
 from ..stages import Stage
 from ..data import Data
-from .base import BaseExecutor, ExecutionStrategyBase, SlotStrategyBase
-from .painter import PainterMixin
+from .base import BaseExecutor, BaseExecutionStrategy, BaseSlotStrategy
 from ..slot import BlockInputSlot, BlockOutputSlot, BaseSlot
 from ..block import BaseBlock
 from ..pipeline import BasePipeline
 
-import graphviz as gv
 import warnings
 
 
-class TopologicalExecutor(BaseExecutor, PainterMixin):
+class TopologicalExecutor(BaseExecutor):
     """Topological executor with the graph painter.
     The optimization algoritm computes only blocks which are connected with the inputs and needed for 
-    the outputs calculation. You can see which blocks would be executed if you draw the computational graph
-    with the 'draw' method.
+    the outputs calculation.
     
     Attributes:
         conn_dict: Pipeline connections, represented as a hash map, the keys are blocks' input slots, 
             the values are output ones. Each input slot corresponds no more than one 
             output slot, so this representation is correct.
-        levels_sep: The painter's parameter, which determines the distance between the computational graph's levels.
-            See http://graphviz.org/docs/attrs/ranksep/.
-        dpi: The dpi of the output computational graph images, formated in raster graphics (.png, .jpeg, etc.).
-        rankdir: The direction of the computational graph edges. See https://graphviz.org/docs/attrs/rankdir/.
     
     Args:
             pipeline: Sets :attr:`.BaseExecutor.pipeline`.
             stage: Sets :attr:`.BaseExecutor.stage`.
             inputs: Sets :attr:`.BaseExecutor.inputs`.
             outputs: Sets :attr:`.BaseExecutor.outputs`.
-            painter_levels_sep: Sets :attr:`levels_sep`.
-            figure_dpi: Sets :attr:`dpi`.
-            figure_rankdir: Sets :attr:`rankdir`.
     """
 
     _conn_dict: Mapping[BlockInputSlot, BlockOutputSlot]
-    _levels_sep: float
-    _dpi: int
-    _rankdir: str
 
     # contains extra links for pipeline input slots (cyclic)
     def _get_connection_map(self) -> Mapping[BlockInputSlot, Union[BlockOutputSlot, BlockInputSlot]]:
@@ -68,19 +54,15 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                 conn_dict[inp] = inp
         return conn_dict
 
-    def __init__(self, pipeline: BasePipeline, slots_handler: SlotStrategyBase,
-                 blocks_handler: ExecutionStrategyBase, *,
+    def __init__(self, pipeline: BasePipeline, slots_handler: BaseSlotStrategy,
+                 blocks_handler: BaseExecutionStrategy, *,
                  stage: None | Stage = None,
                  inputs: None | Sequence[str] = None,
-                 outputs: None | Sequence[str] = None,
-                 painter_levels_sep: float = 1.0, figure_dpi: int = 150, figure_rankdir: str = 'LR'):
+                 outputs: None | Sequence[str] = None):
 
         super().__init__(pipeline, slots_handler, blocks_handler, stage=stage, inputs=inputs, outputs=outputs)
 
         self._conn_dict = self._get_connection_map()
-        self._levels_sep = painter_levels_sep
-        self._dpi = figure_dpi
-        self._rankdir = figure_rankdir
 
     def _dfs(self, aj_list: Mapping[BaseBlock, Set[BaseBlock]], begin_nodes: Sequence[BaseBlock]) -> Set[BaseBlock]:
         """Method that performs the deep first search algorithm in the computational graph.
@@ -231,99 +213,3 @@ class TopologicalExecutor(BaseExecutor, PainterMixin):
                     continue
                 result[output_name] = slot_data
         return result
-
-    def get_painter_params(self) -> Dict:
-        """See :meth:`.PainterMixin.get_painter_params`. Returns keys
-        `dpi`, `rankdir` and `levels_sep`.
-        """
-        return {'dpi': self._dpi,
-                'rankdir': self._rankdir,
-                'levels_sep': self._levels_sep}
-    
-    def set_painter_params(self, **kwargs) -> None:
-        """See :meth:`.PainterMixin.set_painter_params`. Interacts with keys
-        `dpi`, `rankdir` and `levels_sep`.
-        """
-        keys = ['dpi', 'rankdir', 'levels_sep']
-        for key in keys:
-            if key in kwargs:
-                setattr(self, key, kwargs[key])
-
-    def draw(self, output_filename: str) -> None:
-        """Method for the computational graph drawing. This executor uses 
-        the graphviz library.
-
-        * The solid black edges and nodes are the ones that will be used during calculations. 
-        * The dashed will be skipped during the optimization. 
-        * The red colored nodes mean inputs and outputs, the red colored edges signalize that
-          type of the block's input slot was misspecified: according to the :attr:`stage` metainformation 
-          the connection should be used, but the corresponding block won't be used because of the optimization.
-
-        Args:
-            output_filename: Path (containing the filename) where the output graphics file will be saved.
-                The filename determines the format, for example, figure.png will be rendered as a raster graphics file
-                and figure.pdf - as a vector one. The range of the formats depends on the cairo renderer: https://graphviz.org/docs/outputs/.
-        """
-        output_blocks = [slot.parent_block for slot in self.pipeline.outputs.values()]
-        backward_pass = self._dfs(self._get_backward_aj_list(), output_blocks)
-
-
-        input_blocks_list = []
-        for input_or_inputs in self.pipeline.inputs.values():
-            if isinstance(input_or_inputs, Iterable):
-                inputs = input_or_inputs
-            else:
-                inputs = [input_or_inputs]
-            for inp in inputs:
-                input_blocks_list.append(inp.parent_block)
-        forward_pass = self._dfs(self._get_forward_aj_list(backward_pass), set(input_blocks_list))
-        used_blocks = backward_pass & forward_pass
-
-        graph = gv.Digraph('DeepForestGraph', renderer='cairo', formatter='cairo', node_attr={'shape': 'record'})
-        graph.attr(rankdir=self._rankdir, ranksep=str(self._levels_sep), dpi=str(self._dpi))
-
-        # drawing blocks
-        for block in self.pipeline.nodes:
-            inputs = block.slots.inputs
-            outputs = block.slots.outputs
-            inputs_info = '|'.join([f'<i{hash(slot)}> {name}' for name, slot in inputs.items()])
-            outputs_info = '|'.join([f'<o{hash(slot)}> {name}' for name, slot in outputs.items()])
-            block_name = block.__class__.__name__
-            node_style = 'dashed' if block not in used_blocks else ''
-            graph.node(f'block{id(block)}', f'{block_name}|{{{{{inputs_info}}}|{{{outputs_info}}}}}', style=node_style)
-
-        # drawing edges
-        for conn in self.pipeline.connections:
-            is_conn_req = self.slots_handler.is_slot_required(conn.dst)
-            edge_style = 'dashed' if not is_conn_req else ''
-            edge_color = 'red' if conn.dst.parent_block not in used_blocks and is_conn_req else 'black'
-            graph.edge(f'block{id(conn.src.parent_block)}:o{hash(conn.src)}',
-                   f'block{id(conn.dst.parent_block)}:i{hash(conn.dst)}', style=edge_style, color=edge_color)
-
-        # drawing input slots
-        for inp_name, inp_slots in self.pipeline.inputs.items():
-            graph.node(f'inp_{inp_name}', f'<I_{inp_name}> Input "{inp_name}"', color='red')
-            f_node_needed = False
-            if not isinstance(inp_slots, Iterable):
-                inp_slots = [inp_slots]
-            for slot in inp_slots:
-                if self.slots_handler.is_slot_required(slot):
-                    edge_style = ''
-                    f_node_needed = True
-                else:
-                    edge_style = 'dashed'
-                graph.edge(f'inp_{inp_name}:I_{inp_name}',
-                       f'block{id(slot.parent_block)}:i{hash(slot)}', style=edge_style)
-            node_style = '' if f_node_needed else 'dashed'
-            graph.node(f'inp_{inp_name}', style=node_style)
-
-        # drawing output slots
-        for out_name, out_slots in self.pipeline.outputs.items():
-            graph.node(f'out_{out_name}', f'<O_{out_name}> Output "{out_name}"', color='red')
-            f_node_needed = False
-            if not isinstance(out_slots, Iterable):
-                out_slots = [out_slots]
-            for slot in out_slots:
-                graph.edge(f'block{id(slot.parent_block)}:o{hash(slot)}', f'out_{out_name}:O_{out_name}')
-
-        graph.render(outfile=output_filename, cleanup=True)

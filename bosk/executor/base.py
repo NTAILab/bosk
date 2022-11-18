@@ -14,7 +14,7 @@ InputSlotToDataMapping = Mapping[BlockInputSlot, Data]
 It is indexed by input slots.
 """
 
-class SlotStrategyBase(ABC):
+class BaseSlotStrategy(ABC):
     """The interface for classes, parametrizing executor's behaviour
     during the ececution process. Determines slots' handling politics.
     """
@@ -25,7 +25,7 @@ class SlotStrategyBase(ABC):
         the computational graph execution.
         """
 
-class ExecutionStrategyBase(ABC):
+class BaseExecutionStrategy(ABC):
     """The interface for classes, parametrizing executor's behaviour
     during the ececution process. Determines blocks' handling politics.
     """
@@ -71,8 +71,8 @@ class BaseExecutor(ABC):
     inputs: Set[str]
     outputs: Set[str]
 
-    def __init__(self, pipeline: BasePipeline, slots_handler: SlotStrategyBase,
-                 blocks_handler: ExecutionStrategyBase, *,
+    def __init__(self, pipeline: BasePipeline, slots_handler: BaseSlotStrategy,
+                 blocks_handler: BaseExecutionStrategy, *,
                  stage: None | Stage = None, inputs: None | Sequence[str] = None,
                  outputs: None | Sequence[str] = None):
         assert stage is not None, "Stage must be specified"
