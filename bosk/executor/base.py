@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Mapping, Sequence, Set
 
 from ..data import Data
@@ -35,6 +36,7 @@ class BaseExecutionStrategy(ABC):
         """Method that executes the block.
         """
 
+@dataclass(frozen=True)
 class BaseExecutor(ABC):
     """Base pipeline executor.
 
@@ -63,35 +65,26 @@ class BaseExecutor(ABC):
         outputs: Sets :attr:`outputs`.
     
     Raises:
-        AssertionError: If the stage was not specified.
         AssertionError: If it was unable to find some input in the pipeline.
         AssertionError: If it was unable to find some output in the pipeline.
     """
 
-    inputs: Set[str]
-    outputs: Set[str]
+    pipeline: BasePipeline
+    slots_handler: BaseSlotStrategy
+    blocks_handler: BaseExecutionStrategy
+    stage: Stage
+    inputs: None | Set[str] = None
+    outputs: None | Set[str] = None
 
-    def __init__(self, pipeline: BasePipeline, slots_handler: BaseSlotStrategy,
-                 blocks_handler: BaseExecutionStrategy, *,
-                 stage: None | Stage = None, inputs: None | Sequence[str] = None,
-                 outputs: None | Sequence[str] = None):
-        assert stage is not None, "Stage must be specified"
-        self.pipeline = pipeline
-        self.stage = stage
-        self.slots_handler = slots_handler
-        self.blocks_handler = blocks_handler
-        if inputs is not None:
-            for inp in inputs:
-                assert inp in pipeline.inputs, f'Unable to find input "{inp}" in the pipeline'
-            self.inputs = set(inputs)
-        else:
-            self.inputs = None
-        if outputs is not None:
-            for out in outputs:
-                assert out in pipeline.outputs, f'Unable to find output "{out}" in the pipeline'
-            self.outputs = set(outputs)
-        else:
-            self.outputs = None
+    def __post_init__(self) -> None:
+        if self.inputs is not None:
+            for inp in self.inputs:
+                assert inp in self.pipeline.inputs, f'Unable to find input "{inp}" in the pipeline'
+            self.inputs = set(self.inputs)
+        if self.outputs is not None:
+            for out in self.outputs:
+                assert out in self.pipeline.outputs, f'Unable to find output "{out}" in the pipeline'
+            self.outputs = set(self.outputs)
 
     def _map_input_names_to_slots(self, input_values: Mapping[str, Data]) -> Mapping[BlockInputSlot, Data]:
         """Method to translate dictionary, passed in :meth:`__call__`, to dictionary that is useful for evaluation.
@@ -120,8 +113,6 @@ class BaseExecutor(ABC):
             input_slot = self.pipeline.inputs.get(name, None)
             if input_slot is None:
                 warnings.warn(f'Unable to find input "{name}" in the pipeline')
-
-
 
     @abstractmethod
     def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:

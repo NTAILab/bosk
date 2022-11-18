@@ -1,8 +1,7 @@
+from .base import BasePainter
 from .graphviz import GraphvizPainter
 from ..executor.topological import TopologicalExecutor
 from ..executor.base import BaseExecutor
-
-from .base import Self # todo: python 3.11
 
 class TopologicalPainter(GraphvizPainter):
     """Painter that performes the computational graph drawing in accordance with :class:`TopologicalExecutor`.
@@ -22,7 +21,7 @@ class TopologicalPainter(GraphvizPainter):
     def __init__(self, graph_levels_sep: float = 1, figure_dpi: int = 150, figure_rankdir: str = 'LR'):
         super().__init__(graph_levels_sep, figure_dpi, figure_rankdir)
     
-    def from_executor(self, executor: BaseExecutor) -> Self:
+    def from_executor(self, executor: BaseExecutor) -> BasePainter:
         """Method that parses a :class:`TopologicalExecutor` and make internal representation
         of the computational graph to render its image in the :meth:`render` method.
 
@@ -34,6 +33,7 @@ class TopologicalPainter(GraphvizPainter):
         * The blue colored nodes mean skipped inputs and outputs. They were specified in the pipeline,
             but not in the executor.
         """
+        assert not self._f_used, "You've already built the graph"
         assert isinstance(executor, TopologicalExecutor), \
             f"This painter works only with topological executor, got {executor.__class__.__name__}"
         
@@ -76,4 +76,5 @@ class TopologicalPainter(GraphvizPainter):
                 node_color = 'blue'
             self._add_output(f'Output "{out_name}"', out_slot, node_style, node_color)
         
+        self._f_used = True
         return self

@@ -139,7 +139,7 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
         """
         return self._get_block_init(block_cls)(*args, **kwargs)
 
-    def build_pipeline(self, inputs: Mapping[str, Union[BlockInputSlot, FunctionalBlockWrapper]],
+    def build(self, inputs: Mapping[str, Union[BlockInputSlot, FunctionalBlockWrapper]],
                         outputs: Mapping[str, Union[BlockOutputSlot, FunctionalBlockWrapper]]) -> BasePipeline:
         """Build and get pipeline.
 
@@ -169,4 +169,4 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
             else:
                 raise RuntimeError(f'Output object {out_name} has wrong type. \
                     FunctionalBlockWrapper and BlockOutputSlot are only supported')
-        return BasePipeline(self._nodes, self._connections, inp_dict, out_dict)
+        return BasePipeline(nodes=self._nodes, connections=self._connections, inputs=inp_dict, outputs=out_dict)

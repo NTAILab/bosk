@@ -4,65 +4,44 @@ This file contains the optimizing executor, which also can draw the computationa
 
 """
 
-from typing import Deque, Dict, List, Mapping, Sequence, Set, Union
+from typing import Deque, Dict, List, Mapping, Sequence, Set
+from dataclasses import dataclass, field
 from collections import defaultdict, deque
 
-from ..stages import Stage
 from ..data import Data
-from .base import BaseExecutor, BaseExecutionStrategy, BaseSlotStrategy
-from ..slot import BlockInputSlot, BlockOutputSlot, BaseSlot
+from .base import BaseExecutor
+from ..slot import BaseSlot, BlockInputSlot, BlockOutputSlot
 from ..block import BaseBlock
-from ..pipeline import BasePipeline
+from .utility import get_connection_map
 
 import warnings
 
 
+@dataclass(frozen=True)
 class TopologicalExecutor(BaseExecutor):
     """Topological executor with the graph painter.
     The optimization algoritm computes only blocks which are connected with the inputs and needed for 
     the outputs calculation.
     
     Attributes:
-        conn_dict: Pipeline connections, represented as a hash map, the keys are blocks' input slots, 
+        _conn_dict: Pipeline connections, represented as a hash map, the keys are blocks' input slots, 
             the values are output ones. Each input slot corresponds no more than one 
             output slot, so this representation is correct.
     
     Args:
-            pipeline: Sets :attr:`.BaseExecutor.pipeline`.
-            stage: Sets :attr:`.BaseExecutor.stage`.
-            inputs: Sets :attr:`.BaseExecutor.inputs`.
-            outputs: Sets :attr:`.BaseExecutor.outputs`.
+        pipeline: Sets :attr:`.BaseExecutor.pipeline`.
+        stage: Sets :attr:`.BaseExecutor.stage`.
+        inputs: Sets :attr:`.BaseExecutor.inputs`.
+        outputs: Sets :attr:`.BaseExecutor.outputs`.
     """
 
-    _conn_dict: Mapping[BlockInputSlot, BlockOutputSlot]
+    _conn_dict: Mapping[BlockInputSlot, BlockOutputSlot] = field(init=False, default=None)
 
-    # contains extra links for pipeline input slots (cyclic)
-    def _get_connection_map(self) -> Mapping[BlockInputSlot, Union[BlockOutputSlot, BlockInputSlot]]:
-        """Method that creates :attr:`conn_dict` and checks if every input slot
-        has no more than one corresponding output slot.
-
-        Raises:
-            AssertionError: If some input slot has more than one corresponding output slot.
-        """
-        conn_dict: Mapping[BlockInputSlot, BlockOutputSlot] = dict()
-        for conn in self.pipeline.connections:
-            assert (conn.dst not in conn_dict), f'Input slot of block "{conn.dst.parent_block.__class__.__name__}" \
-                (id {hash(conn.dst)}) is used more than once'
-            if self.slots_handler.is_slot_required(conn.dst):
-                conn_dict[conn.dst] = conn.src
+    def __post_init__(self):
+        conn_dict = get_connection_map(self)
         for inp in self.pipeline.inputs.values():
-                conn_dict[inp] = inp
-        return conn_dict
-
-    def __init__(self, pipeline: BasePipeline, slots_handler: BaseSlotStrategy,
-                 blocks_handler: BaseExecutionStrategy, *,
-                 stage: None | Stage = None,
-                 inputs: None | Sequence[str] = None,
-                 outputs: None | Sequence[str] = None):
-
-        super().__init__(pipeline, slots_handler, blocks_handler, stage=stage, inputs=inputs, outputs=outputs)
-
-        self._conn_dict = self._get_connection_map()
+            conn_dict[inp] = inp
+        object.__setattr__(self, '_conn_dict', conn_dict)
 
     def _dfs(self, aj_list: Mapping[BaseBlock, Set[BaseBlock]], begin_nodes: Sequence[BaseBlock]) -> Set[BaseBlock]:
         """Method that performs the deep first search algorithm in the computational graph.

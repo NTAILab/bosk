@@ -134,7 +134,7 @@ def make_deep_forest_functional(executor, **ex_kw):
     roc_auc = b.RocAuc()(gt_y=y, pred_probas=average_3)
 
     fit_executor = executor(
-        b.build_pipeline(
+        b.build(
             {'X': X, 'y': y},
             {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
@@ -146,7 +146,7 @@ def make_deep_forest_functional(executor, **ex_kw):
         **ex_kw
     )
     transform_executor = executor(
-        b.build_pipeline(
+        b.build(
             {'X': X, 'y': y},
             {'probas': average_3, 'labels': argmax_3}
         ),

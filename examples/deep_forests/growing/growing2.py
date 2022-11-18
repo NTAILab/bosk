@@ -3,6 +3,7 @@ from typing import List, Mapping, Optional, Set, Type, Any
 from bosk import Data
 from bosk.executor.base import BaseExecutor
 from bosk.executor.handlers import SimpleExecutionStrategy, InputSlotStrategy
+from bosk.painter.topological import TopologicalPainter
 from bosk.slot import BlockInputSlot, BlockOutputSlot
 from bosk.block.base import BaseBlock
 from bosk.pipeline.connection import Connection
@@ -58,7 +59,7 @@ class StepwisePipeline():
                 used_com_inputs[inp_name] = inp_slot
         inputs = copy.copy(self.new_step.inputs)
         inputs.update(used_com_inputs)
-        return BasePipeline(nodes, conns, inputs, self.new_step.outputs)
+        return BasePipeline(nodes=nodes, connections=conns, inputs=inputs, outputs=self.new_step.outputs)
 
     def merge_step(self):
         assert self.new_step is not None, 'Firstly use add_step'
@@ -85,7 +86,8 @@ class StepwisePipeline():
             for inp_slot in self.cur_inp_conns[inp_name]:
                 inp_conns.append(Connection(out_slot, inp_slot))
         inputs = {key: next(iter(block.slots.inputs.values())) for key, block in self.common_inputs.items()}
-        return BasePipeline(self.cur_nodes, self.cur_internal_conns + inp_conns, inputs, self.cur_outputs)
+        return BasePipeline(nodes=self.cur_nodes, connections=self.cur_internal_conns + inp_conns,
+                        inputs=inputs, outputs=self.cur_outputs)
 
 
 class GrowingStrategy(ABC):
@@ -145,7 +147,7 @@ class SimpleDFLayerFactory(LayerFactoryBase):
             'roc-auc': roc_auc
         }
         self.called += 1
-        return b.build_pipeline(inputs, outputs)
+        return b.build(inputs, outputs)
 
 class FitCallback(ABC):
     @abstractmethod
@@ -234,13 +236,14 @@ def main():
         },
         {'probas', 'labels'}
     )
-    growing_manager = EarlyStoppingManager(5, growing_pipeline, SimpleDFLayerFactory(), ROCAUCStrategy(), 
+    growing_manager = EarlyStoppingManager(5, growing_pipeline, SimpleDFLayerFactory(), ROCAUCStrategy(),
         TopologicalExecutor, fit_callback=ROCAUCCallback())
 
     growing_manager.fit({'X': train_X, 'y': train_y}, {'X': val_X, 'labels': val_y})
     tf_exec = growing_manager.get_transform_executor()
     output = tf_exec({'X': test_X})
-    tf_exec.draw('growing forest.png')
+
+    TopologicalPainter().from_executor(tf_exec).render('growing forest.png')
     print("Test ROC-AUC:", roc_auc_score(test_y, output['probas'][:, 1]))
 
 if __name__ == "__main__":

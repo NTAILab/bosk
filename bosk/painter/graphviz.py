@@ -7,8 +7,6 @@ from ..pipeline.base import BasePipeline
 from ..executor.base import BaseExecutor
 import graphviz as gv
 
-from .base import Self # todo: python 3.11
-
 
 class GraphvizPainter(BasePainter):
     """Painter that uses Graphviz library to draw the computational graph of a pipeline.
@@ -29,6 +27,7 @@ class GraphvizPainter(BasePainter):
         self._dpi = figure_dpi
         self._rankdir = figure_rankdir
         self._graph = gv.Digraph('DeepForestGraph', renderer='cairo', formatter='cairo', node_attr={'shape': 'record'}) 
+        self._f_used = False
     
     def _add_node(self, block: BaseBlock, style: str = 'solid', color: str = 'black') -> None:
         """Method that adds a node to the graph.
@@ -64,10 +63,11 @@ class GraphvizPainter(BasePainter):
         self._graph.edge(f'block{id(output_slot.parent_block)}:o{hash(output_slot)}', f'out_{out_hash}:O_{out_hash}',
                         style=style, color=color)
     
-    def from_pipeline(self, pipeline: BasePipeline) -> Self:
+    def from_pipeline(self, pipeline: BasePipeline) -> BasePainter:
         """Method that parses a pipeline and make internal representation
         of the computational graph to render its image in the :meth:`render` method.
         """
+        assert not self._f_used, "You've already built the graph"
         for block in pipeline.nodes:
             self._add_node(block)
         for conn in pipeline.connections:
@@ -76,14 +76,16 @@ class GraphvizPainter(BasePainter):
             self._add_input(f'Input "{inp_name}"', inp_slot)
         for out_name, out_slot in pipeline.outputs.items():
             self._add_output(f'Output "{out_name}"', out_slot)
+        self._f_used = True
         return self
     
-    def from_executor(self, executor: BaseExecutor) -> None:
+    def from_executor(self, executor: BaseExecutor) -> BasePainter:
         raise NotImplementedError()
     
     def render(self, output_filename: str, format: Optional[str] = None) -> None:
         """Method that renders the computational graph's image.
         """
+        assert self._f_used, "You must build the graph firstly. Use 'from_pipeline' or 'from_executor' methods"
         assert format is None or format in gv.FORMATS, f"Unable to render graph into {format} format"
         if format is not None:
             output_filename += f'.{format}'

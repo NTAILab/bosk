@@ -1,10 +1,9 @@
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 from typing import Mapping, TypeVar
 
 from .meta import BlockMeta
 from ..data import Data
 from ..slot import BlockInputSlot, BlockOutputSlot, BlockSlots
-from ..stages import Stages
 
 
 BlockT = TypeVar('BlockT', bound='BaseBlock')

@@ -3,17 +3,17 @@ from typing import Optional, Sequence, TypeVar
 from ..pipeline.base import BasePipeline
 from ..executor.base import BaseExecutor
 
-Self = TypeVar('Self') # todo: python 3.11
+PainterT = TypeVar('PainterT', bound='BasePainter')
 
 class BasePainter(ABC):
     @abstractmethod
-    def from_pipeline(self, pipeline: BasePipeline) -> Self:
+    def from_pipeline(self, pipeline: BasePipeline) -> PainterT:
         """Method for drawing the `pipeline` and saving the 
         result into internal representation.
         """
     
     @abstractmethod
-    def from_executor(self, executor: BaseExecutor) -> Self:
+    def from_executor(self, executor: BaseExecutor) -> PainterT:
         """Method for drawing the pipeline connected with the `executor`
         and saving the result into internal representation. The drawn 
         graph should represent executor's behaviour.
@@ -29,6 +29,7 @@ class BasePainter(ABC):
         """
     
     @property
+    @abstractmethod
     def available_formats(self) -> Sequence[str]:
         """List of the available formats to render the 
         computational graph into.

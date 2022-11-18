@@ -40,7 +40,7 @@ def make_deep_forest_functional_multi_grained_scanning_1d(executor, **ex_kw):
     roc_auc = b.RocAucMultiLabel()(gt_y=y, pred_probas=average_3)
 
     fit_executor = executor(
-        b.build_pipeline(
+        b.build(
             {'X': X, 'y': y},
             {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
@@ -59,7 +59,7 @@ def make_deep_forest_functional_multi_grained_scanning_1d(executor, **ex_kw):
         **ex_kw,
     )
     transform_executor = executor(
-        b.build_pipeline(
+        b.build(
             {'X': X, 'y': y},
             {'probas': average_3, 'labels': argmax_3}
         ),
@@ -101,7 +101,7 @@ def make_deep_forest_functional_multi_grained_scanning_2d(executor, **ex_kw):
     roc_auc = b.RocAucMultiLabel()(gt_y=y, pred_probas=average_3)
 
     fit_executor = executor(
-        b.build_pipeline(
+        b.build(
             {'X': X, 'y': y},
             {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
@@ -120,7 +120,7 @@ def make_deep_forest_functional_multi_grained_scanning_2d(executor, **ex_kw):
         **ex_kw,
     )
     transform_executor = executor(
-        b.build_pipeline(
+        b.build(
             {'X': X, 'y': y},
             {'probas': average_3, 'labels': argmax_3}
         ),
