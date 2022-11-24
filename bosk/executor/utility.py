@@ -18,6 +18,6 @@ def get_connection_map(executor: BaseExecutor) -> Mapping[BlockInputSlot, BlockO
     for conn in executor.pipeline.connections:
         assert (conn.dst not in conn_dict), f'Input slot of block "{conn.dst.parent_block.__class__.__name__}" \
             (id {hash(conn.dst)}) is used more than once'
-        if executor.slots_handler.is_slot_required(conn.dst):
+        if executor.slot_handler.is_slot_required(conn.dst):
             conn_dict[conn.dst] = conn.src
     return conn_dict

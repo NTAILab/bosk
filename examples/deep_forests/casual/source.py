@@ -9,7 +9,7 @@ from sklearn.metrics import roc_auc_score
 
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.executor.naive import NaiveExecutor
-from bosk.executor.handlers import SimpleExecutionStrategy, InputSlotStrategy
+from bosk.executor.handlers import SimpleBlockHandler, InputSlotHandler
 from bosk.executor.base import BaseExecutor
 from bosk.stages import Stage
 from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
@@ -96,8 +96,8 @@ def make_deep_forest(executor: BaseExecutor, **ex_kw):
 
     fit_executor = executor(
         pipeline,
-        InputSlotStrategy(Stage.FIT),
-        SimpleExecutionStrategy(Stage.FIT),
+        InputSlotHandler(Stage.FIT),
+        SimpleBlockHandler(Stage.FIT),
         stage=Stage.FIT,
         inputs=['X', 'y'],
         outputs=['probas', 'rf_1_roc-auc', 'roc-auc'],
@@ -105,8 +105,8 @@ def make_deep_forest(executor: BaseExecutor, **ex_kw):
     )
     transform_executor = executor(
         pipeline,
-        InputSlotStrategy(Stage.TRANSFORM),
-        SimpleExecutionStrategy(Stage.TRANSFORM),
+        InputSlotHandler(Stage.TRANSFORM),
+        SimpleBlockHandler(Stage.TRANSFORM),
         stage=Stage.TRANSFORM,
         inputs=['X'],
         outputs=['probas', 'labels'],
@@ -138,8 +138,8 @@ def make_deep_forest_functional(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        InputSlotStrategy(Stage.FIT),
-        SimpleExecutionStrategy(Stage.FIT),
+        InputSlotHandler(Stage.FIT),
+        SimpleBlockHandler(Stage.FIT),
         stage=Stage.FIT,
         inputs=['X', 'y'],
         outputs=['probas', 'rf_1_roc-auc', 'roc-auc'],
@@ -150,8 +150,8 @@ def make_deep_forest_functional(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'labels': argmax_3}
         ),
-        InputSlotStrategy(Stage.TRANSFORM),
-        SimpleExecutionStrategy(Stage.TRANSFORM),
+        InputSlotHandler(Stage.TRANSFORM),
+        SimpleBlockHandler(Stage.TRANSFORM),
         stage=Stage.TRANSFORM,
         inputs=['X'],
         outputs=['probas', 'labels'],

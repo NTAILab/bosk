@@ -3,7 +3,7 @@ from typing import List, Mapping, Optional, Set, Type, Any, Sequence, Dict
 from dataclasses import dataclass, field
 from bosk import Data
 from bosk.executor.base import BaseExecutor
-from bosk.executor.handlers import SimpleExecutionStrategy, InputSlotStrategy
+from bosk.executor.handlers import SimpleBlockHandler, InputSlotHandler
 from bosk.painter.topological import TopologicalPainter
 from bosk.slot import BlockInputSlot, BlockOutputSlot
 from bosk.block.base import BaseBlock
@@ -228,15 +228,15 @@ class SimpleGrowingFitter():
             print(f'--- Iteration {i} ---')
             new_layer = self.layer_factory.get_new_layer()
             fit_exec = self.exec_cls(new_layer,
-                InputSlotStrategy(Stage.FIT),
-                SimpleExecutionStrategy(Stage.FIT),
+                InputSlotHandler(Stage.FIT),
+                SimpleBlockHandler(Stage.FIT),
                 stage=Stage.FIT, **self.exec_kw)
             fit_output = fit_exec(input_fit_data)
             if self.fit_callback is not None:
                 self.fit_callback(fit_output)
             tf_exec = self.exec_cls(new_layer,
-                InputSlotStrategy(Stage.TRANSFORM),
-                SimpleExecutionStrategy(Stage.TRANSFORM),
+                InputSlotHandler(Stage.TRANSFORM),
+                SimpleBlockHandler(Stage.TRANSFORM),
                 stage=Stage.TRANSFORM, **self.exec_kw)
             test_output = tf_exec(input_test_data)
             f_need_continue = self.strategy.need_grow(labels, test_output, fit_output)
@@ -259,8 +259,8 @@ class SimpleGrowingFitter():
         assert self.is_fitted, "You must fit the deep forest first"
         return self.exec_cls(
             self.growing_pipeline.build_base_pipeline(),
-            InputSlotStrategy(Stage.TRANSFORM),
-            SimpleExecutionStrategy(Stage.TRANSFORM),
+            InputSlotHandler(Stage.TRANSFORM),
+            SimpleBlockHandler(Stage.TRANSFORM),
             stage=Stage.TRANSFORM,
             inputs=self.growing_pipeline.common_inputs.keys(),
             outputs=self.growing_pipeline.common_outputs,

@@ -47,7 +47,7 @@ class NaiveExecutor(BaseExecutor):
                 slots_values[_input] = conn_value
                 node_input_mapping[_input] = conn_value
 
-            outputs = self.blocks_handler.execute_block(node, node_input_mapping)
+            outputs = self.block_handler.execute_block(node, node_input_mapping)
             slots_values.update(outputs)
             return slots_values[out_slot]
 

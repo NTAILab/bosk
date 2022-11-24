@@ -10,7 +10,7 @@ from sklearn.ensemble import (
 )
 
 from bosk.executor.naive import NaiveExecutor
-from bosk.executor.handlers import SimpleExecutionStrategy, InputSlotStrategy
+from bosk.executor.handlers import SimpleBlockHandler, InputSlotHandler
 from bosk.stages import Stage
 from bosk.block.zoo.multi_grained_scanning import \
     (MultiGrainedScanning1DBlock, MultiGrainedScanning2DBlock)
@@ -44,8 +44,8 @@ def make_deep_forest_functional_multi_grained_scanning_1d(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        InputSlotStrategy(Stage.FIT),
-        SimpleExecutionStrategy(Stage.FIT),
+        InputSlotHandler(Stage.FIT),
+        SimpleBlockHandler(Stage.FIT),
         stage=Stage.FIT,
         inputs={
             'X': X.get_input_slot(),
@@ -63,8 +63,8 @@ def make_deep_forest_functional_multi_grained_scanning_1d(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'labels': argmax_3}
         ),
-        InputSlotStrategy(Stage.TRANSFORM),
-        SimpleExecutionStrategy(Stage.TRANSFORM),
+        InputSlotHandler(Stage.TRANSFORM),
+        SimpleBlockHandler(Stage.TRANSFORM),
         stage=Stage.TRANSFORM,
         inputs={
             'X': X.get_input_slot()
@@ -105,8 +105,8 @@ def make_deep_forest_functional_multi_grained_scanning_2d(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        InputSlotStrategy(Stage.FIT),
-        SimpleExecutionStrategy(Stage.FIT),
+        InputSlotHandler(Stage.FIT),
+        SimpleBlockHandler(Stage.FIT),
         stage=Stage.FIT,
         inputs={
             'X': X.get_input_slot(),
@@ -124,8 +124,8 @@ def make_deep_forest_functional_multi_grained_scanning_2d(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'labels': argmax_3}
         ),
-        InputSlotStrategy(Stage.TRANSFORM),
-        SimpleExecutionStrategy(Stage.TRANSFORM),
+        InputSlotHandler(Stage.TRANSFORM),
+        SimpleBlockHandler(Stage.TRANSFORM),
         stage=Stage.TRANSFORM,
         inputs={
             'X': X.get_input_slot()

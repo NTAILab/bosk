@@ -144,8 +144,8 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
         """Build and get pipeline.
 
         Args:
-            inputs: Dictionary containing the information about pipeline's inputs. See :arrt:`BasePipeline.inputs`.
-            outputs: Dictionary containing the information about pipeline's outputs. See :arrt:`BasePipeline.outputs`
+            inputs: Dictionary containing the information about pipeline's inputs. See :attr:`BasePipeline.inputs`.
+            outputs: Dictionary containing the information about pipeline's outputs. See :attr:`BasePipeline.outputs`
 
         Returns:
             Pipeline made from wrapped blocks.

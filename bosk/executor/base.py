@@ -15,9 +15,9 @@ InputSlotToDataMapping = Mapping[BlockInputSlot, Data]
 It is indexed by input slots.
 """
 
-class BaseSlotStrategy(ABC):
+class BaseSlotHandler(ABC):
     """The interface for classes, parametrizing executor's behaviour
-    during the ececution process. Determines slots' handling politics.
+    during the execution process. Determines slots' handling policy.
     """
     
     @abstractmethod
@@ -26,9 +26,9 @@ class BaseSlotStrategy(ABC):
         the computational graph execution.
         """
 
-class BaseExecutionStrategy(ABC):
+class BaseBlockHandler(ABC):
     """The interface for classes, parametrizing executor's behaviour
-    during the ececution process. Determines blocks' handling politics.
+    during the execution process. Determines blocks' handling policy.
     """
     
     @abstractmethod
@@ -44,16 +44,12 @@ class BaseExecutor(ABC):
         pipeline: The pipeline (computational graph). Contains blocks as nodes
             and connections between output and input blocks' slots as edges.
         stage: The computational mode, which will be performed by the executor.
-        inputs: The dictionary, containing input names as keys and
-            block input slots as values. Computational graph's start points.
-        outputs: The dictionary, containing output names as keys and
-            block output slots as values. Computational graph's end points.
         slots_handler: Object defining the executor's behaviour during slots processing.
         blocks_handler: Object defining the executor's behaviour during blocks processing.
-        inputs: List of the inputs to process. Passing it, you set up the hard requirement 
+        inputs: Set of the inputs to process. Passing it, you set up the hard requirement 
             for the input values to execute the computational graph. Keep it `None` to
             use any of the pipeline's inputs during the execution process.
-        outputs: List of the outputs to process. Keep it `None` to handle all of the
+        outputs: Set of the outputs to process. Keep it `None` to handle all of the
             pipeline's outputs.
         
     Args:
@@ -70,8 +66,8 @@ class BaseExecutor(ABC):
     """
 
     pipeline: BasePipeline
-    slots_handler: BaseSlotStrategy
-    blocks_handler: BaseExecutionStrategy
+    slot_handler: BaseSlotHandler
+    block_handler: BaseBlockHandler
     stage: Stage
     inputs: None | Set[str] = None
     outputs: None | Set[str] = None

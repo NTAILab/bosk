@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import List, Mapping, Sequence
 from bosk import Data
 from bosk.executor.base import BaseExecutor
-from bosk.executor.handlers import SimpleExecutionStrategy, InputSlotStrategy
+from bosk.executor.handlers import SimpleBlockHandler, InputSlotHandler
 from bosk.slot import BlockInputSlot, BlockOutputSlot
 import numpy as np
 from bosk.block.base import BaseBlock
@@ -98,8 +98,8 @@ def make_deep_forest():
 
     fit_executor = NaiveExecutor(
         dynamic_pipeline,
-        InputSlotStrategy(Stage.FIT),
-        SimpleExecutionStrategy(Stage.FIT),
+        InputSlotHandler(Stage.FIT),
+        SimpleBlockHandler(Stage.FIT),
         stage=Stage.FIT,
         inputs={
             'X': input_x.slots.inputs['X'],
@@ -109,8 +109,8 @@ def make_deep_forest():
     )
     transform_executor = NaiveExecutor(
         dynamic_pipeline,
-        InputSlotStrategy(Stage.TRANSFORM),
-        SimpleExecutionStrategy(Stage.TRANSFORM),
+        InputSlotHandler(Stage.TRANSFORM),
+        SimpleBlockHandler(Stage.TRANSFORM),
         stage=Stage.TRANSFORM,
         inputs={'X': input_x.slots.inputs['X']},
         outputs={
@@ -168,16 +168,16 @@ class DynamicExecutor:
         while True:
             fit_executor = self._executor_cls(
                 cur_pipeline,
-                InputSlotStrategy(Stage.FIT),
-                SimpleExecutionStrategy(Stage.FIT),
+                InputSlotHandler(Stage.FIT),
+                SimpleBlockHandler(Stage.FIT),
                 stage=Stage.FIT,
                 inputs=cur_fit_inputs,
                 outputs=cur_fit_outputs,
             )
             transform_executor = self._executor_cls(
                 cur_pipeline,
-                InputSlotStrategy(Stage.TRANSFORM),
-                SimpleExecutionStrategy(Stage.TRANSFORM),
+                InputSlotHandler(Stage.TRANSFORM),
+                SimpleBlockHandler(Stage.TRANSFORM),
                 stage=Stage.TRANSFORM,
                 inputs=cur_transform_inputs,
                 outputs=cur_transform_outputs,
@@ -203,8 +203,8 @@ class DynamicExecutor:
         # prepare transform executor for `transform` method
         self._transform_executor = self._executor_cls(
             self._pipeline,
-            InputSlotStrategy(Stage.TRANSFORM),
-            SimpleExecutionStrategy(Stage.TRANSFORM),
+            InputSlotHandler(Stage.TRANSFORM),
+            SimpleBlockHandler(Stage.TRANSFORM),
             stage=Stage.TRANSFORM,
             inputs=self._transform_inputs,
             outputs=self._transform_outputs,

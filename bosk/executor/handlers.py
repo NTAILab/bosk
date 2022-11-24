@@ -1,9 +1,9 @@
-from .base import BaseSlotStrategy, BaseExecutionStrategy, InputSlotToDataMapping
+from .base import BaseSlotHandler, BaseBlockHandler, InputSlotToDataMapping
 from ..stages import Stage
 from ..slot import BlockInputSlot, BaseSlot
 from ..block.base import BaseBlock, BlockOutputData
 
-class InputSlotStrategy(BaseSlotStrategy):
+class InputSlotHandler(BaseSlotHandler):
     def __init__(self, stage: Stage) -> None:
         assert(stage == Stage.FIT or stage == Stage.TRANSFORM), "Stage is not implemented"
         self.stage = stage
@@ -16,7 +16,7 @@ class InputSlotStrategy(BaseSlotStrategy):
                 or slot.meta.stages.transform_on_fit
         return slot.meta.stages.transform
 
-class SimpleExecutionStrategy(BaseExecutionStrategy):
+class SimpleBlockHandler(BaseBlockHandler):
     def __init__(self, stage: Stage) -> None:
         assert(stage == Stage.FIT or stage == Stage.TRANSFORM), "Stage is not implemented"
         self.stage = stage

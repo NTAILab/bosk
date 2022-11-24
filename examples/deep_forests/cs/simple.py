@@ -7,7 +7,7 @@ from sklearn.datasets import make_moons
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
-from bosk.executor.handlers import SimpleExecutionStrategy, InputSlotStrategy
+from bosk.executor.handlers import SimpleBlockHandler, InputSlotHandler
 from bosk.executor.naive import NaiveExecutor
 from bosk.stages import Stage
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
@@ -67,8 +67,8 @@ def make_deep_forest_functional_confidence_screening(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': joined_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        InputSlotStrategy(Stage.FIT),
-        SimpleExecutionStrategy(Stage.FIT),
+        InputSlotHandler(Stage.FIT),
+        SimpleBlockHandler(Stage.FIT),
         stage=Stage.FIT,
         inputs={
             'X': X.get_input_slot(),
@@ -86,8 +86,8 @@ def make_deep_forest_functional_confidence_screening(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': joined_3, 'labels': argmax_3}
         ),
-        InputSlotStrategy(Stage.TRANSFORM),
-        SimpleExecutionStrategy(Stage.TRANSFORM),
+        InputSlotHandler(Stage.TRANSFORM),
+        SimpleBlockHandler(Stage.TRANSFORM),
         stage=Stage.TRANSFORM,
         inputs={
             'X': X.get_input_slot()

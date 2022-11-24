@@ -176,7 +176,7 @@ class TopologicalExecutor(BaseExecutor):
                     corresponding_output = self._conn_dict[inp_slot]
                     inp_data = slots_values[corresponding_output]
                     node_input_data[inp_slot] = inp_data
-                outputs = self.blocks_handler.execute_block(node, node_input_data)
+                outputs = self.block_handler.execute_block(node, node_input_data)
                 slots_values.update(outputs)
         except Exception:
             block_name = node.__class__.__name__
