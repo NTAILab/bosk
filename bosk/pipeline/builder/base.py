@@ -10,8 +10,7 @@ class BasePipelineBuilder(ABC):
 
     """
     @abstractmethod
-    def build(self, inputs: Mapping[str, Union[BlockInputSlot, FunctionalBlockWrapper]],
-                        outputs: Mapping[str, Union[BlockOutputSlot, FunctionalBlockWrapper]]) -> BasePipeline:
+    def build(self, *args, **kwargs) -> BasePipeline:
         """Get pipeline (optionally after building).
 
         Returns:
