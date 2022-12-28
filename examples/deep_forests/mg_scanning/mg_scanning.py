@@ -9,9 +9,9 @@ from sklearn.ensemble import (
     ExtraTreesClassifier,
 )
 
-from bosk.executor.naive import NaiveExecutor
-from bosk.executor.handlers import SimpleBlockHandler, InputSlotHandler
+from bosk.executor.recursive import RecursiveExecutor
 from bosk.stages import Stage
+from bosk.executor.descriptor import HandlingDescriptor
 from bosk.block.zoo.multi_grained_scanning import \
     (MultiGrainedScanning1DBlock, MultiGrainedScanning2DBlock)
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
@@ -44,9 +44,7 @@ def make_deep_forest_functional_multi_grained_scanning_1d(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        InputSlotHandler(Stage.FIT),
-        SimpleBlockHandler(Stage.FIT),
-        stage=Stage.FIT,
+        HandlingDescriptor.from_classes(Stage.FIT),
         inputs={
             'X': X.get_input_slot(),
             'y': y.get_input_slot(),
@@ -63,9 +61,7 @@ def make_deep_forest_functional_multi_grained_scanning_1d(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'labels': argmax_3}
         ),
-        InputSlotHandler(Stage.TRANSFORM),
-        SimpleBlockHandler(Stage.TRANSFORM),
-        stage=Stage.TRANSFORM,
+        HandlingDescriptor.from_classes(Stage.TRANSFORM),
         inputs={
             'X': X.get_input_slot()
         },
@@ -105,9 +101,7 @@ def make_deep_forest_functional_multi_grained_scanning_2d(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        InputSlotHandler(Stage.FIT),
-        SimpleBlockHandler(Stage.FIT),
-        stage=Stage.FIT,
+        HandlingDescriptor.from_classes(Stage.FIT),
         inputs={
             'X': X.get_input_slot(),
             'y': y.get_input_slot(),
@@ -124,9 +118,7 @@ def make_deep_forest_functional_multi_grained_scanning_2d(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'labels': argmax_3}
         ),
-        InputSlotHandler(Stage.TRANSFORM),
-        SimpleBlockHandler(Stage.TRANSFORM),
-        stage=Stage.TRANSFORM,
+        HandlingDescriptor.from_classes(Stage.TRANSFORM),
         inputs={
             'X': X.get_input_slot()
         },
@@ -141,7 +133,7 @@ def make_deep_forest_functional_multi_grained_scanning_2d(executor, **ex_kw):
 
 def example_iris_dataset():
     print("1D:")
-    fit_executor, transform_executor = make_deep_forest_functional_multi_grained_scanning_1d(NaiveExecutor)
+    fit_executor, transform_executor = make_deep_forest_functional_multi_grained_scanning_1d(RecursiveExecutor)
     iris = load_iris()
     all_X = iris.data
     all_y = iris.target
@@ -157,7 +149,7 @@ def example_iris_dataset():
 
 def example_digits_dataset():
     print("2D:")
-    fit_executor, transform_executor = make_deep_forest_functional_multi_grained_scanning_2d(NaiveExecutor)
+    fit_executor, transform_executor = make_deep_forest_functional_multi_grained_scanning_2d(RecursiveExecutor)
     digits = load_digits()
     all_X = digits.data
     all_y = digits.target

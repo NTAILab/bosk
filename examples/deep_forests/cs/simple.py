@@ -7,8 +7,8 @@ from sklearn.datasets import make_moons
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
-from bosk.executor.handlers import SimpleBlockHandler, InputSlotHandler
-from bosk.executor.naive import NaiveExecutor
+from bosk.executor.descriptor import HandlingDescriptor
+from bosk.executor.recursive import RecursiveExecutor
 from bosk.stages import Stage
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 
@@ -67,9 +67,7 @@ def make_deep_forest_functional_confidence_screening(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': joined_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        InputSlotHandler(Stage.FIT),
-        SimpleBlockHandler(Stage.FIT),
-        stage=Stage.FIT,
+        HandlingDescriptor.from_classes(Stage.FIT),
         inputs={
             'X': X.get_input_slot(),
             'y': y.get_input_slot(),
@@ -86,9 +84,7 @@ def make_deep_forest_functional_confidence_screening(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': joined_3, 'labels': argmax_3}
         ),
-        InputSlotHandler(Stage.TRANSFORM),
-        SimpleBlockHandler(Stage.TRANSFORM),
-        stage=Stage.TRANSFORM,
+        HandlingDescriptor.from_classes(Stage.TRANSFORM),
         inputs={
             'X': X.get_input_slot()
         },
@@ -102,7 +98,7 @@ def make_deep_forest_functional_confidence_screening(executor, **ex_kw):
 
 
 def main():
-    executor_class = NaiveExecutor
+    executor_class = RecursiveExecutor
     fit_executor, transform_executor = make_deep_forest_functional_confidence_screening(executor_class)
 
     all_X, all_y = make_moons(noise=0.5, random_state=42)

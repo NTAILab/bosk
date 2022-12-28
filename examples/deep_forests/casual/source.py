@@ -8,10 +8,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
 from bosk.pipeline.base import BasePipeline, Connection
-from bosk.executor.naive import NaiveExecutor
-from bosk.executor.handlers import SimpleBlockHandler, InputSlotHandler
+from bosk.executor.recursive import RecursiveExecutor
 from bosk.executor.base import BaseExecutor
 from bosk.stages import Stage
+from bosk.executor.descriptor import HandlingDescriptor
 from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
 from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
@@ -96,18 +96,14 @@ def make_deep_forest(executor: BaseExecutor, **ex_kw):
 
     fit_executor = executor(
         pipeline,
-        InputSlotHandler(Stage.FIT),
-        SimpleBlockHandler(Stage.FIT),
-        stage=Stage.FIT,
+        HandlingDescriptor.from_classes(Stage.FIT),
         inputs=['X', 'y'],
         outputs=['probas', 'rf_1_roc-auc', 'roc-auc'],
         **ex_kw
     )
     transform_executor = executor(
         pipeline,
-        InputSlotHandler(Stage.TRANSFORM),
-        SimpleBlockHandler(Stage.TRANSFORM),
-        stage=Stage.TRANSFORM,
+        HandlingDescriptor.from_classes(Stage.TRANSFORM),
         inputs=['X'],
         outputs=['probas', 'labels'],
         **ex_kw
@@ -138,9 +134,7 @@ def make_deep_forest_functional(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        InputSlotHandler(Stage.FIT),
-        SimpleBlockHandler(Stage.FIT),
-        stage=Stage.FIT,
+        HandlingDescriptor.from_classes(Stage.FIT),
         inputs=['X', 'y'],
         outputs=['probas', 'rf_1_roc-auc', 'roc-auc'],
         **ex_kw
@@ -150,9 +144,7 @@ def make_deep_forest_functional(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'labels': argmax_3}
         ),
-        InputSlotHandler(Stage.TRANSFORM),
-        SimpleBlockHandler(Stage.TRANSFORM),
-        stage=Stage.TRANSFORM,
+        HandlingDescriptor.from_classes(Stage.TRANSFORM),
         inputs=['X'],
         outputs=['probas', 'labels'],
         **ex_kw
@@ -161,7 +153,7 @@ def make_deep_forest_functional(executor, **ex_kw):
 
 
 def main():
-    executor_class = NaiveExecutor
+    executor_class = RecursiveExecutor
     # fit_executor, transform_executor = make_deep_forest(executor_class)
     fit_executor, transform_executor = make_deep_forest_functional(executor_class)
 

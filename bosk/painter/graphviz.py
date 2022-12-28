@@ -36,8 +36,7 @@ class GraphvizPainter(BasePainter):
         outputs = block.slots.outputs
         inputs_info = '|'.join([f'<i{hash(slot)}> {name}' for name, slot in inputs.items()])
         outputs_info = '|'.join([f'<o{hash(slot)}> {name}' for name, slot in outputs.items()])
-        block_name = block.__class__.__name__
-        self._graph.node(f'block{id(block)}', f'{block_name}|{{{{{inputs_info}}}|{{{outputs_info}}}}}',
+        self._graph.node(f'block{id(block)}', f'{repr(block)}|{{{{{inputs_info}}}|{{{outputs_info}}}}}',
                         style=style, color=color)
         
     def _add_edge(self, connection: Connection, style: str = 'solid', color: str = 'black') -> None:

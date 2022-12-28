@@ -4,12 +4,13 @@ This file contains the optimizing executor, which also can draw the computationa
 
 """
 
-from typing import Deque, Dict, List, Mapping, Sequence, Set
-from dataclasses import dataclass, field
+from typing import Deque, Dict, List, Mapping, Sequence, Set, Optional
 from collections import defaultdict, deque
 
 from ..data import Data
 from .base import BaseExecutor
+from ..pipeline import BasePipeline
+from .descriptor import HandlingDescriptor
 from ..slot import BaseSlot, BlockInputSlot, BlockOutputSlot
 from ..block import BaseBlock
 from .utility import get_connection_map
@@ -17,7 +18,6 @@ from .utility import get_connection_map
 import warnings
 
 
-@dataclass(frozen=True)
 class TopologicalExecutor(BaseExecutor):
     """Topological executor with the graph painter.
     The optimization algoritm computes only blocks which are connected with the inputs and needed for 
@@ -29,19 +29,22 @@ class TopologicalExecutor(BaseExecutor):
             output slot, so this representation is correct.
     
     Args:
-        pipeline: Sets :attr:`.BaseExecutor.pipeline`.
-        stage: Sets :attr:`.BaseExecutor.stage`.
-        inputs: Sets :attr:`.BaseExecutor.inputs`.
-        outputs: Sets :attr:`.BaseExecutor.outputs`.
+        pipeline: Sets :attr:`.BaseExecutor.__pipeline`.
+        stage_descriptor: Sets :attr:`.BaseExecutor.__stage`,
+            :attr:`.BaseExecutor.__slots_handler` and :attr:`.BaseExecutor.__blocks_handler`.
+        inputs: Sets :attr:`.BaseExecutor.__inputs`.
+        outputs: Sets :attr:`.BaseExecutor.__outputs`.
     """
 
-    _conn_dict: Mapping[BlockInputSlot, BlockOutputSlot] = field(init=False, default=None)
+    _conn_dict: Mapping[BlockInputSlot, BlockOutputSlot]
 
-    def __post_init__(self):
+    def __init__(self, pipeline: BasePipeline, handl_desc: HandlingDescriptor,
+                inputs: Optional[Sequence[str]] = None, outputs: Optional[Sequence[str]] = None):
+        super().__init__(pipeline, handl_desc, inputs, outputs)
         conn_dict = get_connection_map(self)
         for inp in self.pipeline.inputs.values():
             conn_dict[inp] = inp
-        object.__setattr__(self, '_conn_dict', conn_dict)
+        self._conn_dict = conn_dict
 
     def _dfs(self, aj_list: Mapping[BaseBlock, Set[BaseBlock]], begin_nodes: Sequence[BaseBlock]) -> Set[BaseBlock]:
         """Method that performs the deep first search algorithm in the computational graph.
@@ -174,13 +177,12 @@ class TopologicalExecutor(BaseExecutor):
                         # input slot was not used
                         continue
                     corresponding_output = self._conn_dict[inp_slot]
-                    inp_data = slots_values[corresponding_output]
+                    inp_data = slots_values[corresponding_output] # how about skipping, for example, in concatBlock?
                     node_input_data[inp_slot] = inp_data
-                outputs = self.block_handler.execute_block(node, node_input_data)
+                outputs = self._execute_block(node, node_input_data)
                 slots_values.update(outputs)
         except Exception:
-            block_name = node.__class__.__name__
-            warnings.warn(f'Unable to compute data for the "{name}" input of the "{block_name}" block.')
+            warnings.warn(f'Unable to compute data for the "{name}" input of the "{repr(node)}" block.')
             warnings.warn('The execution is terminated.')
 
         result: Mapping[str, Data]  = dict()

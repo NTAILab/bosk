@@ -16,8 +16,8 @@ def get_connection_map(executor: BaseExecutor) -> Mapping[BlockInputSlot, BlockO
     """
     conn_dict: Mapping[BlockInputSlot, BlockOutputSlot] = dict()
     for conn in executor.pipeline.connections:
-        assert (conn.dst not in conn_dict), f'Input slot of block "{conn.dst.parent_block.__class__.__name__}" \
-            (id {hash(conn.dst)}) is used more than once'
-        if executor.slot_handler.is_slot_required(conn.dst):
+        assert (conn.dst not in conn_dict), f'Input slot "{repr(conn.dst)}" of block \
+            "{repr(conn.dst.parent_block)}" is used more than once'
+        if executor._is_slot_required(conn.dst):
             conn_dict[conn.dst] = conn.src
     return conn_dict

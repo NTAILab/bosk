@@ -106,3 +106,6 @@ class BaseBlock(ABC):
             self.slots.outputs[slot_name]: value
             for slot_name, value in output_values.items()
         }
+    
+    def __repr__(self) -> str:
+        return self.__class__.__name__

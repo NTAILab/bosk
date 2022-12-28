@@ -9,7 +9,7 @@ import numpy as np
 from sklearn.datasets import make_moons, load_digits, load_iris
 from sklearn.model_selection import train_test_split
 
-from bosk.executor.naive import NaiveExecutor
+from bosk.executor.recursive import RecursiveExecutor
 from bosk.executor.topological import TopologicalExecutor
 from bosk.painter.topological import TopologicalPainter
 
@@ -72,7 +72,7 @@ def main():
         'MG 2d forest': DeepForestWrapper(make_deep_forest_functional_multi_grained_scanning_2d, get_digits_dataset),
     }
     executors_dict = {
-        'naive': (NaiveExecutor, {}),
+        'recursive': (RecursiveExecutor, {}),
         'topological': (TopologicalExecutor, {}),
     }
     test_result_dict = dict()

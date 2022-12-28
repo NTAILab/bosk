@@ -50,6 +50,9 @@ class BaseSlot:
 
     def __hash__(self) -> int:
         return id(self)
+    
+    def __repr__(self) -> str:
+        return self.meta.name
 
 
 @dataclass(eq=False, frozen=False)

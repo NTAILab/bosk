@@ -8,10 +8,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
 from bosk.stages import Stage
-from bosk.executor.handlers import SimpleBlockHandler, InputSlotHandler
+from bosk.executor.descriptor import HandlingDescriptor
 from bosk.block.zoo.data_weighting import WeightsBlock
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
-from bosk.executor.naive import NaiveExecutor
+from bosk.executor.recursive import RecursiveExecutor
 
 from examples.deep_forests.cs.simple import make_deep_forest_layer
 
@@ -64,9 +64,7 @@ def make_deep_forest_weighted_confidence_screening(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': joined_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        InputSlotHandler(Stage.FIT),
-        SimpleBlockHandler(Stage.FIT),
-        stage=Stage.FIT,
+        HandlingDescriptor.from_classes(Stage.FIT),
         inputs={
             'X': X.get_input_slot(),
             'y': y.get_input_slot(),
@@ -83,9 +81,7 @@ def make_deep_forest_weighted_confidence_screening(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': joined_3, 'labels': argmax_3}
         ),
-        InputSlotHandler(Stage.TRANSFORM),
-        SimpleBlockHandler(Stage.TRANSFORM),
-        stage=Stage.TRANSFORM,
+        HandlingDescriptor.from_classes(Stage.TRANSFORM),
         inputs={
             'X': X.get_input_slot()
         },
@@ -99,7 +95,7 @@ def make_deep_forest_weighted_confidence_screening(executor, **ex_kw):
 
 
 def main():
-    fit_executor, transform_executor = make_deep_forest_weighted_confidence_screening(NaiveExecutor)
+    fit_executor, transform_executor = make_deep_forest_weighted_confidence_screening(RecursiveExecutor)
 
     all_X, all_y = make_moons(noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)

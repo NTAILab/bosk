@@ -55,13 +55,13 @@ class TopologicalPainter(GraphvizPainter):
             self._add_node(block, node_style)
 
         for conn in executor.pipeline.connections:
-            is_conn_req = executor.slot_handler.is_slot_required(conn.dst)
+            is_conn_req = executor._is_slot_required(conn.dst)
             edge_style = 'dashed' if not is_conn_req else ''
             edge_color = 'red' if conn.dst.parent_block not in used_blocks and is_conn_req else 'black'
             self._add_edge(conn, edge_style, edge_color)
 
         for inp_name, inp_slot in executor.pipeline.inputs.items():
-            node_style = 'solid' if executor.slot_handler.is_slot_required(inp_slot) else 'dashed'
+            node_style = 'solid' if executor._is_slot_required(inp_slot) else 'dashed'
             if executor.inputs is None or inp_name in executor.inputs:
                 node_color = 'red'
             else:

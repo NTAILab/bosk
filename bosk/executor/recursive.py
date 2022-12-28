@@ -1,23 +1,37 @@
-from typing import Dict, Mapping, Union
-from dataclasses import dataclass, field
+from typing import Dict, Mapping, Union, Sequence, Optional
 
 from ..data import Data
 from .base import BaseExecutor
+from ..pipeline import BasePipeline
+from .descriptor import HandlingDescriptor
 from ..slot import BlockInputSlot, BlockOutputSlot
 from .utility import get_connection_map
 
 
-@dataclass(frozen=True)
-class NaiveExecutor(BaseExecutor):
-    """Naive executor implementation.
+class RecursiveExecutor(BaseExecutor):
+    """The recursive executor implementation.
 
     Considers only input-output slots information to match slots.
+
+    Attributes:
+        _conn_map: Pipeline connections, represented as a hash map, the keys are blocks' input slots, 
+            the values are output ones. Each input slot corresponds no more than one 
+            output slot, so this representation is correct.
+
+    Args:
+        pipeline: Sets :attr:`.BaseExecutor.__pipeline`.
+        stage_descriptor: Sets :attr:`.BaseExecutor.__stage`, 
+            :attr:`.BaseExecutor.__slots_handler` and :attr:`.BaseExecutor.__blocks_handler`.
+        inputs: Sets :attr:`.BaseExecutor.__inputs`.
+        outputs: Sets :attr:`.BaseExecutor.__outputs`.
     """
 
-    _conn_map: Mapping[BlockInputSlot, BlockOutputSlot] = field(init=False, default=None)
+    _conn_map: Mapping[BlockInputSlot, BlockOutputSlot]
 
-    def __post_init__(self) -> None:
-        object.__setattr__(self, '_conn_map', get_connection_map(self))
+    def __init__(self, pipeline: BasePipeline, handl_desc: HandlingDescriptor,
+                inputs: Optional[Sequence[str]] = None, outputs: Optional[Sequence[str]] = None) -> None:
+        super().__init__(pipeline, handl_desc, inputs, outputs)
+        self._conn_map = get_connection_map(self)
 
     def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:
         self._check_input_values(input_values)
@@ -47,7 +61,7 @@ class NaiveExecutor(BaseExecutor):
                 slots_values[_input] = conn_value
                 node_input_mapping[_input] = conn_value
 
-            outputs = self.block_handler.execute_block(node, node_input_mapping)
+            outputs = self._execute_block(node, node_input_mapping)
             slots_values.update(outputs)
             return slots_values[out_slot]
 

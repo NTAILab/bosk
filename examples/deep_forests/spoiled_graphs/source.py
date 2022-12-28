@@ -5,8 +5,8 @@ from sklearn.datasets import make_moons
 from sklearn.model_selection import train_test_split
 
 from bosk.pipeline.base import BasePipeline, Connection
-from bosk.executor.handlers import SimpleBlockHandler, InputSlotHandler
 from bosk.stages import Stage
+from bosk.executor.descriptor import HandlingDescriptor
 from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
 from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
@@ -92,9 +92,7 @@ def make_rf_lost_connection(executor, **ex_kw):
 
     fit_executor = executor(
         pipeline,
-        InputSlotHandler(Stage.FIT),
-        SimpleBlockHandler(Stage.FIT),
-        stage=Stage.FIT,
+        HandlingDescriptor.from_classes(Stage.FIT),
         inputs={
             'X': input_x.slots.inputs['X'],
             'y': input_y.slots.inputs['y'],
@@ -108,9 +106,7 @@ def make_rf_lost_connection(executor, **ex_kw):
     )
     transform_executor = executor(
         pipeline,
-        InputSlotHandler(Stage.TRANSFORM),
-        SimpleBlockHandler(Stage.TRANSFORM),
-        stage=Stage.TRANSFORM,
+        HandlingDescriptor.from_classes(Stage.TRANSFORM),
         inputs={'X': input_x.slots.inputs['X']},
         outputs={
             'probas': average_3.slots.outputs['output'],
