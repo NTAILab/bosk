@@ -3,7 +3,7 @@ from typing import Mapping, TypeVar
 
 from .meta import BlockMeta
 from ..data import Data
-from ..slot import BlockInputSlot, BlockOutputSlot, BlockSlots
+from .slot import BlockInputSlot, BlockOutputSlot, BlockSlots
 
 
 BlockT = TypeVar('BlockT', bound='BaseBlock')

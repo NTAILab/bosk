@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Mapping, List
-from ..slot import InputSlotMeta, OutputSlotMeta, list_of_slots_meta_to_mapping
+from .slot import InputSlotMeta, OutputSlotMeta, list_of_slots_meta_to_mapping
 
 
 @dataclass(init=False)

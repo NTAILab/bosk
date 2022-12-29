@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Mapping, TypeVar
-from .stages import Stages
+from ..stages import Stages
 
 
 @dataclass(eq=True, frozen=True)

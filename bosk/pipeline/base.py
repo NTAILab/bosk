@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Dict
 from .connection import Connection
-from ..slot import BlockInputSlot, BlockOutputSlot
+from ..block.slot import BlockInputSlot, BlockOutputSlot
 from ..block.base import BaseBlock
 
 

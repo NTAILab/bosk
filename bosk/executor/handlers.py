@@ -4,7 +4,7 @@ from typing import Mapping
 # from .base import InputSlotToDataMapping
 from ..data import Data
 from ..stages import Stage
-from ..slot import BlockInputSlot, BaseSlot
+from ..block.slot import BlockInputSlot, BaseSlot
 from ..block.base import BaseBlock, BlockOutputData
 
 InputSlotToDataMapping = Mapping[BlockInputSlot, Data] # circular import

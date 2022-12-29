@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from ..slot import BlockInputSlot, BlockOutputSlot
+from ..block.slot import BlockInputSlot, BlockOutputSlot
 
 
 @dataclass(eq=True, frozen=True)

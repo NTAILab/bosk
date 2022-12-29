@@ -4,7 +4,7 @@ from typing import Mapping, FrozenSet, Optional, Sequence
 from ..data import Data
 from ..stages import Stage
 from ..block.base import BaseBlock, BlockOutputData
-from ..slot import BlockInputSlot, BaseSlot
+from ..block.slot import BlockInputSlot, BaseSlot
 from ..pipeline import BasePipeline
 from .handlers import BaseBlockHandler, BaseSlotHandler
 from .descriptor import HandlingDescriptor

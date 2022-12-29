@@ -4,7 +4,7 @@ can be used by many executors.
 
 from typing import Mapping
 from .base import BaseExecutor
-from ..slot import BlockInputSlot, BlockOutputSlot
+from ..block.slot import BlockInputSlot, BlockOutputSlot
 
 
 def get_connection_map(executor: BaseExecutor) -> Mapping[BlockInputSlot, BlockOutputSlot]:

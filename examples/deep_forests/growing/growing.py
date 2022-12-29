@@ -7,7 +7,7 @@ from typing import List, Mapping, Sequence
 from bosk import Data
 from bosk.executor.base import BaseExecutor
 from bosk.executor.handlers import SimpleBlockHandler, InputSlotHandler
-from bosk.slot import BlockInputSlot, BlockOutputSlot
+from bosk.block.slot import BlockInputSlot, BlockOutputSlot
 import numpy as np
 from bosk.block.base import BaseBlock
 from bosk.pipeline.connection import Connection

@@ -4,7 +4,7 @@ from ..data import Data
 from .base import BaseExecutor
 from ..pipeline import BasePipeline
 from .descriptor import HandlingDescriptor
-from ..slot import BlockInputSlot, BlockOutputSlot
+from ..block.slot import BlockInputSlot, BlockOutputSlot
 from .utility import get_connection_map
 
 

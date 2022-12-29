@@ -3,7 +3,7 @@ from typing import Optional, Sequence
 
 from bosk.pipeline.base import BasePipeline
 from .connection import Connection
-from ..slot import BlockInputSlot, BlockOutputSlot
+from ..block.slot import BlockInputSlot, BlockOutputSlot
 from ..block.base import BaseBlock
 
 
