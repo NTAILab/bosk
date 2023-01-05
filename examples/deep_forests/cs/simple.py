@@ -1,24 +1,15 @@
 """Example of simple Confidence Screening Deep Forest definition.
 
 """
-from typing import Callable, Optional
-
 import numpy as np
 
 from sklearn.datasets import make_moons
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
-from bosk.block import BaseBlock
-from bosk.pipeline.base import BasePipeline, Connection
-from bosk.executor.naive import NaiveExecutor
+from bosk.executor.descriptor import HandlingDescriptor
+from bosk.executor.recursive import RecursiveExecutor
 from bosk.stages import Stage
-from bosk.slot import BlockOutputSlot
-from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
-from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
-from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
-from bosk.block.zoo.metrics import RocAucBlock, AccuracyBlock, F1ScoreBlock
-from bosk.block.zoo.routing import CSBlock, CSJoinBlock, CSFilterBlock
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 
 
@@ -72,8 +63,11 @@ def make_deep_forest_functional_confidence_screening(executor, **ex_kw):
     roc_auc = b.RocAuc()(gt_y=y, pred_probas=joined_3)
 
     fit_executor = executor(
-        b.pipeline,
-        stage=Stage.FIT,
+        b.build(
+            {'X': X, 'y': y},
+            {'probas': joined_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
+        ),
+        HandlingDescriptor.from_classes(Stage.FIT),
         inputs={
             'X': X.get_input_slot(),
             'y': y.get_input_slot(),
@@ -86,8 +80,11 @@ def make_deep_forest_functional_confidence_screening(executor, **ex_kw):
         **ex_kw,
     )
     transform_executor = executor(
-        b.pipeline,
-        stage=Stage.TRANSFORM,
+        b.build(
+            {'X': X, 'y': y},
+            {'probas': joined_3, 'labels': argmax_3}
+        ),
+        HandlingDescriptor.from_classes(Stage.TRANSFORM),
         inputs={
             'X': X.get_input_slot()
         },
@@ -97,12 +94,12 @@ def make_deep_forest_functional_confidence_screening(executor, **ex_kw):
         },
         **ex_kw,
     )
-    return b.pipeline, fit_executor, transform_executor
+    return fit_executor, transform_executor
 
 
 def main():
-    executor_class = NaiveExecutor
-    _, fit_executor, transform_executor = make_deep_forest_functional_confidence_screening(executor_class)
+    executor_class = RecursiveExecutor
+    fit_executor, transform_executor = make_deep_forest_functional_confidence_screening(executor_class)
 
     all_X, all_y = make_moons(noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)

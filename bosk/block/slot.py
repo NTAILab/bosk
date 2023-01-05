@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Mapping, TypeVar
-from .stages import Stages
+from ..stages import Stages
 
 
 @dataclass(eq=True, frozen=True)
@@ -30,6 +30,8 @@ class OutputSlotMeta(BaseSlotMeta):
     """
 
 
+BaseBlock = TypeVar('BaseBlock') # will be removed later
+
 @dataclass(eq=False, frozen=False)
 class BaseSlot:
     """Base slot.
@@ -43,10 +45,14 @@ class BaseSlot:
 
     """
     meta: BaseSlotMeta
+    parent_block: BaseBlock
     debug_info: str = ""
 
     def __hash__(self) -> int:
         return id(self)
+    
+    def __repr__(self) -> str:
+        return self.meta.name
 
 
 @dataclass(eq=False, frozen=False)

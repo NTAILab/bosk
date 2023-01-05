@@ -1,7 +1,7 @@
 from typing import Optional, Type, Mapping
 from .base import BaseBlock, BlockInputData, BlockOutputData, TransformOutputData
 from .meta import BlockMeta
-from ..slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
+from .slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
 from ..data import Data
 from ..stages import Stages
 from functools import wraps

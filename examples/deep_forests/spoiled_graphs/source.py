@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.stages import Stage
+from bosk.executor.descriptor import HandlingDescriptor
 from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
 from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
@@ -76,12 +77,22 @@ def make_rf_lost_connection(executor, **ex_kw):
             Connection(input_y.slots.outputs['y'], roc_auc.slots.inputs['gt_y']),
             Connection(rf_1.slots.outputs['output'], roc_auc_rf_1.slots.inputs['pred_probas']),
             Connection(input_y.slots.outputs['y'], roc_auc_rf_1.slots.inputs['gt_y']),
-        ]
+        ],
+        inputs={
+            'X': input_x.slots.inputs['X'],
+            'y': input_y.slots.inputs['y'],
+        },
+        outputs={
+            'probas': average_3.slots.outputs['output'],
+            'rf_1_roc-auc': roc_auc_rf_1.slots.outputs['roc-auc'],
+            'roc-auc': roc_auc.slots.outputs['roc-auc'],
+            'labels': argmax_3.slots.outputs['output']
+        }
     )
 
     fit_executor = executor(
         pipeline,
-        stage=Stage.FIT,
+        HandlingDescriptor.from_classes(Stage.FIT),
         inputs={
             'X': input_x.slots.inputs['X'],
             'y': input_y.slots.inputs['y'],
@@ -95,7 +106,7 @@ def make_rf_lost_connection(executor, **ex_kw):
     )
     transform_executor = executor(
         pipeline,
-        stage=Stage.TRANSFORM,
+        HandlingDescriptor.from_classes(Stage.TRANSFORM),
         inputs={'X': input_x.slots.inputs['X']},
         outputs={
             'probas': average_3.slots.outputs['output'],
@@ -103,11 +114,11 @@ def make_rf_lost_connection(executor, **ex_kw):
         },
         **ex_kw
     )
-    return pipeline, fit_executor, transform_executor
+    return fit_executor, transform_executor
 
 def main():
     executor_class = TopologicalExecutor
-    _, fit_executor, transform_executor = make_rf_lost_connection(executor_class)
+    fit_executor, transform_executor = make_rf_lost_connection(executor_class)
 
     all_X, all_y = make_moons(noise=0.5, random_state=42)
     train_X, test_X, train_y, _ = train_test_split(all_X, all_y, test_size=0.2, random_state=42)

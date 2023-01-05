@@ -1,10 +1,9 @@
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 from typing import Mapping, TypeVar
 
 from .meta import BlockMeta
 from ..data import Data
-from ..slot import BlockInputSlot, BlockOutputSlot, BlockSlots
-from ..stages import Stages
+from .slot import BlockInputSlot, BlockOutputSlot, BlockSlots
 
 
 BlockT = TypeVar('BlockT', bound='BaseBlock')
@@ -47,18 +46,18 @@ class BaseBlock(ABC):
         """Make slots"""
         return BlockSlots(
             inputs={
-                name: BlockInputSlot(meta=input_slot_meta)
+                name: BlockInputSlot(meta=input_slot_meta, parent_block=self)
                 for name, input_slot_meta in self.meta.inputs.items()
             },
             outputs={
-                name: BlockOutputSlot(meta=output_slot_meta)
+                name: BlockOutputSlot(meta=output_slot_meta, parent_block=self)
                 for name, output_slot_meta in self.meta.outputs.items()
             },
         )
 
     @property
     @abstractmethod
-    def meta(self):
+    def meta(self) -> BlockMeta:
         """Meta information property getter.
 
         Children classes must specify meta.
@@ -107,3 +106,6 @@ class BaseBlock(ABC):
             self.slots.outputs[slot_name]: value
             for slot_name, value in output_values.items()
         }
+    
+    def __repr__(self) -> str:
+        return self.__class__.__name__

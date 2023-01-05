@@ -9,9 +9,9 @@ import numpy as np
 from sklearn.datasets import make_moons, load_digits, load_iris
 from sklearn.model_selection import train_test_split
 
-from bosk.executor.naive import NaiveExecutor
+from bosk.executor.recursive import RecursiveExecutor
 from bosk.executor.topological import TopologicalExecutor
-from bosk.executor.painter import PainterMixin
+from bosk.painter.topological import TopologicalPainter
 
 from examples.deep_forests.casual.source import make_deep_forest, make_deep_forest_functional
 from examples.deep_forests.cs.simple import make_deep_forest_functional_confidence_screening
@@ -46,7 +46,7 @@ class DeepForestWrapper():
     
     def train(self, exec_cls, **exec_kw):
         train_X, self.test_X, train_y, _ = self.dataset_factory()
-        _, self.fit_exec, self.tf_exec = self.df_factory(exec_cls, **exec_kw)
+        self.fit_exec, self.tf_exec = self.df_factory(exec_cls, **exec_kw)
         fit_res = self.fit_exec({'X': train_X, 'y': train_y})
         self.is_fitted = True
         return fit_res
@@ -56,9 +56,9 @@ class DeepForestWrapper():
         return self.tf_exec({'X': self.test_X})
 
     def paint(self, name):
-        if isinstance(self.fit_exec, PainterMixin) and isinstance(self.tf_exec, PainterMixin):
-            self.fit_exec.draw('fit_' + name)
-            self.tf_exec.draw('transform_' + name)
+        if isinstance(self.fit_exec, TopologicalExecutor) and isinstance(self.tf_exec, TopologicalExecutor):
+            TopologicalPainter().from_executor(self.fit_exec).render('fit_' + name)
+            TopologicalPainter().from_executor(self.tf_exec).render('tf_' + name)
 
 
 def main():
@@ -72,8 +72,8 @@ def main():
         'MG 2d forest': DeepForestWrapper(make_deep_forest_functional_multi_grained_scanning_2d, get_digits_dataset),
     }
     executors_dict = {
-        'naive': (NaiveExecutor, {}),
-        'topological': (TopologicalExecutor, {'figure_dpi': 300}),
+        'recursive': (RecursiveExecutor, {}),
+        'topological': (TopologicalExecutor, {}),
     }
     test_result_dict = dict()
     trouble_scores = []
@@ -99,7 +99,7 @@ def main():
             print(f'\tTaken {round(time() - time_stamp, 4)} s.')
             print('\tTest metrics:')
             print_scores(test_res, 'test')
-            if issubclass(exec_cls, PainterMixin):
+            if exec_cls is TopologicalExecutor:
                 print(f'--- Drawing {df_name} with {exec_name} executor ---')
                 time_stamp = time()
                 df_wrapper.paint(f'{df_name}_{exec_name}.png')

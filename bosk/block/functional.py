@@ -1,5 +1,5 @@
 from .base import BaseBlock
-from ..slot import BlockInputSlot, BlockOutputSlot
+from .slot import BlockInputSlot, BlockOutputSlot
 from typing import Optional
 
 
@@ -63,7 +63,7 @@ class FunctionalBlockWrapper:
                 return list(self.block.slots.inputs.values())[0]
             else:
                 raise RuntimeError('Block has more than one input (please, specify it)')
-        return self.block.meta.inputs[slot_name]
+        return self.block.slots.inputs[slot_name]
 
     def get_output_slot(self) -> BlockOutputSlot:
         """Get output slot.
