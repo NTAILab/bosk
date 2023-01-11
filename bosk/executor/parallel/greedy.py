@@ -9,6 +9,71 @@ from ...block.slot import BlockInputSlot, BlockOutputSlot
 from ...block.base import BaseBlock, BlockOutputData
 from ..utility import get_connection_map
 from joblib import Parallel, delayed
+from multiprocessing.pool import ThreadPool
+from abc import ABC, abstractmethod
+
+
+class ParallelEngine(ABC):
+    class Instance:
+        def __init__(self):
+            pass
+
+    @abstractmethod
+    def __enter__(self) -> 'ParallelEngine.Instance':
+        ...
+
+    @abstractmethod
+    def __exit__(self, _type, _value, _traceback):
+        ...
+
+
+class JoblibParallelEngine(ParallelEngine):
+    class JoblibInstance(ParallelEngine.Instance):
+        def __init__(self, parallel: Parallel):
+            self.parallel = parallel
+
+        def starmap(self, func, iterable):
+            return self.parallel(
+                delayed(func)(*args)
+                for args in iterable
+            )
+
+    def __init__(self, n_threads: int = -1,
+                 backend: Optional[str] = None,
+                 prefer: Optional[str] = 'threads'):
+        self.n_threads = n_threads
+        self.backend = backend
+        self.prefer = prefer
+
+    def __enter__(self) -> 'JoblibParallelEngine.JoblibInstance':
+        self.pool_instance = Parallel(
+            self.n_threads,
+            backend=self.backend,
+            prefer=self.prefer,
+        )
+        return self.JoblibInstance(self.pool_instance.__enter__())
+
+    def __exit__(self, _type, _value, _traceback):
+        self.pool_instance.__exit__(_type, _value, _traceback)
+
+
+class ThreadingParallelEngine(ParallelEngine):
+    class TPEInstance(ParallelEngine.Instance):
+        def __init__(self, pool: ThreadPool):
+            self.pool = pool
+
+        def starmap(self, func, iterable):
+            return self.pool.starmap(func, iterable)
+
+    def __init__(self, n_threads: Optional[int] = None):
+        self.n_threads = n_threads
+
+    def __enter__(self) -> 'ThreadingParallelEngine.TPEInstance':
+        self.pool_instance = ThreadPool(self.n_threads)
+        return self.TPEInstance(self.pool_instance.__enter__())
+
+    def __exit__(self, _type, _value, _traceback):
+        self.pool_instance.__exit__(_type, _value, _traceback)
 
 
 class GreedyParallelExecutor(BaseExecutor):
@@ -34,8 +99,10 @@ class GreedyParallelExecutor(BaseExecutor):
     def __init__(self, pipeline: BasePipeline,
                  handl_desc: HandlingDescriptor,
                  inputs: Optional[Sequence[str]] = None,
-                 outputs: Optional[Sequence[str]] = None) -> None:
+                 outputs: Optional[Sequence[str]] = None,
+                 parallel_engine: ParallelEngine = ThreadingParallelEngine()) -> None:
         super().__init__(pipeline, handl_desc, inputs, outputs)
+        self.parallel_engine = parallel_engine
         self._conn_map = get_connection_map(self)
         self._edges = self._prepare_out_to_in_edges()
         self._inputs_by_block = self._prepare_inputs_by_block()
@@ -89,12 +156,22 @@ class GreedyParallelExecutor(BaseExecutor):
         return outputs
 
     def _compute_all_parallel(self, blocks: Sequence[BaseBlock],
-                          computed_values: Mapping[BlockInputSlot, Data]) -> Mapping[BlockOutputSlot, Data]:
+                              computed_values: Mapping[BlockInputSlot, Data],
+                              parallel: ParallelEngine.Instance) -> Mapping[BlockOutputSlot, Data]:
         outputs = dict()
-        parallel_results = Parallel(prefer='threading')(
-            delayed(self._execute_block)(block, self._prepare_inputs(block, computed_values))
-            for block in blocks
-            if block.meta.execution_props.threadsafe and not block.meta.execution_props.plain
+        # TODO: replace with calling block executor method like `execute_threadsafe_blocks`
+        #   in this case execution behaviour will be implemented in block executor
+        # parallel_results = parallel(
+        #     delayed(self._execute_block)(block, self._prepare_inputs(block, computed_values))
+        #     for block in blocks
+        #     if block.meta.execution_props.threadsafe and not block.meta.execution_props.plain
+        # )
+        parallel_results = parallel.starmap(
+            self._execute_block, (
+                (block, self._prepare_inputs(block, computed_values))
+                for block in blocks
+                if block.meta.execution_props.threadsafe and not block.meta.execution_props.plain
+            )
         )
         for block_output in parallel_results:
             outputs.update(block_output)
@@ -159,8 +236,8 @@ class GreedyParallelExecutor(BaseExecutor):
             for in_slot in self._edges[out_slot]:
                 computed_values[in_slot] = out_data
 
-    def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:
-        self._check_input_values(input_values)
+    def __call_with_parallel(self, input_values: Mapping[str, Data],
+                             parallel: ParallelEngine.Instance) -> Dict[BlockOutputSlot, Data]:
         initial_input_slot_values = self._map_input_names_to_slots(input_values)
         output_slots = set(self.pipeline.outputs.values())
         output_values: Dict[BlockOutputSlot, Data] = dict()
@@ -213,9 +290,14 @@ class GreedyParallelExecutor(BaseExecutor):
                 recently_computed_outputs = non_threadsafe_outputs
                 continue
             # Compute blocks in parallel
-            parallel_outputs = self._compute_all_parallel(ready_blocks, computed_values)
+            parallel_outputs = self._compute_all_parallel(ready_blocks, computed_values, parallel)
             recently_computed_outputs = parallel_outputs
+        return output_values
 
+    def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:
+        self._check_input_values(input_values)
+        with self.parallel_engine as parallel:
+            output_values = self.__call_with_parallel(input_values, parallel)
         # convert output values to string-indexed dict
         result = dict()
         for output_name, output_slot in self.pipeline.outputs.items():
