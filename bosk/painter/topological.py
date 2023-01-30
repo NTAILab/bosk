@@ -3,6 +3,7 @@ from .graphviz import GraphvizPainter
 from ..executor.topological import TopologicalExecutor
 from ..executor.base import BaseExecutor
 
+
 class TopologicalPainter(GraphvizPainter):
     """Painter that performes the computational graph drawing in accordance with :class:`TopologicalExecutor`.
     Based on the :class:`GraphvizPainter`.
@@ -12,15 +13,16 @@ class TopologicalPainter(GraphvizPainter):
             See http://graphviz.org/docs/attrs/ranksep/.
         dpi: The dpi of the output computational graph images, formated in raster graphics (.png, .jpeg, etc.).
         rankdir: The direction of the computational graph edges. See https://graphviz.org/docs/attrs/rankdir/.
-    
+
     Args:
         graph_levels_sep: Sets :attr:`levels_sep`.
         figure_dpi: Sets :attr:`dpi`.
         figure_rankdir: Sets :attr:`rankdir`.
     """
+
     def __init__(self, graph_levels_sep: float = 1, figure_dpi: int = 150, figure_rankdir: str = 'LR'):
         super().__init__(graph_levels_sep, figure_dpi, figure_rankdir)
-    
+
     def from_executor(self, executor: BaseExecutor) -> BasePainter:
         """Method that parses a :class:`TopologicalExecutor` and make internal representation
         of the computational graph to render its image in the :meth:`render` method.
@@ -36,17 +38,21 @@ class TopologicalPainter(GraphvizPainter):
         assert not self._f_used, "You've already built the graph"
         assert isinstance(executor, TopologicalExecutor), \
             f"This painter works only with topological executor, got {executor.__class__.__name__}"
-        
+
         if executor.outputs is None:
             output_blocks = [slot.parent_block for slot in executor.pipeline.outputs.values()]
         else:
-            output_blocks = [executor.pipeline.outputs[slot_name].parent_block for slot_name in executor.outputs]
+            output_blocks = [
+                executor.pipeline.outputs[slot_name].parent_block for slot_name in executor.outputs
+            ]
         backward_pass = executor._dfs(executor._get_backward_aj_list(), output_blocks)
 
         if executor.inputs is None:
             input_blocks = [slot.parent_block for slot in executor.pipeline.inputs.values()]
         else:
-            input_blocks = [executor.pipeline.inputs[slot_name].parent_block for slot_name in executor.inputs]
+            input_blocks = [
+                executor.pipeline.inputs[slot_name].parent_block for slot_name in executor.inputs
+            ]
         forward_pass = executor._dfs(executor._get_forward_aj_list(backward_pass), input_blocks)
         used_blocks = backward_pass & forward_pass
 
@@ -67,7 +73,7 @@ class TopologicalPainter(GraphvizPainter):
             else:
                 node_color = 'blue'
             self._add_input(f'Input "{inp_name}"', inp_slot, node_style, node_color)
-        
+
         for out_name, out_slot in executor.pipeline.outputs.items():
             node_style = 'solid' if out_slot.parent_block in used_blocks else 'dashed'
             if executor.outputs is None or out_name in executor.outputs:
@@ -75,6 +81,6 @@ class TopologicalPainter(GraphvizPainter):
             else:
                 node_color = 'blue'
             self._add_output(f'Output "{out_name}"', out_slot, node_style, node_color)
-        
+
         self._f_used = True
         return self

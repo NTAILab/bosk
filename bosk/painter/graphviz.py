@@ -22,13 +22,15 @@ class GraphvizPainter(BasePainter):
         figure_dpi: Sets :attr:`dpi`.
         figure_rankdir: Sets :attr:`rankdir`.
     """
+
     def __init__(self, graph_levels_sep: float = 1.0, figure_dpi: int = 150, figure_rankdir: str = 'LR'):
         self._levels_sep = graph_levels_sep
         self._dpi = figure_dpi
         self._rankdir = figure_rankdir
-        self._graph = gv.Digraph('DeepForestGraph', renderer='cairo', formatter='cairo', node_attr={'shape': 'record'}) 
+        self._graph = gv.Digraph('DeepForestGraph', renderer='cairo',
+                                 formatter='cairo', node_attr={'shape': 'record'})
         self._f_used = False
-    
+
     def _add_node(self, block: BaseBlock, style: str = 'solid', color: str = 'black') -> None:
         """Method that adds a node to the graph.
         """
@@ -37,31 +39,31 @@ class GraphvizPainter(BasePainter):
         inputs_info = '|'.join([f'<i{hash(slot)}> {name}' for name, slot in inputs.items()])
         outputs_info = '|'.join([f'<o{hash(slot)}> {name}' for name, slot in outputs.items()])
         self._graph.node(f'block{id(block)}', f'{repr(block)}|{{{{{inputs_info}}}|{{{outputs_info}}}}}',
-                        style=style, color=color)
-        
+                         style=style, color=color)
+
     def _add_edge(self, connection: Connection, style: str = 'solid', color: str = 'black') -> None:
         """Method that adds an edge to the graph.
         """
         self._graph.edge(f'block{id(connection.src.parent_block)}:o{hash(connection.src)}',
-                   f'block{id(connection.dst.parent_block)}:i{hash(connection.dst)}',
-                   style=style, color=color)
-    
+                         f'block{id(connection.dst.parent_block)}:i{hash(connection.dst)}',
+                         style=style, color=color)
+
     def _add_input(self, name: str, input_slot: BlockInputSlot, style: str = 'solid', color: str = 'red') -> None:
         """Method that adds pipeline's input to the graph.
         """
         inp_hash = hash(name)
         self._graph.node(f'inp_{inp_hash}', f'<I_{inp_hash}> {name}', style=style, color=color)
         self._graph.edge(f'inp_{inp_hash}:I_{inp_hash}', f'block{id(input_slot.parent_block)}:i{hash(input_slot)}',
-                        style=style, color=color)
-    
+                         style=style, color=color)
+
     def _add_output(self, name: str, output_slot: BlockInputSlot, style: str = 'solid', color: str = 'red') -> None:
         """Method that adds pipeline's output to the graph.
         """
         out_hash = hash(name)
         self._graph.node(f'out_{out_hash}', f'<O_{out_hash}> {name}', style=style, color=color)
         self._graph.edge(f'block{id(output_slot.parent_block)}:o{hash(output_slot)}', f'out_{out_hash}:O_{out_hash}',
-                        style=style, color=color)
-    
+                         style=style, color=color)
+
     def from_pipeline(self, pipeline: BasePipeline) -> BasePainter:
         """Method that parses a pipeline and make internal representation
         of the computational graph to render its image in the :meth:`render` method.
@@ -77,10 +79,10 @@ class GraphvizPainter(BasePainter):
             self._add_output(f'Output "{out_name}"', out_slot)
         self._f_used = True
         return self
-    
+
     def from_executor(self, executor: BaseExecutor) -> BasePainter:
         raise NotImplementedError()
-    
+
     def render(self, output_filename: str, format: Optional[str] = None) -> None:
         """Method that renders the computational graph's image.
         """
@@ -90,10 +92,10 @@ class GraphvizPainter(BasePainter):
             output_filename += f'.{format}'
         self._graph.attr(rankdir=self._rankdir, ranksep=str(self._levels_sep), dpi=str(self._dpi))
         self._graph.render(outfile=output_filename, cleanup=True)
-    
+
     def available_formats(self) -> Sequence[str]:
         return gv.FORMATS
-    
+
     @property
     def rankdir(self) -> str:
         """The direction of the computational graph edges. See https://graphviz.org/docs/attrs/rankdir/.
@@ -103,7 +105,7 @@ class GraphvizPainter(BasePainter):
     @rankdir.setter
     def rankdir(self, value: str) -> None:
         self._rankdir = value
-    
+
     @property
     def levels_sep(self) -> float:
         """The painter's parameter, which determines the distance between the computational graph's levels.
@@ -114,13 +116,13 @@ class GraphvizPainter(BasePainter):
     @levels_sep.setter
     def levels_sep(self, value) -> None:
         self._levels_sep = value
-    
+
     @property
     def dpi(self) -> int:
         """The dpi of the output computational graph images, formated in raster graphics (.png, .jpeg, etc.).
         """
         return self._dpi
-    
+
     @dpi.setter
     def dpi(self, value) -> None:
         self._dpi = value

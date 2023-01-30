@@ -29,7 +29,7 @@ class RecursiveExecutor(BaseExecutor):
     _conn_map: Mapping[BlockInputSlot, BlockOutputSlot]
 
     def __init__(self, pipeline: BasePipeline, handl_desc: HandlingDescriptor,
-                inputs: Optional[Sequence[str]] = None, outputs: Optional[Sequence[str]] = None) -> None:
+                 inputs: Optional[Sequence[str]] = None, outputs: Optional[Sequence[str]] = None) -> None:
         super().__init__(pipeline, handl_desc, inputs, outputs)
         self._conn_map = get_connection_map(self)
 
@@ -43,7 +43,7 @@ class RecursiveExecutor(BaseExecutor):
             assert isinstance(out_slot, BlockOutputSlot)
             if out_slot in slots_values:
                 return slots_values[out_slot]
-            
+
             node = out_slot.parent_block
             node_input_slots = node.slots.inputs.values()
             node_input_mapping = dict()
@@ -51,7 +51,7 @@ class RecursiveExecutor(BaseExecutor):
                 if _input in slots_values:
                     node_input_mapping[_input] = slots_values[_input]
                     continue
-                
+
                 _output = self._conn_map.get(_input, None)
                 if _output is None:
                     continue

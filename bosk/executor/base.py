@@ -16,6 +16,7 @@ InputSlotToDataMapping = Mapping[BlockInputSlot, Data]
 It is indexed by input slots.
 """
 
+
 class BaseExecutor(ABC):
     """Base pipeline executor.
 
@@ -30,13 +31,13 @@ class BaseExecutor(ABC):
             use any of the pipeline's inputs during the execution process.
         __outputs: Set of the outputs to process. Keep it `None` to handle all of the
             pipeline's outputs.
-        
+
     Args:
         pipeline: Sets :attr:`__pipeline`.
         handl_desc: Sets :attr:`__stage`, :attr:`__slots_handler` and :attr:`__blocks_handler`.
         inputs: Sets :attr:`__inputs`.
         outputs: Sets :attr:`__outputs`.
-    
+
     Raises:
         AssertionError: If it was unable to find some input in the pipeline.
         AssertionError: If it was unable to find some output in the pipeline.
@@ -50,7 +51,7 @@ class BaseExecutor(ABC):
     __outputs: None | FrozenSet[str]
 
     def __init__(self, pipeline: BasePipeline, handl_desc: HandlingDescriptor,
-                inputs: Optional[Sequence[str]] = None, outputs: Optional[Sequence[str]] = None) -> None:
+                 inputs: Optional[Sequence[str]] = None, outputs: Optional[Sequence[str]] = None) -> None:
         self.__pipeline = pipeline
         self.__slot_handler = handl_desc.slot_handler
         self.__block_handler = handl_desc.block_handler
@@ -103,7 +104,7 @@ class BaseExecutor(ABC):
         """Method that determines if the slot is required during
         the computational graph execution. Added for additional debugging (and polymorphism)
         features and to make the code shorter.
-        
+
         Args:
             slot: The computational block's slot to check.
         """
@@ -112,7 +113,7 @@ class BaseExecutor(ABC):
     def _execute_block(self, block: BaseBlock, block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
         """Method that executes the block. Added for additional debugging (and polymorphism)
         features and to make the code shorter.
-        
+
         Args:
             block: The computational block to execute.
             block_input_mapping: The data for the block execution.
@@ -127,24 +128,24 @@ class BaseExecutor(ABC):
     def pipeline(self) -> BasePipeline:
         """Getter for the executor's pipeline."""
         return self.__pipeline
-    
+
     @property
     def inputs(self) -> Optional[FrozenSet[str]]:
         """Getter for the executor's inputs set. `None` if there are 
         no restrictions on the pipeline's inputs."""
         return self.__inputs
-    
+
     @property
     def outputs(self) -> Optional[FrozenSet[str]]:
         """Getter for the executor's ouputs set. `None` if there are 
         no restrictions on the pipeline's outputs."""
         return self.__outputs
-    
+
     @property
     def slot_handler(self) -> BaseSlotHandler:
         """Getter for the executor's slots handler."""
         return self.__slot_handler
-    
+
     @property
     def block_handler(self) -> BaseBlock:
         """Getter for the executor's blocks handler."""
