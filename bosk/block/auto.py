@@ -1,61 +1,79 @@
 from typing import Optional, Type, Mapping
 from .base import BaseBlock, BlockInputData, BlockOutputData, TransformOutputData
-from .meta import BlockMeta
+from .meta import BlockMeta, BlockExecutionProperties
 from .slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
 from ..data import Data
 from ..stages import Stages
 from functools import wraps
 
 
-def auto_block(cls: Type[BaseBlock]):
+def auto_block(_implicit_cls=None, execution_props: Optional[BlockExecutionProperties] = None):
     """Convert any fit-transform class into a block.
 
     Args:
-        cls: Class with fit-transform interface.
+        _implicit_cls: Class with fit-transform interface.
+                       It is automatically passed when `@auto_block` without
+                       brackets is used. Otherwise it should be `None`.
 
     Returns:
-        Block class.
+        Block wrapping function.
 
     """
-    fit_argnames = set(cls.fit.__code__.co_varnames[1:cls.fit.__code__.co_argcount])
-    transform_argnames = set(cls.transform.__code__.co_varnames[1:cls.transform.__code__.co_argcount])
+    def _auto_block_impl(cls: Type[BaseBlock]):
+        """Make auto block wrapper instance.
 
-    @wraps(cls, updated=())
-    class AutoBlock(BaseBlock):
-        meta: Optional[BlockMeta] = BlockMeta(
-            inputs=[
-                InputSlotMeta(
-                    name=name,
-                    stages=Stages(
-                        fit=(name in fit_argnames),
-                        transform=(name in transform_argnames)
-                    ),
-                )
-                for name in fit_argnames | transform_argnames
-            ],
-            outputs=[
-                OutputSlotMeta(name='output')
-            ],
-        )
+        Args:
+            cls: Class with fit-transform interface.
 
-        def __init__(self, *args, **kwargs):
-            super().__init__()
-            self.__instance = cls(*args, **kwargs)
+        Returns:
+            Block class.
 
-        def __prepare_kwargs(self, inputs: BlockInputData) -> Mapping[str, Data]:
-            kwargs = {
-                slot_name: inputs[slot_name]
-                for slot_name, _slot in self.slots.inputs.items()
-                if slot_name in inputs
-            }
-            return kwargs
+        """
+        fit_argnames = set(cls.fit.__code__.co_varnames[1:cls.fit.__code__.co_argcount])
+        transform_argnames = set(cls.transform.__code__.co_varnames[1:cls.transform.__code__.co_argcount])
 
-        def fit(self, inputs: BlockInputData) -> 'AutoBlock':
-            self.__instance.fit(**self.__prepare_kwargs(inputs))
-            return self
+        @wraps(cls, updated=())
+        class AutoBlock(BaseBlock):
+            meta: Optional[BlockMeta] = BlockMeta(
+                inputs=[
+                    InputSlotMeta(
+                        name=name,
+                        stages=Stages(
+                            fit=(name in fit_argnames),
+                            transform=(name in transform_argnames)
+                        ),
+                    )
+                    for name in fit_argnames | transform_argnames
+                ],
+                outputs=[
+                    OutputSlotMeta(name='output')
+                ],
+                execution_props=execution_props
+            )
 
-        def transform(self, inputs: BlockInputData) -> TransformOutputData:
-            transformed = self.__instance.transform(**self.__prepare_kwargs(inputs))
-            return {'output': transformed}
+            def __init__(self, *args, **kwargs):
+                super().__init__()
+                self.__instance = cls(*args, **kwargs)
 
-    return AutoBlock
+            def __prepare_kwargs(self, inputs: BlockInputData) -> Mapping[str, Data]:
+                kwargs = {
+                    slot_name: inputs[slot_name]
+                    for slot_name, _slot in self.slots.inputs.items()
+                    if slot_name in inputs
+                }
+                return kwargs
+
+            def fit(self, inputs: BlockInputData) -> 'AutoBlock':
+                self.__instance.fit(**self.__prepare_kwargs(inputs))
+                return self
+
+            def transform(self, inputs: BlockInputData) -> TransformOutputData:
+                transformed = self.__instance.transform(**self.__prepare_kwargs(inputs))
+                return {'output': transformed}
+
+        return AutoBlock
+
+    if _implicit_cls is not None:
+        return _auto_block_impl(_implicit_cls)
+
+    return _auto_block_impl
