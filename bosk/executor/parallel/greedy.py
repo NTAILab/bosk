@@ -8,7 +8,7 @@ from ..descriptor import HandlingDescriptor
 from ...block.slot import BlockInputSlot, BlockOutputSlot
 from ...block.base import BaseBlock, BlockOutputData
 from ..utility import get_connection_map
-from joblib import Parallel as JoblibParallel, joblib_delayed
+from joblib import Parallel as JoblibParallel, delayed as joblib_delayed
 from multiprocessing.pool import ThreadPool as MultiprocessingThreadPool
 from abc import ABC, abstractmethod
 
@@ -85,9 +85,9 @@ class MultiprocessingParallelEngine(ParallelEngine):
     def __init__(self, n_threads: Optional[int] = None):
         self.n_threads = n_threads
 
-    def __enter__(self) -> 'MultiprocessingParallelEngine.TPEInstance':
+    def __enter__(self) -> 'MultiprocessingParallelEngine.MPInstance':
         self.pool_instance = MultiprocessingThreadPool(self.n_threads)
-        return self.TPEInstance(self.pool_instance.__enter__())
+        return self.MPInstance(self.pool_instance.__enter__())
 
     def __exit__(self, _type, _value, _traceback):
         self.pool_instance.__exit__(_type, _value, _traceback)
