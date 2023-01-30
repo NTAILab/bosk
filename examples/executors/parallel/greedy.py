@@ -2,7 +2,7 @@
 
 """
 from collections import defaultdict
-from time import time
+from time import time, sleep
 from bosk.block.meta import BlockExecutionProperties
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.stages import Stage
@@ -15,8 +15,11 @@ from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 
 from bosk.executor.recursive import RecursiveExecutor
 from bosk.executor.topological import TopologicalExecutor
-from bosk.executor.parallel.greedy import GreedyParallelExecutor, JoblibParallelEngine, ThreadingParallelEngine
-from bosk.painter.topological import TopologicalPainter
+from bosk.executor.parallel.greedy import (
+    GreedyParallelExecutor,
+    JoblibParallelEngine,
+    MultiprocessingParallelEngine,
+)
 
 # from examples.deep_forests.casual.source import make_deep_forest, make_deep_forest_functional
 # from examples.deep_forests.cs.simple import make_deep_forest_functional_confidence_screening
@@ -41,6 +44,22 @@ class ParallelETC(ExtraTreesClassifier):
         return self.predict_proba(X)
 
 
+@auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
+class ParallelSleepStub:
+    def __init__(self, fit_time: float = 0.1,
+                 transform_time: float = 0.05):
+        self.fit_time = fit_time
+        self.transform_time = transform_time
+
+    def fit(self, X):
+        sleep(self.fit_time)
+        return self
+
+    def transform(self, X):
+        sleep(self.transform_time)
+        return X
+
+
 def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
     if forest_params is None:
         forest_params = dict()
@@ -48,6 +67,8 @@ def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
     X, y = b.Input()(), b.TargetInput()()
     rf_1 = b.new(ParallelRFC, random_state=42, **forest_params)(X=X, y=y)
     et_1 = b.new(ParallelETC, random_state=42, **forest_params)(X=X, y=y)
+    rf_1 = b.new(ParallelSleepStub)(X=rf_1)
+    et_1 = b.new(ParallelSleepStub)(X=et_1)
     concat_1 = b.Concat(['X', 'rf_1', 'et_1'])(X=X, rf_1=rf_1, et_1=et_1)
     rf_2 = b.new(ParallelRFC, random_state=42, **forest_params)(X=concat_1, y=y)
     et_2 = b.new(ParallelETC, random_state=42, **forest_params)(X=concat_1, y=y)
@@ -150,18 +171,18 @@ def main():
     params = dict(
         n_time_iter=10,
         forest_params=dict(
-            n_estimators=500,
-            n_jobs=-1
+            n_estimators=10,
+            n_jobs=1
         ),
     )
     threading_kw = dict(
-        parallel_engine=ThreadingParallelEngine(),
+        parallel_engine=MultiprocessingParallelEngine(),
     )
     joblib_kw = dict(
         parallel_engine=JoblibParallelEngine(),
     )
     test_executor(RecursiveExecutor, **params)
-    print("Threading:")
+    print("Multiprocessing Threading:")
     test_executor(GreedyParallelExecutor, ex_kw=threading_kw, **params)
     print("Joblib:")
     with parallel_backend('threading', n_jobs=-1):
