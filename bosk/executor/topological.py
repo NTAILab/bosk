@@ -22,12 +22,12 @@ class TopologicalExecutor(BaseExecutor):
     """Topological executor with the graph painter.
     The optimization algoritm computes only blocks which are connected with the inputs and needed for 
     the outputs calculation.
-    
+
     Attributes:
         _conn_dict: Pipeline connections, represented as a hash map, the keys are blocks' input slots, 
             the values are output ones. Each input slot corresponds no more than one 
             output slot, so this representation is correct.
-    
+
     Args:
         pipeline: Sets :attr:`.BaseExecutor.__pipeline`.
         stage_descriptor: Sets :attr:`.BaseExecutor.__stage`,
@@ -39,7 +39,7 @@ class TopologicalExecutor(BaseExecutor):
     _conn_dict: Mapping[BlockInputSlot, BlockOutputSlot]
 
     def __init__(self, pipeline: BasePipeline, handl_desc: HandlingDescriptor,
-                inputs: Optional[Sequence[str]] = None, outputs: Optional[Sequence[str]] = None):
+                 inputs: Optional[Sequence[str]] = None, outputs: Optional[Sequence[str]] = None):
         super().__init__(pipeline, handl_desc, inputs, outputs)
         conn_dict = get_connection_map(self)
         for inp in self.pipeline.inputs.values():
@@ -53,7 +53,7 @@ class TopologicalExecutor(BaseExecutor):
         Args:
             aj_list: The graph adjacency list.
             begin_nodes: The graph nodes, which will be used as the search start.
-        
+
         Returns:
             Set of the graph nodes, which were included in the traversal. Actually, the order is not saved.
             This method is only for internal use, so this behaviour is chosen for the optimization.
@@ -75,7 +75,7 @@ class TopologicalExecutor(BaseExecutor):
         Args:
             aj_list: The graph adjacency list.
             begin_nodes: The graph nodes, which will be used as the algorithm start.
-        
+
         Returns:
             List of the graph nodes in topological order.
 
@@ -93,14 +93,14 @@ class TopologicalExecutor(BaseExecutor):
                 while inner_stack and node not in aj_list[inner_stack[-1]]:
                     order.append(inner_stack.pop())
                 inner_stack.append(node)
-        
+
         inner_stack.extend(reversed(order))
         return inner_stack
 
     def _get_backward_aj_list(self, feasible_set: None | Set[BaseBlock] = None) -> Mapping[BaseBlock, Set[BaseBlock]]:
         """The internal helper method for making backwards adjacency list 
         (block to block, from the end to the start) of the pipeline.
-        
+
         Args:
             feasible_set: The set of the blocks, which will be used in the adjacency list. 
                 Other blocks will not be included. If `None`, all blocks of the pipeline will be used. 
@@ -117,7 +117,7 @@ class TopologicalExecutor(BaseExecutor):
 
     def _get_forward_aj_list(self, feasible_set: None | Set[BaseBlock] = None) -> Mapping[BaseBlock, Set[BaseBlock]]:
         """The internal helper method for making adjacency list (block to block) of the pipeline.
-        
+
         Args:
             feasible_set: The set of the blocks, which will be used in the adjacency list. 
                 Other blocks will not be included. If `None`, all blocks of the pipeline will be used. 
@@ -164,10 +164,12 @@ class TopologicalExecutor(BaseExecutor):
                 continue
             slots_values[input_slot] = input_data
             if input_slot.parent_block not in backward_pass:
-                warnings.warn(f'Input slot "{input_name}" is disconnected from the outputs, it won\'t be calculated')
+                warnings.warn(
+                    f'Input slot "{input_name}" is disconnected from the outputs, it won\'t be calculated')
             else:
                 input_blocks_set.add(input_slot.parent_block)
-        topological_order = self._topological_sort(self._get_forward_aj_list(backward_pass), input_blocks_set)
+        topological_order = self._topological_sort(
+            self._get_forward_aj_list(backward_pass), input_blocks_set)
 
         try:
             for node in topological_order:
@@ -177,15 +179,17 @@ class TopologicalExecutor(BaseExecutor):
                         # input slot was not used
                         continue
                     corresponding_output = self._conn_dict[inp_slot]
-                    inp_data = slots_values[corresponding_output] # how about skipping, for example, in concatBlock?
+                    # how about skipping, for example, in concatBlock?
+                    inp_data = slots_values[corresponding_output]
                     node_input_data[inp_slot] = inp_data
                 outputs = self._execute_block(node, node_input_data)
                 slots_values.update(outputs)
         except Exception:
-            warnings.warn(f'Unable to compute data for the "{name}" input of the "{repr(node)}" block.')
+            warnings.warn(
+                f'Unable to compute data for the "{name}" input of the "{repr(node)}" block.')
             warnings.warn('The execution is terminated.')
 
-        result: Mapping[str, Data]  = dict()
+        result: Mapping[str, Data] = dict()
         for output_name, output_slot in self.pipeline.outputs.items():
             if self.outputs is None or output_name in self.outputs:
                 slot_data = slots_values.get(output_slot, None)
