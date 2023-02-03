@@ -15,7 +15,8 @@ from bosk.pipeline.converter.dask import DaskConverter
 from sklearn.metrics import roc_auc_score
 from bosk.executor.descriptor import HandlingDescriptor
 from bosk.block import BaseBlock
-import dask
+from dask.threaded import get as dask_get
+from dask.optimization import cull as dask_cull
 
 
 def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
@@ -98,6 +99,14 @@ def main():
         fit_result['rf_1_roc-auc']
     )
     print("  Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'][:, 1]))
+
+    # execute with Dask
+
+    dsk['X'] = test_X
+    outputs = ['probas']
+    dsk1, dependencies = dask_cull(dsk, outputs)
+    test_outputs = dask_get(dsk1, outputs)
+    print("  Test ROC-AUC (Dask):", roc_auc_score(test_y, test_outputs[0][:, 1]))
 
 
 if __name__ == "__main__":

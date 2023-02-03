@@ -1,26 +1,52 @@
 from functools import singledispatchmethod
-from typing import Any, Dict
+from typing import Any, Callable, Dict, List, Optional
+from abc import ABC, abstractmethod
 from ...visitor.base import BaseVisitor
 from ..base import BasePipeline
-from ...block.base import BaseBlock
+from ...block.base import BaseBlock, BlockInputData
 from ..connection import Connection
+from ...data import Data
 import dask
 
 
-class DaskOperators:
+class DaskOperatorSet(ABC):
+    @property
+    @abstractmethod
+    def bypass(self) -> Callable:
+        ...
+
+    @property
+    @abstractmethod
+    def extract(self) -> Callable:
+        ...
+
+    @property
+    @abstractmethod
+    def extract(self) -> Callable:
+        ...
+
+
+
+class TransformDaskOperatorSet(DaskOperatorSet):
     @staticmethod
-    def bypass(value):
+    def bypass(value: Data) -> Data:
         return value
 
     @staticmethod
-    def extract(block_output, _output_key: str = None):
-        raise NotImplementedError()
-        return None
+    def extract(block_output: Dict[str, Data], _output_key: str = None):
+        return block_output[_output_key]
 
     @staticmethod
-    def compute(*inputs, _block=None):
-        raise NotImplementedError()
-        return {}
+    def compute(*inputs, _block: Optional[BaseBlock] = None,
+                _input_keys: Optional[List[str]] = None):
+        assert _block is not None
+        input_mapping = dict(zip(_input_keys, inputs))
+        # _block.fit(input_mapping)
+        return _block.transform({
+            k: v
+            for k, v in input_mapping.items()
+            if not isinstance(v, str) and _block.meta.inputs[k].stages.transform
+        })
 
 
 class DaskConverter:
@@ -33,7 +59,7 @@ class DaskConverter:
     """
 
     class Visitor(BaseVisitor):
-        def __init__(self, parent):
+        def __init__(self, parent: 'DaskConverter'):
             self.parent = parent
 
         @singledispatchmethod
@@ -50,23 +76,32 @@ class DaskConverter:
             block_mangle = self.parent._mangle_block(block)
 
             input_mangles = []
+            input_keys = []
             for input_key, input_slot in block.slots.inputs.items():
+                if not input_slot.meta.stages.transform:  # TODO: change depending on stage
+                    continue
                 in_mangle = self.parent._mangle_input_slot(input_slot)
                 input_mangles.append(in_mangle)
+                input_keys.append(input_key)
 
+            block_args_mangle = f'#args_{block_mangle}'
+            self.parent.dsk[block_args_mangle] = input_mangles
             self.parent.dsk[block_mangle] = (
-                dask.utils.apply, DaskOperators.compute,
-                tuple(sorted(input_mangles)),
+                dask.utils.apply, self.parent.operator_set.compute,
+                block_args_mangle,
                 {
-                    '_block': block
+                    '_block': block,
+                    '_input_keys': input_keys,
                 }
             )
 
             for out_key, output_slot in block.slots.outputs.items():
                 out_mangle = self.parent._mangle_output_slot(output_slot)
+                out_args_mangle = f'#args_{out_mangle}'
+                self.parent.dsk[out_args_mangle] = [block_mangle]
                 self.parent.dsk[out_mangle] = (
-                    dask.utils.apply, DaskOperators.extract,
-                    (block_mangle,),
+                    dask.utils.apply, self.parent.operator_set.extract,
+                    out_args_mangle,
                     {
                         '_output_key': out_key
                     }
@@ -79,13 +114,26 @@ class DaskConverter:
             connection.src.meta.name
             in_mangle = self.parent._mangle_input_slot(connection.dst)
             out_mangle = self.parent._mangle_output_slot(connection.src)
-            self.parent.dsk[in_mangle] = (DaskOperators.bypass, out_mangle)
+            self.parent.dsk[in_mangle] = (self.parent.operator_set.bypass, out_mangle)
 
         @visit.register
         def _(self, pipeline: BasePipeline):
-            pass
+            # add connections for inputs
+            for input_key, input_slot in pipeline.inputs.items():
+                self.parent.dsk[self.parent._mangle_input_slot(input_slot)] = (
+                    self.parent.operator_set.bypass,
+                    input_key
+                )
+            # add connections for outputs
+            for output_key, output_slot in pipeline.outputs.items():
+                self.parent.dsk[output_key] = (
+                    self.parent.operator_set.bypass,
+                    self.parent._mangle_output_slot(output_slot)
+                )
 
-    def __init__(self):
+    def __init__(self, operator_set: DaskOperatorSet = TransformDaskOperatorSet()):
+        # TODO: add stage
+        self.operator_set = operator_set
         self.dsk = dict()
         self.block_ids = dict()
         self.visitor = self.Visitor(self)
