@@ -1,30 +1,27 @@
-from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
-from .pipeline_getter import BasePipelineGetter
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
 from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
 from bosk.block.zoo.metrics import RocAucBlock
+from .base import PipelineTestBase
 from sklearn.datasets import make_moons
 from typing import Dict
 from bosk.data import Data
 
-class CasualManualForest(BasePipelineGetter):
-    def __init__(self) -> None:
-        super().__init__()
-        self.x, self.y = make_moons(noise=0.5, random_state=42)
+class CasualManualForestTest(PipelineTestBase):
+    random_state: int = 42
     
-    def get_pipeline(self) -> BasePipelineGetter:
+    def get_pipeline(self) -> BasePipeline:
         input_x = InputBlock()
         input_y = TargetInputBlock()
-        rf_1 = RFCBlock(random_state=42)
-        et_1 = ETCBlock(random_state=42)
+        rf_1 = RFCBlock(random_state=self.random_state)
+        et_1 = ETCBlock(random_state=self.random_state)
         concat_1 = ConcatBlock(['X_0', 'X_1'], axis=1)
-        rf_2 = RFCBlock(random_state=42)
-        et_2 = ETCBlock(random_state=42)
+        rf_2 = RFCBlock(random_state=self.random_state)
+        et_2 = ETCBlock(random_state=self.random_state)
         concat_2 = ConcatBlock(['X_0', 'X_1'], axis=1)
-        rf_3 = RFCBlock(random_state=42)
-        et_3 = ETCBlock(random_state=42)
+        rf_3 = RFCBlock(random_state=self.random_state)
+        et_3 = ETCBlock(random_state=self.random_state)
         stack_3 = StackBlock(['X_0', 'X_1'], axis=1)
         average_3 = AverageBlock(axis=1)
         argmax_3 = ArgmaxBlock(axis=1)
@@ -89,43 +86,15 @@ class CasualManualForest(BasePipelineGetter):
             }
         )
     
+    def make_dataset(self):
+        self.x, self.y = make_moons(noise=0.5, random_state=self.random_state)
+    
     def get_fit_data(self) -> Dict[str, Data]:
+        if not hasattr(self, 'x'):
+            self.make_dataset()
         return {'X': self.x, 'y': self.y}
     
     def get_transform_data(self) -> Dict[str, Data]:
+        if not hasattr(self, 'x'):
+            self.make_dataset()
         return {'X': self.x}
-
-class CasualFuncForest(BasePipelineGetter):
-    def __init__(self) -> None:
-        super().__init__()
-        self.x, self.y = make_moons(noise=0.5, random_state=42)
-    
-    def get_pipeline(self) -> BasePipelineGetter:
-        b = FunctionalPipelineBuilder()
-        X, y = b.Input()(), b.TargetInput()()
-        rf_1 = b.RFC(random_state=42)(X=X, y=y)
-        et_1 = b.ETC(random_state=42)(X=X, y=y)
-        concat_1 = b.Concat(['X', 'rf_1', 'et_1'])(X=X, rf_1=rf_1, et_1=et_1)
-        rf_2 = b.RFC(random_state=42)(X=concat_1, y=y)
-        et_2 = b.ETC(random_state=42)(X=concat_1, y=y)
-        concat_2 = b.Concat(['X', 'rf_2', 'et_2'])(X=X, rf_2=rf_2, et_2=et_2)
-        rf_3 = b.RFC(random_state=42)(X=concat_2, y=y)
-        et_3 = b.ETC(random_state=42)(X=concat_2, y=y)
-        stack_3 = b.Stack(['rf_3', 'et_3'], axis=1)(rf_3=rf_3, et_3=et_3)
-        average_3 = b.Average(axis=1)(X=stack_3)
-        argmax_3 = b.Argmax(axis=1)(X=average_3)
-
-        rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
-        roc_auc = b.RocAuc()(gt_y=y, pred_probas=average_3)
-        return b.build(
-            {'X': X, 'y': y},
-            {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 
-            'roc-auc': roc_auc, 'labels': argmax_3}
-            )
-        
-    def get_fit_data(self) -> Dict[str, Data]:
-        return {'X': self.x, 'y': self.y}
-    
-    def get_transform_data(self) -> Dict[str, Data]:
-        return {'X': self.x}
-
