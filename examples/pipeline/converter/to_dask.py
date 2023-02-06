@@ -10,7 +10,7 @@ from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 
 from bosk.executor.recursive import RecursiveExecutor
-from bosk.pipeline.converter.dask import DaskConverter
+from bosk.pipeline.converter.dask import DaskConverter, FitDaskOperatorSet
 
 from sklearn.metrics import roc_auc_score
 from bosk.executor.descriptor import HandlingDescriptor
@@ -76,36 +76,46 @@ class FnEncoder(json.JSONEncoder):
 
 def main():
     fit_executor, transform_executor = make_deep_forest_functional(RecursiveExecutor)
-    converter = DaskConverter()
-    dsk = converter(fit_executor.pipeline)
-    print("Dask Graph:")
-    print(json.dumps(dsk, cls=FnEncoder, indent=4))
 
     # all_X, all_y = make_moons(noise=0.5, random_state=42)
     all_X, all_y = load_breast_cancer(return_X_y=True)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    fit_result = fit_executor({'X': train_X, 'y': train_y})
+
+    train_converter = DaskConverter(stage=Stage.FIT, operator_set=FitDaskOperatorSet())
+    dsk_train = train_converter(fit_executor.pipeline)
+    dsk_train['X'] = train_X
+    dsk_train['y'] = train_y
+    outputs = ['probas']
+    dsk_train_culled, dependencies = dask_cull(dsk_train, outputs)
+    train_outputs = dask_get(dsk_train_culled, outputs)
+    fit_result = dict(zip(outputs, train_outputs))
+
+    # fit_result = fit_executor({'X': train_X, 'y': train_y})
     print("  Fit successful")
     train_result = transform_executor({'X': train_X})
     print("  Fit probas == probas on train:", np.allclose(fit_result['probas'], train_result['probas']))
     test_result = transform_executor({'X': test_X})
     print("  Train ROC-AUC:", roc_auc_score(train_y, train_result['probas'][:, 1]))
-    print(
-        "  Train ROC-AUC calculated by fit_executor:",
-        fit_result['roc-auc']
-    )
-    print(
-        "  Train ROC-AUC for RF_1:",
-        fit_result['rf_1_roc-auc']
-    )
+    # print(
+    #     "  Train ROC-AUC calculated by fit_executor:",
+    #     fit_result['roc-auc']
+    # )
+    # print(
+    #     "  Train ROC-AUC for RF_1:",
+    #     fit_result['rf_1_roc-auc']
+    # )
     print("  Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'][:, 1]))
 
     # execute with Dask
 
+    converter = DaskConverter(Stage.TRANSFORM)
+    dsk = converter(fit_executor.pipeline)
+    # print("Dask Graph:")
+    # print(json.dumps(dsk, cls=FnEncoder, indent=4))
     dsk['X'] = test_X
     outputs = ['probas']
-    dsk1, dependencies = dask_cull(dsk, outputs)
-    test_outputs = dask_get(dsk1, outputs)
+    dsk_culled, dependencies = dask_cull(dsk, outputs)
+    test_outputs = dask_get(dsk_culled, outputs)
     print("  Test ROC-AUC (Dask):", roc_auc_score(test_y, test_outputs[0][:, 1]))
 
 

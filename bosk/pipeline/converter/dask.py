@@ -1,6 +1,8 @@
 from functools import singledispatchmethod
 from typing import Any, Callable, Dict, List, Optional
 from abc import ABC, abstractmethod
+
+from bosk.stages import Stage
 from ...visitor.base import BaseVisitor
 from ..base import BasePipeline
 from ...block.base import BaseBlock, BlockInputData
@@ -41,12 +43,41 @@ class TransformDaskOperatorSet(DaskOperatorSet):
                 _input_keys: Optional[List[str]] = None):
         assert _block is not None
         input_mapping = dict(zip(_input_keys, inputs))
-        # _block.fit(input_mapping)
         return _block.transform({
             k: v
             for k, v in input_mapping.items()
             if not isinstance(v, str) and _block.meta.inputs[k].stages.transform
         })
+
+
+class FitDaskOperatorSet(DaskOperatorSet):
+    @staticmethod
+    def bypass(value: Data) -> Data:
+        return value
+
+    @staticmethod
+    def extract(block_output: Dict[str, Data], _output_key: str = None):
+        return block_output[_output_key]
+
+    @staticmethod
+    def compute(*inputs, _block: Optional[BaseBlock] = None,
+                _input_keys: Optional[List[str]] = None):
+        assert _block is not None
+        input_mapping = dict(zip(_input_keys, inputs))
+        fit_args = {
+            k: v
+            for k, v in input_mapping.items()
+            if not isinstance(v, str) and _block.meta.inputs[k].stages.fit
+        }
+        _block.fit(fit_args)
+        transform_args = {
+            k: v
+            for k, v in input_mapping.items()
+            if not isinstance(v, str) and (
+                _block.meta.inputs[k].stages.transform or _block.meta.inputs[k].stages.transform_on_fit
+            )
+        }
+        return _block.transform(transform_args)
 
 
 class DaskConverter:
@@ -78,8 +109,16 @@ class DaskConverter:
             input_mangles = []
             input_keys = []
             for input_key, input_slot in block.slots.inputs.items():
-                if not input_slot.meta.stages.transform:  # TODO: change depending on stage
-                    continue
+                if self.parent.stage == Stage.TRANSFORM:
+                    if not input_slot.meta.stages.transform:
+                        continue
+                elif self.parent.stage == Stage.FIT:
+                    if not input_slot.meta.stages.transform and not input_slot.meta.stages.fit \
+                        and input_slot.meta.stages.transform_on_fit:
+                        continue
+                else:
+                    raise NotImplementedError('Unhandled stage')
+
                 in_mangle = self.parent._mangle_input_slot(input_slot)
                 input_mangles.append(in_mangle)
                 input_keys.append(input_key)
@@ -131,8 +170,8 @@ class DaskConverter:
                     self.parent._mangle_output_slot(output_slot)
                 )
 
-    def __init__(self, operator_set: DaskOperatorSet = TransformDaskOperatorSet()):
-        # TODO: add stage
+    def __init__(self, stage: Stage, operator_set: DaskOperatorSet = TransformDaskOperatorSet()):
+        self.stage = stage
         self.operator_set = operator_set
         self.dsk = dict()
         self.block_ids = dict()
