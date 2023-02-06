@@ -11,11 +11,11 @@ class RocAucBlock(BaseBlock):
         inputs=[
             InputSlotMeta(
                 name='pred_probas',
-                stages=Stages(transform=False, transform_on_fit=True),
+                stages=Stages(transform=True, transform_on_fit=True),
             ),
             InputSlotMeta(
                 name='gt_y',
-                stages=Stages(transform=False, transform_on_fit=True),
+                stages=Stages(transform=True, transform_on_fit=True),
             )
         ],
         outputs=[

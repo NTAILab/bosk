@@ -2,11 +2,11 @@ from bosk.block import BaseBlock, BlockInputData, TransformOutputData
 from bosk.stages import Stages
 from bosk.block import BlockMeta
 from bosk.block.slot import InputSlotMeta, OutputSlotMeta
-from bosk.block.meta import make_simple_meta
+from bosk.block.meta import BlockExecutionProperties, make_simple_meta
 
 
 class InputBlock(BaseBlock):
-    meta = make_simple_meta(['X'], ['X'])
+    meta = make_simple_meta(['X'], ['X'], execution_props=BlockExecutionProperties(plain=True))
 
     def __init__(self):
         super().__init__()
@@ -32,7 +32,8 @@ class TargetInputBlock(BaseBlock):
             OutputSlotMeta(
                 name=TARGET_NAME,
             )
-        ]
+        ],
+        execution_props=BlockExecutionProperties(plain=True),
     )
 
     def __init__(self):
