@@ -5,7 +5,7 @@ from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
 from bosk.block.zoo.metrics import RocAucBlock
 from .base import PipelineTestBase
 from sklearn.datasets import make_moons
-from typing import Dict
+from typing import Dict, Optional, Sequence, Tuple
 from bosk.data import Data
 
 class CasualManualForestTest(PipelineTestBase):
@@ -94,7 +94,13 @@ class CasualManualForestTest(PipelineTestBase):
             self.make_dataset()
         return {'X': self.x, 'y': self.y}
     
+    def get_fit_in_out(self) -> Tuple[Optional[Sequence[str]], Optional[Sequence[str]]]:
+        return ['X', 'y'], ['probas', 'rf_1_roc-auc', 'roc-auc']
+
     def get_transform_data(self) -> Dict[str, Data]:
         if not hasattr(self, 'x'):
             self.make_dataset()
         return {'X': self.x}
+
+    def get_transform_in_out(self) -> Tuple[Optional[Sequence[str]], Optional[Sequence[str]]]:
+        return ['X'], ['probas', 'labels']
