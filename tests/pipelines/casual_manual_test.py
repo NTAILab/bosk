@@ -8,9 +8,10 @@ from sklearn.datasets import make_moons
 from typing import Dict, Optional, Sequence, Tuple
 from bosk.data import Data
 
+
 class CasualManualForestTest(PipelineTestBase):
     random_state: int = 42
-    
+
     def get_pipeline(self) -> BasePipeline:
         input_x = InputBlock()
         input_y = TargetInputBlock()
@@ -85,15 +86,15 @@ class CasualManualForestTest(PipelineTestBase):
                 'labels': argmax_3.slots.outputs['output']
             }
         )
-    
+
     def make_dataset(self):
         self.x, self.y = make_moons(noise=0.5, random_state=self.random_state)
-    
+
     def get_fit_data(self) -> Dict[str, Data]:
         if not hasattr(self, 'x'):
             self.make_dataset()
         return {'X': self.x, 'y': self.y}
-    
+
     def get_fit_in_out(self) -> Tuple[Optional[Sequence[str]], Optional[Sequence[str]]]:
         return ['X', 'y'], ['probas', 'rf_1_roc-auc', 'roc-auc']
 

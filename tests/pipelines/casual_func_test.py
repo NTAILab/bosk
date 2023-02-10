@@ -5,9 +5,10 @@ from .base import PipelineTestBase
 from sklearn.datasets import make_moons
 from typing import Dict, Optional, Sequence, Tuple
 
+
 class CasualFuncForestTest(PipelineTestBase):
     random_state: int = 42
-    
+
     def get_pipeline(self) -> BasePipeline:
         b = FunctionalPipelineBuilder()
         X, y = b.Input()(), b.TargetInput()()
@@ -27,13 +28,13 @@ class CasualFuncForestTest(PipelineTestBase):
         roc_auc = b.RocAuc()(gt_y=y, pred_probas=average_3)
         return b.build(
             {'X': X, 'y': y},
-            {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 
-            'roc-auc': roc_auc, 'labels': argmax_3}
-            )
-        
+            {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc,
+             'roc-auc': roc_auc, 'labels': argmax_3}
+        )
+
     def make_dataset(self):
         self.x, self.y = make_moons(noise=0.5, random_state=self.random_state)
-    
+
     def get_fit_data(self) -> Dict[str, Data]:
         if not hasattr(self, 'x'):
             self.make_dataset()
@@ -41,11 +42,11 @@ class CasualFuncForestTest(PipelineTestBase):
 
     def get_fit_in_out(self) -> Tuple[Optional[Sequence[str]], Optional[Sequence[str]]]:
         return ['X', 'y'], ['probas', 'rf_1_roc-auc', 'roc-auc']
-    
+
     def get_transform_data(self) -> Dict[str, Data]:
         if not hasattr(self, 'x'):
             self.make_dataset()
         return {'X': self.x}
-    
+
     def get_transform_in_out(self) -> Tuple[Optional[Sequence[str]], Optional[Sequence[str]]]:
         return ['X'], ['probas', 'labels']
