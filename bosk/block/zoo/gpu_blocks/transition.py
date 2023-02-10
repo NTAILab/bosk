@@ -1,22 +1,25 @@
-from bosk.block import BaseBlock, TransformOutputData
-from bosk.block.meta import make_simple_meta
-from bosk.data import Data, CPUData, GPUData
+from typing import Union
+
+from bosk.block import BaseBlock, TransformOutputData, BlockInputData
+from bosk.block.meta import make_simple_meta, BlockExecutionProperties
 
 
 class MoveToBlock(BaseBlock):
-    meta = make_simple_meta(['X'], ['X'])
+    meta = make_simple_meta(['X'], ['X'], execution_props=BlockExecutionProperties(plain=True))
 
-    def __init__(self, device: str):
+    def __init__(self, to: Union[str, None] = None):
         super().__init__()
-        assert device == "cpu" or device == "cuda"
-        self._device = device
+        assert to == "CPU" or to == "GPU"
+        self.to = to
 
-    def fit(self, inputs: Data) -> 'MoveToBlock':
+    def fit(self, inputs: BlockInputData) -> 'MoveToBlock':
         return self
 
-    def transform(self, inputs: Data) -> TransformOutputData:
-        if isinstance(inputs['X'], CPUData) and self._device == 'cuda':
-            return {'X': GPUData(inputs['X'])}
-        elif isinstance(inputs['X'], GPUData) and self._device == 'cpu':
-            return {'X': CPUData(inputs['X'])}
-        return {'X': inputs['X']}
+    def transform(self, inputs: BlockInputData) -> TransformOutputData:
+        input_data = inputs['X']
+        if self.to == 'CPU':
+            return {'X': input_data.to_cpu()}
+        elif self.to == 'GPU':
+            return {'X': input_data.to_gpu()}
+        else:
+            return inputs
