@@ -3,6 +3,7 @@ from typing import List, Dict
 from .connection import Connection
 from ..block.slot import BlockInputSlot, BlockOutputSlot
 from ..block.base import BaseBlock
+from ..visitor.base import BaseVisitor
 
 
 @dataclass(frozen=True)
@@ -23,3 +24,18 @@ class BasePipeline:
     connections: List[Connection]
     inputs: Dict[str, BlockInputSlot]
     outputs: Dict[str, BlockOutputSlot]
+
+    def accept(self, visitor: BaseVisitor):
+        """Accept the visitor.
+
+        Args:
+            visitor: The visitor which can visit pipelines, nodes and connections.
+
+        """
+        for node in self.nodes:
+            node.accept(visitor)
+
+        for conn in self.connections:
+            conn.accept(visitor)
+
+        visitor.visit(self)
