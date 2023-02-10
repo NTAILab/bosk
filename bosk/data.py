@@ -22,8 +22,7 @@ class BaseData:
         """
         context = context or cl.create_some_context()
         queue = queue or cl.CommandQueue(context)
-        buf = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=self.data)
-        return GPUData(self.data, context, queue, buf)
+        return GPUData(self.data, context, queue)
 
 
 class CPUData(BaseData):
@@ -32,8 +31,12 @@ class CPUData(BaseData):
 
 
 class GPUData(BaseData):
-    def __init__(self, data: np.ndarray, context: cl.Context, queue: cl.CommandQueue, buf: cl.Buffer):
+    def __init__(self, data: Any, context: Optional[cl.Context] = None,
+                 queue: Optional[cl.CommandQueue] = None):
         super().__init__(data)
+        context = context or cl.create_some_context()
+        queue = queue or cl.CommandQueue(context)
+        buf = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=self.data)
         self.context = context
         self.queue = queue
         self.buf = buf
