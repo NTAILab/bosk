@@ -1,11 +1,31 @@
 """Joblib-based serialization.
 """
-from .base import BaseSerializer, BasePipeline
+from .base import BaseBlockSerializer, BasePipelineSerializer, BasePipeline
+from ...block.base import BaseBlock
 from joblib import load as joblib_load, dump as joblib_dump
 from typing import Any, Optional
 
 
-class JoblibSerializer(BaseSerializer):
+class JoblibBlockSerializer(BaseBlockSerializer):
+    def __init__(self, compress: int = 0, protocol: Optional[Any] = None):
+        self.compress = compress
+        self.protocol = protocol
+
+    def dump(self, block: BaseBlock, out_file):
+        joblib_dump(
+            block,
+            out_file,
+            compress=self.compress,
+            protocol=self.protocol
+        )
+
+    def load(self, in_file) -> BaseBlock:
+        block = joblib_load(in_file)
+        assert isinstance(block, BaseBlock), "Loaded object should be a block"
+        return block
+
+
+class JoblibPipelineSerializer(BasePipelineSerializer):
     def __init__(self, compress: int = 0, protocol: Optional[Any] = None):
         self.compress = compress
         self.protocol = protocol

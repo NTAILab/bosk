@@ -11,9 +11,12 @@ from bosk.executor.recursive import RecursiveExecutor
 
 from sklearn.metrics import roc_auc_score
 from bosk.executor.descriptor import HandlingDescriptor
-from bosk.pipeline.serializer.skops import SkopsSerializer
+from bosk.pipeline.serializer.skops import SkopsBlockSerializer
+from bosk.pipeline.serializer.zip import ZipPipelineSerializer
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.stages import Stage
+from bosk.pipeline.connection import Connection
+from bosk.block.base import BaseBlock
 
 
 def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
@@ -69,8 +72,9 @@ def main():
     fit_result = fit_executor({'X': train_X, 'y': train_y})
     print("  Fit successful")
 
-    serializer = SkopsSerializer()
-    transform_pipeline_file = '_test.gz'
+    block_serializer = SkopsBlockSerializer()
+    serializer = ZipPipelineSerializer(block_serializer)
+    transform_pipeline_file = '_test.zip'
     serializer.dump(transform_executor.pipeline, transform_pipeline_file)
     transform_pipeline = serializer.load(transform_pipeline_file)
     transform_executor = RecursiveExecutor(
