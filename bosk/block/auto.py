@@ -54,6 +54,8 @@ def auto_block(_implicit_cls=None, execution_props: Optional[BlockExecutionPrope
             def __init__(self, *args, **kwargs):
                 super().__init__()
                 self.__instance = cls(*args, **kwargs)
+                self.__args = args
+                self.__kwargs = kwargs
 
             def __prepare_kwargs(self, inputs: BlockInputData) -> Mapping[str, Data]:
                 kwargs = {
@@ -70,6 +72,33 @@ def auto_block(_implicit_cls=None, execution_props: Optional[BlockExecutionPrope
             def transform(self, inputs: BlockInputData) -> TransformOutputData:
                 transformed = self.__instance.transform(**self.__prepare_kwargs(inputs))
                 return {'output': transformed}
+
+            def __getstate__(self):
+                """Get state. Required for serialization.
+
+                Returns:
+                    State dictionary.
+
+                """
+                return {
+                    '__instance': self.__instance.__getstate__(),
+                    '__args': self.__args,
+                    '__kwargs': self.__kwargs,
+                    'slots': self.slots,
+                }
+
+            def __setstate__(self, state: dict):
+                """Set state. Required for deserialization.
+
+                Args:
+                    state: State dictionary.
+
+                """
+                self.__args = state['__args']
+                self.__kwargs = state['__kwargs']
+                self.__instance = cls(*self.__args, **self.__kwargs)
+                self.__instance.__setstate__(state['__instance'])
+                self.slots = state['slots']
 
         return AutoBlock
 
