@@ -9,7 +9,7 @@ from ..utility import fit_pipeline
 import logging
 
 
-class PipelineTestBase(ABC):
+class BasePipelineTest(ABC):
 
     def fit_test(self):
         _, fit_output = fit_pipeline(self.get_pipeline(), self.get_fit_data(),

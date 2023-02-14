@@ -3,13 +3,13 @@ from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
 from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
 from bosk.block.zoo.metrics import RocAucBlock
-from .base import PipelineTestBase
+from .base import BasePipelineTest as BPT
 from sklearn.datasets import make_moons
 from typing import Dict, Optional, Sequence, Tuple
 from bosk.data import Data
 
 
-class CasualManualForestTest(PipelineTestBase):
+class CasualManualForestTest(BPT):
     random_state: int = 42
 
     def get_pipeline(self) -> BasePipeline:

@@ -6,7 +6,7 @@ from bosk.executor.descriptor import HandlingDescriptor
 from bosk.stages import Stage
 from ..utility import get_all_subclasses
 import logging
-from ..pipelines import CasualManualForestTest
+from ..pipelines import CasualManualForest
 from os.path import isfile
 from typing import Set, List, Dict
 from bosk.block.base import BaseBlock
@@ -177,7 +177,7 @@ class FakeNodesTopSortChecker(SplittedTopSortChecker):
 class TopologicalExecTest():
 
     def get_pw_to_paint(self):
-        return CasualManualForestTest()
+        return CasualManualForest()
 
     def painter_test(self):
         filename = 'topological_painter'

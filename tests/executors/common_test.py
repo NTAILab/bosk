@@ -3,15 +3,15 @@ from ..pipelines import *
 from bosk.executor.base import BaseExecutor
 from bosk.executor.descriptor import HandlingDescriptor
 from bosk.stages import Stage
-from ..pipelines.base import PipelineTestBase
+from ..pipelines.base import BasePipelineTest as BPT
 from ..utility import fit_pipeline
 from collections import defaultdict
 import numpy as np
 import logging
 
 
-def get_pipeline_wrapper() -> PipelineTestBase:
-    return CasualManualForestTest()
+def get_pipeline_wrapper() -> BPT:
+    return CasualManualForest()
 
 
 def fit_transform_test():
@@ -45,7 +45,7 @@ def fit_transform_test():
 def cross_test():
     tol = 1e-8
     executors = BaseExecutor.__subclasses__()
-    pip_wrappers = PipelineTestBase.__subclasses__()
+    pip_wrappers = BPT.__subclasses__()
     logging.info('Following executors were found: %r', [e.__name__ for e in executors])
     logging.info('Following pipeline wrappers were found: %r', [p.__name__ for p in pip_wrappers])
 

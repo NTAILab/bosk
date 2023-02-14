@@ -1,12 +1,12 @@
 from bosk.data import Data
 from bosk.pipeline.base import BasePipeline
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
-from .base import PipelineTestBase
+from .base import BasePipelineTest as BPT
 from sklearn.datasets import make_moons
 from typing import Dict, Optional, Sequence, Tuple
 
 
-class CasualFuncForestTest(PipelineTestBase):
+class CasualFuncForestTest(BPT):
     random_state: int = 42
 
     def get_pipeline(self) -> BasePipeline:
