@@ -4,19 +4,21 @@ from bosk.pipeline.base import BasePipeline, Connection
 from bosk.painter.topological import TopologicalPainter
 from bosk.executor.descriptor import HandlingDescriptor
 from bosk.stages import Stage
-from ..pipelines.base import PipelineTestBase
-from ..utility import fit_pipeline
-from collections import defaultdict
-import numpy as np
+from ..utility import get_all_subclasses
 import logging
 from ..pipelines import CasualManualForestTest
 from os.path import isfile
-from typing import Set, List, Tuple, Dict
+from typing import Set, List, Dict
 from bosk.block.base import BaseBlock
-from bosk.block.zoo.data_conversion import AverageBlock
+from bosk.block.zoo.data_conversion import AverageBlock, ArgmaxBlock, ConcatBlock
 
 
 class BaseTopSortChecker(ABC):
+    def _connect_chain(self, chain: List[BaseBlock],
+                       out_name: str = 'output', in_name: str = 'X') -> List[Connection]:
+        return [Connection(chain[i - 1].slots.outputs[out_name],
+                           chain[i].slots.inputs[in_name]) for i in range(1, len(chain))]
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -32,9 +34,9 @@ class BaseTopSortChecker(ABC):
         ...
 
     @abstractmethod
-    def get_order_requirements(self) -> List[Tuple[BaseBlock]]:
+    def get_order_requirements(self) -> List[List[BaseBlock]]:
         """Get list of ordered chains, that must appear in the topological order.
-        For example, chain (Block1, Block2, Block3) means that the topological 
+        For example, chain [Block1, Block2, Block3] means that the topological 
         order must contain Block1 < Block2 < Block3 subsequence."""
 
     def check_blocks_presence(self, top_order: List[BaseBlock]) -> bool:
@@ -68,8 +70,7 @@ class StraightTopSortChecker(BaseTopSortChecker):
     def __init__(self) -> None:
         super().__init__()
         nodes = [AverageBlock() for _ in range(5)]
-        conns = [Connection(nodes[i - 1].slots.outputs['output'],
-                            nodes[i].slots.inputs['X']) for i in range(1, 5)]
+        conns = self._connect_chain(nodes)
         self.pipeline = BasePipeline(nodes, conns,
                                      {'X': nodes[0].slots.inputs['X']},
                                      {'X': nodes[-1].slots.outputs['output']})
@@ -80,8 +81,97 @@ class StraightTopSortChecker(BaseTopSortChecker):
     def get_pipeline(self) -> BasePipeline:
         return self.pipeline
 
-    def get_order_requirements(self) -> List[Tuple[BaseBlock]]:
-        return [tuple(self.pipeline.nodes)]
+    def get_order_requirements(self) -> List[List[BaseBlock]]:
+        return [self.pipeline.nodes]
+
+
+class SplittedTopSortChecker(BaseTopSortChecker):
+    def __init__(self) -> None:
+        super().__init__()
+        branch_1 = [AverageBlock() for _ in range(3)]
+        branch_2 = [ArgmaxBlock() for _ in range(5)]
+        branch_3 = [AverageBlock(), ArgmaxBlock()]
+        head = [ArgmaxBlock(), AverageBlock(), ArgmaxBlock()]
+        nodes = branch_1 + branch_2 + branch_3 + head
+        br_1_conns = self._connect_chain(branch_1)
+        br_2_conns = self._connect_chain(branch_2)
+        br_3_conns = self._connect_chain(branch_3)
+        head_conns = self._connect_chain(head)
+        split_conns = [Connection(head[-1].slots.outputs['output'], branch_1[0].slots.inputs['X']),
+                       Connection(head[-1].slots.outputs['output'], branch_2[0].slots.inputs['X']),
+                       Connection(head[-1].slots.outputs['output'], branch_3[0].slots.inputs['X'])]
+        conns = br_1_conns + br_2_conns + br_3_conns + head_conns + split_conns
+        self.pipeline = BasePipeline(nodes, conns,
+                                     {'X': head[0].slots.inputs['X']},
+                                     {'branch_1': branch_1[-1].slots.outputs['output'],
+                                         'branch_2': branch_2[-1].slots.outputs['output'],
+                                         'branch_3': branch_3[-1].slots.outputs['output']})
+        self.head = head
+        self.branch_1, self.branch_2, self.branch_3 = branch_1, branch_2, branch_3
+
+    def get_sufficient_blocks(self) -> Set[BaseBlock]:
+        return set(self.pipeline.nodes)
+
+    def get_pipeline(self) -> BasePipeline:
+        return self.pipeline
+
+    def get_order_requirements(self) -> List[List[BaseBlock]]:
+        chain_1 = self.head + self.branch_1
+        chain_2 = self.head + self.branch_2
+        chain_3 = self.head + self.branch_3
+        return [chain_1, chain_2, chain_3]
+
+
+class MergedTopSortChecker(BaseTopSortChecker):
+    def __init__(self) -> None:
+        super().__init__()
+        branch_1 = [AverageBlock() for _ in range(5)]
+        branch_2 = [ArgmaxBlock() for _ in range(3)]
+        merged_chain = [ConcatBlock(['X_1', 'X_2'])] + [AverageBlock(), ArgmaxBlock()]
+        nodes = branch_1 + merged_chain + branch_2
+        br_1_con = self._connect_chain(branch_1)
+        br_2_con = self._connect_chain(branch_2)
+        merged_chain_con = self._connect_chain(merged_chain)
+        merge_con = [Connection(branch_1[-1].slots.outputs['output'], merged_chain[0].slots.inputs['X_1']),
+                     Connection(branch_2[-1].slots.outputs['output'], merged_chain[0].slots.inputs['X_2'])]
+        conns = merge_con + br_1_con + merged_chain_con + br_2_con
+        self.pipeline = BasePipeline(nodes, conns,
+                                     {'branch_1': branch_1[0].slots.inputs['X'],
+                                         'branch_2': branch_2[0].slots.inputs['X']},
+                                     {'output': merged_chain[-1].slots.outputs['output']})
+        self.branch_1, self.branch_2 = branch_1, branch_2
+        self.merged_chain = merged_chain
+
+    def get_sufficient_blocks(self) -> Set[BaseBlock]:
+        return set(self.pipeline.nodes)
+
+    def get_pipeline(self) -> BasePipeline:
+        return self.pipeline
+
+    def get_order_requirements(self) -> List[List[BaseBlock]]:
+        chain_1 = self.branch_1 + self.merged_chain
+        chain_2 = self.branch_2 + self.merged_chain
+        return [chain_1, chain_2]
+
+
+class FakeNodesTopSortChecker(SplittedTopSortChecker):
+    def __init__(self) -> None:
+        super().__init__()
+        self.pipeline = BasePipeline(
+            self.pipeline.nodes, self.pipeline.connections,
+            {'X': self.head[-1].slots.inputs['X']},
+            {'branch_1': self.branch_1[-1].slots.outputs['output'],
+             'branch_2': self.branch_2[-1].slots.outputs['output'],
+             'branch_3': self.branch_3[-1].slots.outputs['output']}
+        )
+
+    def get_sufficient_blocks(self) -> Set[BaseBlock]:
+        return set([self.head[-1]] + self.branch_1 + self.branch_2 + self.branch_3)
+
+    def get_order_requirements(self) -> List[List[BaseBlock]]:
+        return [[self.head[-1]] + self.branch_1,
+                [self.head[-1]] + self.branch_2,
+                [self.head[-1]] + self.branch_3]
 
 
 class TopologicalExecTest():
@@ -112,7 +202,7 @@ class TopologicalExecTest():
         logging.info('Rendered the transform graph, please see and check "%s"', tf_filename)
 
     def topological_sort_test(self):
-        tests_cls = BaseTopSortChecker.__subclasses__()
+        tests_cls = get_all_subclasses(BaseTopSortChecker)
         logging.info('Following classes were found for the test: %r',
                      [t.__name__ for t in tests_cls])
         for test_cls in tests_cls:
