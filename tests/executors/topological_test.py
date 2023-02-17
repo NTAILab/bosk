@@ -4,7 +4,7 @@ from bosk.pipeline.base import BasePipeline, Connection
 from bosk.painter.topological import TopologicalPainter
 from bosk.executor.descriptor import HandlingDescriptor
 from bosk.stages import Stage
-from ..utility import get_all_subclasses
+from ..utility import get_all_subclasses, connect_chain
 import logging
 from ..pipelines import CasualManualForest
 from os.path import isfile
@@ -14,11 +14,6 @@ from bosk.block.zoo.data_conversion import AverageBlock, ArgmaxBlock, ConcatBloc
 
 
 class BaseTopSortChecker(ABC):
-    def _connect_chain(self, chain: List[BaseBlock],
-                       out_name: str = 'output', in_name: str = 'X') -> List[Connection]:
-        return [Connection(chain[i - 1].slots.outputs[out_name],
-                           chain[i].slots.inputs[in_name]) for i in range(1, len(chain))]
-
     def __init__(self) -> None:
         super().__init__()
 
@@ -70,7 +65,7 @@ class StraightTopSortChecker(BaseTopSortChecker):
     def __init__(self) -> None:
         super().__init__()
         nodes = [AverageBlock() for _ in range(5)]
-        conns = self._connect_chain(nodes)
+        conns = connect_chain(nodes)
         self.pipeline = BasePipeline(nodes, conns,
                                      {'X': nodes[0].slots.inputs['X']},
                                      {'X': nodes[-1].slots.outputs['output']})
@@ -93,10 +88,10 @@ class SplittedTopSortChecker(BaseTopSortChecker):
         branch_3 = [AverageBlock(), ArgmaxBlock()]
         head = [ArgmaxBlock(), AverageBlock(), ArgmaxBlock()]
         nodes = branch_1 + branch_2 + branch_3 + head
-        br_1_conns = self._connect_chain(branch_1)
-        br_2_conns = self._connect_chain(branch_2)
-        br_3_conns = self._connect_chain(branch_3)
-        head_conns = self._connect_chain(head)
+        br_1_conns = connect_chain(branch_1)
+        br_2_conns = connect_chain(branch_2)
+        br_3_conns = connect_chain(branch_3)
+        head_conns = connect_chain(head)
         split_conns = [Connection(head[-1].slots.outputs['output'], branch_1[0].slots.inputs['X']),
                        Connection(head[-1].slots.outputs['output'], branch_2[0].slots.inputs['X']),
                        Connection(head[-1].slots.outputs['output'], branch_3[0].slots.inputs['X'])]
@@ -129,9 +124,9 @@ class MergedTopSortChecker(BaseTopSortChecker):
         branch_2 = [ArgmaxBlock() for _ in range(3)]
         merged_chain = [ConcatBlock(['X_1', 'X_2'])] + [AverageBlock(), ArgmaxBlock()]
         nodes = branch_1 + merged_chain + branch_2
-        br_1_con = self._connect_chain(branch_1)
-        br_2_con = self._connect_chain(branch_2)
-        merged_chain_con = self._connect_chain(merged_chain)
+        br_1_con = connect_chain(branch_1)
+        br_2_con = connect_chain(branch_2)
+        merged_chain_con = connect_chain(merged_chain)
         merge_con = [Connection(branch_1[-1].slots.outputs['output'], merged_chain[0].slots.inputs['X_1']),
                      Connection(branch_2[-1].slots.outputs['output'], merged_chain[0].slots.inputs['X_2'])]
         conns = merge_con + br_1_con + merged_chain_con + br_2_con
@@ -174,6 +169,34 @@ class FakeNodesTopSortChecker(SplittedTopSortChecker):
                 [self.head[-1]] + self.branch_3]
 
 
+class DFSChecker():
+    def __init__(self) -> None:
+        branch_1 = [AverageBlock() for _ in range(3)]
+        branch_2 = [ArgmaxBlock() for _ in range(5)]
+        branch_3 = [AverageBlock(), ArgmaxBlock()]
+        head = [ArgmaxBlock(), AverageBlock(), ArgmaxBlock()]
+        nodes = branch_1 + branch_2 + branch_3 + head
+        br_1_conns = connect_chain(branch_1)
+        br_2_conns = connect_chain(branch_2)
+        br_3_conns = connect_chain(branch_3)
+        head_conns = connect_chain(head)
+        split_conns = [Connection(head[-1].slots.outputs['output'], branch_1[0].slots.inputs['X']),
+                       Connection(head[-1].slots.outputs['output'], branch_2[0].slots.inputs['X']),
+                       Connection(head[-1].slots.outputs['output'], branch_3[0].slots.inputs['X'])]
+        conns = br_1_conns + br_2_conns + br_3_conns + head_conns + split_conns
+        self.pipeline = BasePipeline(nodes, conns,
+                                     {'X': head[-1].slots.inputs['X']},
+                                     {'branch_2': branch_2[-3].slots.outputs['output']})
+        self.head = head
+        self.branch_2 = branch_2
+
+    def get_pipeline(self):
+        return self.pipeline
+
+    def get_sufficient_blocks(self):
+        return set([self.head[-1]] + self.branch_2[:-2])
+
+
 class TopologicalExecTest():
 
     def get_pw_to_paint(self):
@@ -213,3 +236,15 @@ class TopologicalExecTest():
                                            HandlingDescriptor.from_classes(test.get_stage()))
             top_sort_order = executor._topological_sort(executor._get_forward_aj_list(), inp_blocks)
             test.check_topological_sort(top_sort_order)
+
+    def dfs_test(self):
+        checker = DFSChecker()
+        pipeline = checker.get_pipeline()
+        executor = TopologicalExecutor(pipeline,
+                                       HandlingDescriptor.from_classes(Stage.FIT))
+        input_blocks = [slot.parent_block for slot in pipeline.inputs.values()]
+        output_blocks = [slot.parent_block for slot in pipeline.outputs.values()]
+        forward_pass = executor._dfs(executor._get_forward_aj_list(), input_blocks)
+        backward_pass = executor._dfs(executor._get_backward_aj_list(), output_blocks)
+        assert forward_pass & backward_pass == checker.get_sufficient_blocks(), \
+            "Pipeline optimization with the dfs produced a wrong blocks' set"
