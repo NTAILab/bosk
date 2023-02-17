@@ -5,6 +5,7 @@ from bosk.painter.topological import TopologicalPainter
 from bosk.executor.descriptor import HandlingDescriptor
 from bosk.stages import Stage
 from ..utility import get_all_subclasses, connect_chain
+from ..painters import PIC_SAVE_DIR, PIC_SAVE_FMT
 import logging
 from ..pipelines import CasualManualForest
 from os.path import isfile
@@ -204,24 +205,25 @@ class TopologicalExecTest():
 
     def painter_test(self):
         filename = 'topological_painter'
-        dirname = 'tests/pictures'
+        dirname = PIC_SAVE_DIR
         painter = TopologicalPainter()
         pip_wrapper = self.get_pw_to_paint()
         pipeline = pip_wrapper.get_pipeline()
         fit_executor = TopologicalExecutor(pipeline,
-                                           HandlingDescriptor.from_classes(Stage.FIT), *pip_wrapper.get_fit_in_out())
+                                           HandlingDescriptor.from_classes(Stage.FIT),
+                                           *pip_wrapper.get_fit_in_out())
         painter.from_executor(fit_executor)
-        fit_filename = f'{dirname}/{filename}_fit.png'
-        painter.render(fit_filename)
-        assert isfile(fit_filename), "Fit pipeline wasn't rendered"
+        fit_filename = f'{dirname}/{filename}_fit'
+        painter.render(fit_filename, PIC_SAVE_FMT)
+        assert isfile(fit_filename + f'.{PIC_SAVE_FMT}'), "Fit pipeline wasn't rendered"
         logging.info('Rendered the fit graph, please see and check "%s"', fit_filename)
         painter = TopologicalPainter()
         tf_executor = TopologicalExecutor(pipeline, HandlingDescriptor.from_classes(Stage.TRANSFORM),
                                           *pip_wrapper.get_transform_in_out())
         painter.from_executor(tf_executor)
-        tf_filename = f'{dirname}/{filename}_transform.png'
-        painter.render(tf_filename)
-        assert isfile(tf_filename), "Transform pipeline wasn't rendered"
+        tf_filename = f'{dirname}/{filename}_transform'
+        painter.render(tf_filename, PIC_SAVE_FMT)
+        assert isfile(tf_filename + f'.{PIC_SAVE_FMT}'), "Transform pipeline wasn't rendered"
         logging.info('Rendered the transform graph, please see and check "%s"', tf_filename)
 
     def topological_sort_test(self):
