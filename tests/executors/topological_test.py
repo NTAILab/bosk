@@ -1,3 +1,5 @@
+"""Script that contains specific tests for the topological executor."""
+
 from abc import ABC, abstractmethod
 from bosk.executor.topological import TopologicalExecutor
 from bosk.pipeline.base import BasePipeline, Connection
@@ -15,19 +17,27 @@ from bosk.block.zoo.data_conversion import AverageBlock, ArgmaxBlock, ConcatBloc
 
 
 class BaseTopSortChecker(ABC):
+    """Base abstract class of the test case to check the
+    topological sort algorithm.
+    """
+
     def __init__(self) -> None:
         super().__init__()
 
     def get_stage(self) -> Stage:
+        """Get the stage of the encapsulated pipeline
+        to perform the test.
+        """
         return Stage.FIT
 
     @abstractmethod
     def get_pipeline(self) -> BasePipeline:
-        ...
+        """Get the encapsulated pipeline to perform the test.
+        """
 
     @abstractmethod
     def get_sufficient_blocks(self) -> Set[BaseBlock]:
-        ...
+        """Get the blocks' set that the topological order must contain."""
 
     @abstractmethod
     def get_order_requirements(self) -> List[List[BaseBlock]]:
@@ -35,10 +45,14 @@ class BaseTopSortChecker(ABC):
         For example, chain [Block1, Block2, Block3] means that the topological 
         order must contain Block1 < Block2 < Block3 subsequence."""
 
-    def check_blocks_presence(self, top_order: List[BaseBlock]) -> bool:
+    def _check_blocks_presence(self, top_order: List[BaseBlock]) -> bool:
+        """Internal method that checks if the topological order contains all the necessary blocks."""
         return self.get_sufficient_blocks() == set(top_order)
 
-    def top_list_to_dict(self, top_order: List[BaseBlock]) -> Dict[BaseBlock, int]:
+    def _top_list_to_dict(self, top_order: List[BaseBlock]) -> Dict[BaseBlock, int]:
+        """Helping method that transforms topological order list to the mapping
+        BaseBlock->index in the list. It is needed to accelerate the test.
+        """
         idx_dict = dict()
         for i, block in enumerate(top_order):
             assert block not in idx_dict, \
@@ -46,9 +60,10 @@ class BaseTopSortChecker(ABC):
             idx_dict[block] = i
         return idx_dict
 
-    def check_order(self, top_order: List[BaseBlock]) -> bool:
+    def _check_order(self, top_order: List[BaseBlock]) -> bool:
+        """Internal method that checks the retrieved topological order."""
         chains = self.get_order_requirements()
-        top_dict = self.top_list_to_dict(top_order)
+        top_dict = self._top_list_to_dict(top_order)
         for chain in chains:
             for i in range(len(chain) - 1):
                 if top_dict[chain[i]] >= top_dict[chain[i + 1]]:
@@ -56,13 +71,16 @@ class BaseTopSortChecker(ABC):
         return True
 
     def check_topological_sort(self, top_order: List[BaseBlock]) -> None:
-        assert self.check_blocks_presence(top_order), \
+        """Method that performs the test of the deep first search algorithm."""
+        assert self._check_blocks_presence(top_order), \
             'Topological sort produced the wrong set of blocks'
-        assert self.check_order(top_order), \
+        assert self._check_order(top_order), \
             'Topological sort produced the wrong blocks order'
 
 
 class StraightTopSortChecker(BaseTopSortChecker):
+    """The simpliest test case: pipeline looks like A->B->C."""
+
     def __init__(self) -> None:
         super().__init__()
         nodes = [AverageBlock() for _ in range(5)]
@@ -82,6 +100,10 @@ class StraightTopSortChecker(BaseTopSortChecker):
 
 
 class SplittedTopSortChecker(BaseTopSortChecker):
+    """The test case in which pipeline begins with the one
+    head branch that splits into several output branches.
+    """
+
     def __init__(self) -> None:
         super().__init__()
         branch_1 = [AverageBlock() for _ in range(3)]
@@ -119,6 +141,9 @@ class SplittedTopSortChecker(BaseTopSortChecker):
 
 
 class MergedTopSortChecker(BaseTopSortChecker):
+    """The test case in which the pipeline begins with two input
+    branches that merge in the single output one."""
+
     def __init__(self) -> None:
         super().__init__()
         branch_1 = [AverageBlock() for _ in range(5)]
@@ -151,6 +176,11 @@ class MergedTopSortChecker(BaseTopSortChecker):
 
 
 class FakeNodesTopSortChecker(SplittedTopSortChecker):
+    """The test case that bases on the `SplittedTopSortChecker` case,
+    but the pipeline's input located in such way that some blocks of the
+    head branch are not used and they mustn't be in the topological order.
+    """
+
     def __init__(self) -> None:
         super().__init__()
         self.pipeline = BasePipeline(
@@ -171,6 +201,11 @@ class FakeNodesTopSortChecker(SplittedTopSortChecker):
 
 
 class DFSChecker():
+    """Class that performes the test for the deep first search algorithm. As dfs
+    is used only as instrument of the pipeline oprimization (i.e. exclusion of the unnecessary blocks)
+    in the topological executor, the test is aimed to check only this use case.
+    """
+
     def __init__(self) -> None:
         branch_1 = [AverageBlock() for _ in range(3)]
         branch_2 = [ArgmaxBlock() for _ in range(5)]
@@ -192,22 +227,33 @@ class DFSChecker():
         self.branch_2 = branch_2
 
     def get_pipeline(self):
+        """Get the encapsulated pipeline."""
         return self.pipeline
 
     def get_sufficient_blocks(self):
+        """Get the blocks' set that the optimized pipeline must contain."""
         return set([self.head[-1]] + self.branch_2[:-2])
 
 
 class TopologicalExecTest():
+    """Class that aggregates all the specific tests for the topological executor."""
 
-    def get_pw_to_paint(self):
+    def _get_pw_to_paint(self):
+        """Get the pipeline to paint it with the topological painter in the `painter_test`."""
         return CasualManualForest()
 
     def painter_test(self):
+        """Test that checks work of the topological painter. It gets the pipeline from the
+        `_get_pw_to_paint` method and renders two graphs with the `from_executor` method:
+        for the fit and transform stages. Test checks if the images were rendered.
+        The semantic must be checked by the user manually. The output directory and format
+        are defined in the `bosk.tests.painters` package as the global constants
+        `PIC_SAVE_DIR` and `PIC_SAVE_FMT`.
+        """
         filename = 'topological_painter'
         dirname = PIC_SAVE_DIR
         painter = TopologicalPainter()
-        pip_wrapper = self.get_pw_to_paint()
+        pip_wrapper = self._get_pw_to_paint()
         pipeline = pip_wrapper.get_pipeline()
         fit_executor = TopologicalExecutor(pipeline,
                                            HandlingDescriptor.from_classes(Stage.FIT),
@@ -227,6 +273,10 @@ class TopologicalExecTest():
         logging.info('Rendered the transform graph, please see and check "%s"', tf_filename)
 
     def topological_sort_test(self):
+        """Test of the topological sort. Gets all the test cases
+        (inheritors of the `BaseTopSortChecker` class) from this script file and
+        tries to complete them.
+        """
         tests_cls = get_all_subclasses(BaseTopSortChecker)
         logging.info('Following classes were found for the test: %r',
                      [t.__name__ for t in tests_cls])
@@ -240,6 +290,7 @@ class TopologicalExecTest():
             test.check_topological_sort(top_sort_order)
 
     def dfs_test(self):
+        """Test of the deep first search algorithm. Uses the `DFSChecker` class to perform."""
         checker = DFSChecker()
         pipeline = checker.get_pipeline()
         executor = TopologicalExecutor(pipeline,

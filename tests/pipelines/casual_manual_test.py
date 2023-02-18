@@ -10,6 +10,8 @@ from bosk.data import Data
 
 
 class CasualManualForestTest(BPT):
+    """Test case of the basic deep forest made with the functional API."""
+
     random_state: int = 42
 
     def get_pipeline(self) -> BasePipeline:

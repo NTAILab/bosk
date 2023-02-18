@@ -1,3 +1,5 @@
+"""Script that contains the common base for the different pipelines tests."""
+
 from abc import ABC, abstractmethod
 from typing import Dict, Optional, Sequence, Tuple
 from bosk.pipeline.base import BasePipeline
@@ -10,14 +12,18 @@ import logging
 
 
 class BasePipelineTest(ABC):
+    """Base class to perform test of the particular pipeline. It is needed
+    to check work of the different blocks of the `bosk.block.zoo` package."""
 
     def fit_test(self):
+        """Test of the fit stage."""
         _, fit_output = fit_pipeline(self.get_pipeline(), self.get_fit_data(),
                                      RecursiveExecutor, *self.get_fit_in_out())
         logging.info('Test "%s" provided following outputs throung the fit procedure: %r',
                      self.__class__.__name__, list(fit_output.keys()))
 
     def transform_test(self):
+        """Test of the transform stage."""
         fitted_pipeline, _ = fit_pipeline(
             self.get_pipeline(), self.get_fit_data(), RecursiveExecutor, *self.get_fit_in_out())
         data = self.get_transform_data()

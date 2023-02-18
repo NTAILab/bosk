@@ -1,21 +1,32 @@
+"""Script that contains common tests for all executors."""
+
 from bosk.executor import *
 from ..pipelines import *
 from bosk.executor.base import BaseExecutor
 from bosk.executor.descriptor import HandlingDescriptor
 from bosk.stages import Stage
 from ..pipelines.base import BasePipelineTest as BPT
-from ..utility import fit_pipeline
+from ..utility import fit_pipeline, get_all_subclasses
 from collections import defaultdict
 import numpy as np
 import logging
 
+# BasePipelineTest rename is needed to exclude
+# this class from pytest test discovery mechanism
+
 
 def get_pipeline_wrapper() -> BPT:
+    """Pipeline that will be used in the fit_transform test."""
     return CasualManualForest()
 
 
 def fit_transform_test():
-    executors = BaseExecutor.__subclasses__()
+    """Test that gets every executor from the `bosk` package and tries to
+    fit determined in the `get_pipeline_wrapper` pipeline and than transforms some data
+    with the fitted one. To make the executor available to be discovered by this test,
+    you should add it to the `__all__` variable of the `bosk.executor` package.
+    """
+    executors = get_all_subclasses(BaseExecutor)
     logging.info('Following executors were found: %r', [e.__name__ for e in executors])
     logging.info('The test is performed with the pipeline from the %s',
                  get_pipeline_wrapper().__class__.__name__)
@@ -27,7 +38,7 @@ def fit_transform_test():
         try:
             logging.info('Starting fit process')
             fitted_pipeline, _ = fit_pipeline(pipeline,
-                                pipeline_wrapper.get_fit_data(), e_cls, *pipeline_wrapper.get_fit_in_out())
+                                              pipeline_wrapper.get_fit_data(), e_cls, *pipeline_wrapper.get_fit_in_out())
             logging.info('Fit process succeeded')
             logging.info('Starting transform process')
             data = pipeline_wrapper.get_transform_data()
@@ -43,9 +54,15 @@ def fit_transform_test():
 
 
 def cross_test():
+    """Test that gets all (determined in the `__all__` variable of the `bosk.tests.pipelines` package)
+    test pipelines and all (determined in the `__all__` variable of the `bosk.executor` package)
+    executors and than fits every pipeline using every executor, comparing results, retrieved
+    by the different executors. The results for every pipeline must be the same regardless of
+    the used executor. The same is performed with the transform stage.
+    """
     tol = 1e-8
-    executors = BaseExecutor.__subclasses__()
-    pip_wrappers = BPT.__subclasses__()
+    executors = get_all_subclasses(BaseExecutor)
+    pip_wrappers = get_all_subclasses(BPT)
     logging.info('Following executors were found: %r', [e.__name__ for e in executors])
     logging.info('Following pipeline wrappers were found: %r', [p.__name__ for p in pip_wrappers])
 
@@ -62,8 +79,8 @@ def cross_test():
         for e_cls in executors:
             p_w = p_w_cls()
             logging.info('Starting fit with the %s executor', e_cls.__name__)
-            fitted_pipeline, fit_dict = fit_pipeline(p_w.get_pipeline(), 
-                p_w.get_fit_data(), RecursiveExecutor, *p_w.get_fit_in_out())
+            fitted_pipeline, fit_dict = fit_pipeline(p_w.get_pipeline(),
+                                                     p_w.get_fit_data(), RecursiveExecutor, *p_w.get_fit_in_out())
             logging.info('Fit results:')
             process_scores(fit_dict, 'fit')
             logging.info('Starting transform with the %s executor', e_cls.__name__)

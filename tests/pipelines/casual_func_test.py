@@ -7,6 +7,8 @@ from typing import Dict, Optional, Sequence, Tuple
 
 
 class CasualFuncForestTest(BPT):
+    """Test case of the basic deep forest made manually with the connections."""
+
     random_state: int = 42
 
     def get_pipeline(self) -> BasePipeline:
