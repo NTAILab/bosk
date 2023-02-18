@@ -4,6 +4,7 @@ from typing import Mapping, TypeVar
 from .meta import BlockMeta
 from ..data import Data
 from .slot import BlockInputSlot, BlockOutputSlot, BlockSlots
+from ..visitor.base import BaseVisitor
 
 
 BlockT = TypeVar('BlockT', bound='BaseBlock')
@@ -106,6 +107,15 @@ class BaseBlock(ABC):
             self.slots.outputs[slot_name]: value
             for slot_name, value in output_values.items()
         }
-    
+
     def __repr__(self) -> str:
         return self.__class__.__name__
+
+    def accept(self, visitor: BaseVisitor):
+        """Accept the visitor.
+
+        Args:
+            visitor: The visitor which can visit blocks.
+
+        """
+        visitor.visit(self)
