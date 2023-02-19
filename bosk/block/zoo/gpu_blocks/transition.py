@@ -12,6 +12,12 @@ class MoveToBlock(BaseBlock):
         assert to == "CPU" or to == "GPU"
         self.to = to
 
+    def fit_gpu(self, inputs: BlockInputData) -> 'MoveToBlock':
+        return self
+
+    def transform_gpu(self, inputs: BlockInputData) -> TransformOutputData:
+        return self.transform(inputs)
+
     def fit(self, inputs: BlockInputData) -> 'MoveToBlock':
         return self
 
