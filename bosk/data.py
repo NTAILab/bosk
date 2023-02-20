@@ -1,6 +1,7 @@
 from typing import Any, Optional
 
 import pyopencl as cl
+import pyopencl.array as cla
 import numpy as np
 
 Data = Any
@@ -36,13 +37,12 @@ class GPUData(BaseData):
         super().__init__(data)
         context = context or cl.create_some_context()
         queue = queue or cl.CommandQueue(context)
-        buf = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=self.data)
         self.context = context
         self.queue = queue
-        self.buf = buf
+        if isinstance(data, cla.Array):
+            data = data.get()
+        self.data = cla.to_device(queue, data)
 
     def to_cpu(self) -> 'CPUData':
         """Transfers data to a CPU-based representation."""
-        data = np.empty_like(self.data)
-        cl.enqueue_copy(self.queue, data, self.buf)
-        return CPUData(data)
+        return CPUData(self.data.get())

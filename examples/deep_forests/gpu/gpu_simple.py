@@ -105,18 +105,15 @@ def run_gpu():
     fit_result = fit_executor({'X': GPUData(train_X), 'y': GPUData(train_y)})
     print("Fit successful")
     train_result = transform_executor({'X': GPUData(train_X)})
-    print(train_result["concat"].data)
     test_result = transform_executor({'X': GPUData(test_X)})
 
 
 if __name__ == "__main__":
-    import pyopencl as cl
-
-    platforms = cl.get_platforms()
-    for platform in platforms:
-        devices = platform.get_devices()
-        for device in devices:
-            print(device.name)
-
     # run_cpu()
+    import time
+
+    start_time = time.time()
     run_gpu()
+    end_time = time.time()
+
+    print(f"Time execution: {end_time - start_time} sec")
