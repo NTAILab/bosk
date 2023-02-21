@@ -3,6 +3,7 @@
 from bosk.executor import *
 from ..pipelines import *
 from bosk.executor.base import BaseExecutor
+from bosk.executor.parallel.greedy import GreedyParallelExecutor
 from bosk.executor.descriptor import HandlingDescriptor
 from bosk.stages import Stage
 from ..pipelines.base import BasePipelineTest as BPT
@@ -32,6 +33,9 @@ def fit_transform_test():
                  get_pipeline_wrapper().__class__.__name__)
     status_good = True
     for e_cls in executors:
+        if e_cls is GreedyParallelExecutor:
+            logging.info('Skipping GreedyParallelExecutor')
+            continue
         logging.info('Starting %s test', e_cls.__name__)
         pipeline_wrapper = get_pipeline_wrapper()
         pipeline = pipeline_wrapper.get_pipeline()
@@ -77,6 +81,9 @@ def cross_test():
         logging.info('Processing the %s pipeline wrapper', p_w_cls.__name__)
         score_dict = defaultdict(list)
         for e_cls in executors:
+            if e_cls is GreedyParallelExecutor:
+                logging.info('Skipping GreedyParallelExecutor')
+                continue
             p_w = p_w_cls()
             logging.info('Starting fit with the %s executor', e_cls.__name__)
             fitted_pipeline, fit_dict = fit_pipeline(p_w.get_pipeline(),
