@@ -88,7 +88,7 @@ def run_cpu():
     executor_class = RecursiveExecutor
     fit_executor, transform_executor = make_deep_forest_functional_cpu(executor_class)
 
-    all_X, all_y = make_moons(noise=0.5, random_state=42)
+    all_X, all_y = make_moons(n_samples=1000000, noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
     fit_result = fit_executor({'X': CPUData(train_X), 'y': CPUData(train_y)})
     print("Fit successful")
@@ -100,7 +100,7 @@ def run_gpu():
     executor_class = RecursiveExecutor
     fit_executor, transform_executor = make_deep_forest_functional_gpu(executor_class)
 
-    all_X, all_y = make_moons(noise=0.5, random_state=42)
+    all_X, all_y = make_moons(n_samples=1000000, noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
     fit_result = fit_executor({'X': GPUData(train_X), 'y': GPUData(train_y)})
     print("Fit successful")
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     # run_cpu()
     import time
 
-    start_time = time.time()
+    start_time = time.time() #0.2692
     run_gpu()
     end_time = time.time()
 
