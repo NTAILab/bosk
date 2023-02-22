@@ -15,9 +15,7 @@ if __name__ == "__main__":
     cpu_data = gpu_data.to_cpu()
 
     # Transfer data from GPU to GPU with the same context and queue
-    gpu_data2 = base_data.to_gpu(context=gpu_data.context, queue=gpu_data.queue)
-    assert gpu_data.context == gpu_data2.context
-    assert gpu_data.queue == gpu_data2.queue
+    gpu_data2 = base_data.to_gpu()
 
     input_data = BaseData(np.array([1, 2, 3]))
     input_block = InputBlock()
@@ -33,3 +31,4 @@ if __name__ == "__main__":
     inputs = input_block.transform(inputs)
     inputs = move_to_block_gpu.transform(inputs)
     assert isinstance(inputs['X'], GPUData)
+

@@ -24,5 +24,5 @@ threadpoolctl==3.1.0
 xgboost==1.6.2
 graphviz==0.20.1
 networkx==3.0
-pyopencl~=2022.3.1
-setuptools~=58.1.0
+setuptools~=67.3.2
+jax~=0.2.10
