@@ -1,19 +1,33 @@
 """Script that contains common tests for all executors."""
 
 from bosk.executor import *
-from ..pipelines import *
 from bosk.executor.base import BaseExecutor
 from bosk.executor.parallel.greedy import GreedyParallelExecutor
 from bosk.executor.descriptor import HandlingDescriptor
 from bosk.stages import Stage
-from ..pipelines.base import BasePipelineTest as BPT
-from ..utility import fit_pipeline, get_all_subclasses
 from collections import defaultdict
 import numpy as np
+from ..pipelines import *
+from ..pipelines.base import BasePipelineTest as BPT
+from ..utility import fit_pipeline, get_all_subclasses
 import logging
+from typing import Type, Set
 
 # BasePipelineTest rename is needed to exclude
 # this class from pytest test discovery mechanism
+
+EXCLUDED_EXECS_SET = {
+    GreedyParallelExecutor,
+}
+
+
+def get_executors() -> Set[Type[BaseExecutor]]:
+    executors = get_all_subclasses(BaseExecutor)
+    excluded_execs = executors.intersection(EXCLUDED_EXECS_SET)
+    executors = executors.difference(excluded_execs)
+    logging.info('Following executors will be tested: %r', [e.__name__ for e in executors])
+    logging.info('Following executors were excluded: %r', [e.__name__ for e in excluded_execs])
+    return executors
 
 
 def get_pipeline_wrapper() -> BPT:
@@ -27,15 +41,11 @@ def fit_transform_test():
     with the fitted one. To make the executor available to be discovered by this test,
     you should add it to the `__all__` variable of the `bosk.executor` package.
     """
-    executors = get_all_subclasses(BaseExecutor)
-    logging.info('Following executors were found: %r', [e.__name__ for e in executors])
+    executors = get_executors()
     logging.info('The test is performed with the pipeline from the %s',
                  get_pipeline_wrapper().__class__.__name__)
     status_good = True
     for e_cls in executors:
-        if e_cls is GreedyParallelExecutor:
-            logging.info('Skipping GreedyParallelExecutor')
-            continue
         logging.info('Starting %s test', e_cls.__name__)
         pipeline_wrapper = get_pipeline_wrapper()
         pipeline = pipeline_wrapper.get_pipeline()
@@ -65,9 +75,8 @@ def cross_test():
     the used executor. The same is performed with the transform stage.
     """
     tol = 1e-8
-    executors = get_all_subclasses(BaseExecutor)
+    executors = get_executors()
     pip_wrappers = get_all_subclasses(BPT)
-    logging.info('Following executors were found: %r', [e.__name__ for e in executors])
     logging.info('Following pipeline wrappers were found: %r', [p.__name__ for p in pip_wrappers])
 
     def process_scores(exec_dict, postfix):
@@ -81,9 +90,6 @@ def cross_test():
         logging.info('Processing the %s pipeline wrapper', p_w_cls.__name__)
         score_dict = defaultdict(list)
         for e_cls in executors:
-            if e_cls is GreedyParallelExecutor:
-                logging.info('Skipping GreedyParallelExecutor')
-                continue
             p_w = p_w_cls()
             logging.info('Starting fit with the %s executor', e_cls.__name__)
             fitted_pipeline, fit_dict = fit_pipeline(p_w.get_pipeline(),
