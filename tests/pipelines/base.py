@@ -7,7 +7,7 @@ from bosk.data import Data
 from bosk.executor.recursive import RecursiveExecutor
 from bosk.executor.descriptor import HandlingDescriptor
 from bosk.stages import Stage
-from ..utility import fit_pipeline
+from ..utility import fit_pipeline, log_test_name
 import logging
 
 
@@ -17,6 +17,7 @@ class BasePipelineTest(ABC):
 
     def fit_test(self):
         """Test of the fit stage."""
+        log_test_name()
         _, fit_output = fit_pipeline(self.get_pipeline(), self.get_fit_data(),
                                      RecursiveExecutor, *self.get_fit_in_out())
         logging.info('Test "%s" provided following outputs throung the fit procedure: %r',
@@ -24,6 +25,7 @@ class BasePipelineTest(ABC):
 
     def transform_test(self):
         """Test of the transform stage."""
+        log_test_name()
         fitted_pipeline, _ = fit_pipeline(
             self.get_pipeline(), self.get_fit_data(), RecursiveExecutor, *self.get_fit_in_out())
         data = self.get_transform_data()

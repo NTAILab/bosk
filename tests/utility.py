@@ -7,6 +7,8 @@ from bosk.stages import Stage
 from bosk.data import Data
 from bosk.block.base import BaseBlock
 from typing import Dict, Type, Optional, Sequence, Tuple, List, Set, TypeVar
+import os
+import logging
 
 T = TypeVar('T')
 
@@ -38,3 +40,7 @@ def connect_chain(chain: List[BaseBlock],
     """
     return [Connection(chain[i - 1].slots.outputs[out_name],
                        chain[i].slots.inputs[in_name]) for i in range(1, len(chain))]
+
+
+def log_test_name() -> None:
+    logging.info('Starting the "%s" test', os.environ.get('PYTEST_CURRENT_TEST').split(' ', 1)[0])

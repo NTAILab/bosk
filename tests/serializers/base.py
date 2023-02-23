@@ -7,7 +7,7 @@ from bosk.stages import Stage
 import numpy as np
 from ..pipelines import *
 from ..pipelines.base import BasePipelineTest as BPT
-from ..utility import get_all_subclasses, fit_pipeline
+from ..utility import get_all_subclasses, fit_pipeline, log_test_name
 from . import TMP_SAVE_DIR
 from typing import List
 from os import remove
@@ -49,6 +49,7 @@ class BaseSerializerTest(ABC):
                 f"The output '{out}' is different from the reference value"
 
     def serializer_test(self):
+        log_test_name()
         pip_wrappers = get_all_subclasses(BPT)
         logging.info('Following pipeline wrappers were found: %r',
                      [p.__name__ for p in pip_wrappers])

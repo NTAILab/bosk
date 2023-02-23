@@ -9,7 +9,7 @@ from collections import defaultdict
 import numpy as np
 from ..pipelines import *
 from ..pipelines.base import BasePipelineTest as BPT
-from ..utility import fit_pipeline, get_all_subclasses
+from ..utility import fit_pipeline, get_all_subclasses, log_test_name
 import logging
 from typing import Type, Set
 
@@ -41,6 +41,7 @@ def fit_transform_test():
     with the fitted one. To make the executor available to be discovered by this test,
     you should add it to the `__all__` variable of the `bosk.executor` package.
     """
+    log_test_name()
     executors = get_executors()
     logging.info('The test is performed with the pipeline from the %s',
                  get_pipeline_wrapper().__class__.__name__)
@@ -74,6 +75,7 @@ def cross_test():
     by the different executors. The results for every pipeline must be the same regardless of
     the used executor. The same is performed with the transform stage.
     """
+    log_test_name()
     tol = 1e-8
     executors = get_executors()
     pip_wrappers = get_all_subclasses(BPT)

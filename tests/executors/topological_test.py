@@ -1,19 +1,19 @@
 """Script that contains specific tests for the topological executor."""
 
 from abc import ABC, abstractmethod
+from bosk.block.base import BaseBlock
+from bosk.block.zoo.data_conversion import AverageBlock, ArgmaxBlock, ConcatBlock
 from bosk.executor.topological import TopologicalExecutor
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.painter.topological import TopologicalPainter
 from bosk.executor.descriptor import HandlingDescriptor
 from bosk.stages import Stage
-from ..utility import get_all_subclasses, connect_chain
 from ..painters import PIC_SAVE_DIR, PIC_SAVE_FMT
 import logging
+from ..utility import get_all_subclasses, connect_chain, log_test_name
 from ..pipelines import CasualManualForest
 from os.path import isfile
 from typing import Set, List, Dict
-from bosk.block.base import BaseBlock
-from bosk.block.zoo.data_conversion import AverageBlock, ArgmaxBlock, ConcatBlock
 
 
 class BaseTopSortChecker(ABC):
@@ -250,6 +250,7 @@ class TopologicalExecTest():
         are defined in the `bosk.tests.painters` package as the global constants
         `PIC_SAVE_DIR` and `PIC_SAVE_FMT`.
         """
+        log_test_name()
         filename = 'topological_painter'
         dirname = PIC_SAVE_DIR
         painter = TopologicalPainter()
@@ -277,6 +278,7 @@ class TopologicalExecTest():
         (inheritors of the `BaseTopSortChecker` class) from this script file and
         tries to complete them.
         """
+        log_test_name()
         tests_cls = get_all_subclasses(BaseTopSortChecker)
         logging.info('Following classes were found for the test: %r',
                      [t.__name__ for t in tests_cls])
@@ -291,6 +293,7 @@ class TopologicalExecTest():
 
     def dfs_test(self):
         """Test of the deep first search algorithm. Uses the `DFSChecker` class to perform."""
+        log_test_name()
         checker = DFSChecker()
         pipeline = checker.get_pipeline()
         executor = TopologicalExecutor(pipeline,

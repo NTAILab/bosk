@@ -3,9 +3,11 @@ import numpy as np
 from bosk.block.zoo.gpu_blocks import MoveToBlock
 from bosk.block.zoo.input_plugs import InputBlock
 from bosk.data import BaseData, CPUData, GPUData
+from ..utility import log_test_name
 
 
 def data_transfer_test():
+    log_test_name()
     # Transfer data from CPU to GPU
     np.random.seed(42)
     data = np.random.normal(0, 100, 1000).astype(np.float32)

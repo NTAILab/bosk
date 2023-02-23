@@ -16,6 +16,7 @@ from bosk.executor.parallel.greedy import (
 from bosk.executor.descriptor import HandlingDescriptor
 from bosk.block.auto import auto_block
 from joblib import parallel_backend
+from ..utility import log_test_name
 import logging
 
 
@@ -110,9 +111,10 @@ def test_proc(executor_class, ex_kw=None, forest_params=None):
 
 
 def greedy_test():
+    log_test_name()
     params = dict(
         forest_params=dict(
-            n_estimators=10,
+            n_estimators=11,
             n_jobs=1
         ),
     )

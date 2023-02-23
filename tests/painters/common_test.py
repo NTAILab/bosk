@@ -3,7 +3,7 @@
 from bosk.painter import *
 from . import PIC_SAVE_DIR, PIC_SAVE_FMT
 from ..pipelines import CasualFuncForest
-from ..utility import get_all_subclasses
+from ..utility import get_all_subclasses, log_test_name
 from os.path import isfile
 import logging
 
@@ -22,6 +22,7 @@ def all_painters_test():
     The output directory and format are defined in the `bosk.tests.painters` package
     as the global constants `PIC_SAVE_DIR` and `PIC_SAVE_FMT`.
     """
+    log_test_name()
     painter_cls_list = get_all_subclasses(BasePainter)
     logging.info('Following classes were found for the test: %r',
                  [p.__name__ for p in painter_cls_list])
