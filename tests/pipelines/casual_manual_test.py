@@ -13,18 +13,19 @@ class CasualManualForestTest(BPT):
     """Test case of the basic deep forest made with the functional API."""
 
     random_state: int = 42
+    n_trees: int = 37
 
     def get_pipeline(self) -> BasePipeline:
         input_x = InputBlock()
         input_y = TargetInputBlock()
-        rf_1 = RFCBlock(random_state=self.random_state)
-        et_1 = ETCBlock(random_state=self.random_state)
+        rf_1 = RFCBlock(random_state=self.random_state, n_estimators=self.n_trees)
+        et_1 = ETCBlock(random_state=self.random_state, n_estimators=self.n_trees)
         concat_1 = ConcatBlock(['X_0', 'X_1'], axis=1)
-        rf_2 = RFCBlock(random_state=self.random_state)
-        et_2 = ETCBlock(random_state=self.random_state)
+        rf_2 = RFCBlock(random_state=self.random_state, n_estimators=self.n_trees)
+        et_2 = ETCBlock(random_state=self.random_state, n_estimators=self.n_trees)
         concat_2 = ConcatBlock(['X_0', 'X_1'], axis=1)
-        rf_3 = RFCBlock(random_state=self.random_state)
-        et_3 = ETCBlock(random_state=self.random_state)
+        rf_3 = RFCBlock(random_state=self.random_state, n_estimators=self.n_trees)
+        et_3 = ETCBlock(random_state=self.random_state, n_estimators=self.n_trees)
         stack_3 = StackBlock(['X_0', 'X_1'], axis=1)
         average_3 = AverageBlock(axis=1)
         argmax_3 = ArgmaxBlock(axis=1)
