@@ -331,7 +331,11 @@ class GreedyParallelExecutor(BaseExecutor):
 
         """
         initial_input_slot_values = self._map_input_names_to_slots(input_values)
-        output_slots = set(self.pipeline.outputs.values())
+        output_slots = {
+            out_slot
+            for out_name, out_slot in self.pipeline.outputs.items()
+            if out_name in self.outputs
+        }
         output_values: Dict[BlockOutputSlot, Data] = dict()
         remaining_blocks: Set[BaseBlock] = self._get_blocks()
         computed_blocks: Set[BaseBlock] = set()
