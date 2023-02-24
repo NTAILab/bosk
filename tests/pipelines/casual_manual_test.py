@@ -10,7 +10,7 @@ from bosk.data import Data
 
 
 class CasualManualForestTest(BPT):
-    """Test case of the basic deep forest made with the functional API."""
+    """Test case of the basic deep forest made manually with the connections."""
 
     random_state: int = 42
     n_trees: int = 37

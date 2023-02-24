@@ -7,7 +7,7 @@ from typing import Dict, Optional, Sequence, Tuple
 
 
 class CasualFuncForestTest(BPT):
-    """Test case of the basic deep forest made manually with the connections."""
+    """Test case of the basic deep forest made with the functional API."""
 
     random_state: int = 42
     n_trees: int = 47
