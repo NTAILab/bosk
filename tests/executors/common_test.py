@@ -17,7 +17,7 @@ from typing import Type, Set
 # this class from pytest test discovery mechanism
 
 EXCLUDED_EXECS_SET = {
-    GreedyParallelExecutor,
+    # GreedyParallelExecutor,
 }
 
 
@@ -62,8 +62,8 @@ def fit_transform_test():
             executor(data)
             logging.info('Transform process succeeded')
         except Exception as exp:
-            logging.error('Executor %s has failed the test with the following exception: %s',
-                          e_cls.__name__, exp)
+            logging.exception('Executor %s has failed the test with the following exception: %s',
+                              e_cls.__name__, exp)
             status_good = False
     assert status_good, "Some executor(s) failed the test"
 
@@ -71,7 +71,7 @@ def fit_transform_test():
 def cross_test():
     """Test that gets all (determined in the `__all__` variable of the `bosk.tests.pipelines` package)
     test pipelines and all (determined in the `__all__` variable of the `bosk.executor` package)
-    executors and than fits every pipeline using every executor, comparing results, retrieved
+    executors and then fits every pipeline using every executor, comparing results, retrieved
     by the different executors. The results for every pipeline must be the same regardless of
     the used executor. The same is performed with the transform stage.
     """
