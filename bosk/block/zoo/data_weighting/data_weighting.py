@@ -3,7 +3,7 @@ import numpy as np
 from bosk.block import auto_block
 
 
-@auto_block
+@auto_block(auto_state=True)
 class WeightsBlock:
     def __init__(self, ord: int = 1):
         self._weights = None
