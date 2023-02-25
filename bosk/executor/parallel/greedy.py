@@ -136,18 +136,33 @@ class GreedyParallelExecutor(BaseExecutor):
             result[conn.src].append(conn.dst)
         return result
 
-    def _get_blocks(self) -> Set[BaseBlock]:
-        """Get all blocks.
+    def _get_blocks(self, output_slots: Set[BlockOutputSlot]) -> Set[BaseBlock]:
+        """Get all blocks that should be executed.
+
+        Args:
+            output_slots: Set of output slots.
 
         Returns:
             Set of the pipeline blocks.
 
         """
-        return set(
-            b
-            for conn in self.pipeline.connections
-            for b in (conn.src.parent_block, conn.dst.parent_block)
-        )
+        dst_to_src = dict()
+        for conn in self.pipeline.connections:
+            dst_to_src[conn.dst] = conn.src
+        # reverse DFS over block output slots
+        stack = [slot for slot in output_slots]
+        result_blocks = set()
+        while stack:
+            out_slot = stack.pop()
+            block = out_slot.parent_block
+            if block in result_blocks:
+                continue
+            result_blocks.add(block)
+            for input_slot in block.slots.inputs.values():
+                if self._is_slot_required(input_slot) and input_slot in dst_to_src:
+                    stack.append(dst_to_src[input_slot])
+        return result_blocks
+
 
     def _prepare_inputs_by_block(self) -> Dict[BaseBlock, Set[BlockInputSlot]]:
         """Prepare the mapping from blocks to their inputs.
@@ -337,7 +352,7 @@ class GreedyParallelExecutor(BaseExecutor):
             if out_name in self.outputs
         }
         output_values: Dict[BlockOutputSlot, Data] = dict()
-        remaining_blocks: Set[BaseBlock] = self._get_blocks()
+        remaining_blocks: Set[BaseBlock] = self._get_blocks(output_slots)
         computed_blocks: Set[BaseBlock] = set()
 
         # Iteratively:
@@ -397,5 +412,6 @@ class GreedyParallelExecutor(BaseExecutor):
         # convert output values to string-indexed dict
         result = dict()
         for output_name, output_slot in self.pipeline.outputs.items():
-            result[output_name] = output_values[output_slot]
+            if output_name in self.outputs:
+                result[output_name] = output_values[output_slot]
         return result
