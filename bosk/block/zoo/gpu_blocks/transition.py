@@ -2,6 +2,7 @@ from typing import Union
 
 from bosk.block import BaseBlock, TransformOutputData, BlockInputData
 from bosk.block.meta import make_simple_meta, BlockExecutionProperties
+from bosk.data import CPUData, GPUData, BaseData
 
 
 class MoveToBlock(BaseBlock):
@@ -12,17 +13,14 @@ class MoveToBlock(BaseBlock):
         assert to == "CPU" or to == "GPU"
         self.to = to
 
-    def fit_gpu(self, inputs: BlockInputData) -> 'MoveToBlock':
-        return self
-
-    def transform_gpu(self, inputs: BlockInputData) -> TransformOutputData:
-        return self.transform(inputs)
-
     def fit(self, inputs: BlockInputData) -> 'MoveToBlock':
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         input_data = inputs['X']
+        input_type = type(input_data)
+        if input_type not in [BaseData, CPUData, GPUData]:
+            raise TypeError("All inputs must be of type: CPUData or GPUData.")
         if self.to == 'CPU':
             return {'X': input_data.to_cpu()}
         elif self.to == 'GPU':

@@ -11,12 +11,6 @@ class InputBlock(BaseBlock):
     def __init__(self):
         super().__init__()
 
-    def fit_gpu(self, _inputs: BlockInputData) -> 'InputBlock':
-        return self
-
-    def transform_gpu(self, inputs: BlockInputData) -> TransformOutputData:
-        return inputs
-
     def fit(self, _inputs: BlockInputData) -> 'InputBlock':
         return self
 
@@ -44,12 +38,6 @@ class TargetInputBlock(BaseBlock):
 
     def __init__(self):
         super().__init__()
-
-    def fit_gpu(self, _inputs: BlockInputData) -> 'TargetInputBlock':
-        return self
-
-    def transform_gpu(self, inputs: BlockInputData) -> TransformOutputData:
-        return inputs
 
     def fit(self, _inputs: BlockInputData) -> 'TargetInputBlock':
         return self

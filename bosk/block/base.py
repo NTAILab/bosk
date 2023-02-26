@@ -70,30 +70,6 @@ class BaseBlock(ABC):
         """
 
     @abstractmethod
-    def fit_gpu(self: BlockT, inputs: BlockInputData) -> BlockT:
-        """Fit the block on the given input data by GPU.
-
-        Args:
-            inputs: Block input data for the fitting stage.
-
-        Returns:
-            Self.
-
-        """
-
-    @abstractmethod
-    def transform_gpu(self, inputs: BlockInputData) -> TransformOutputData:
-        """Transform the given input data by GPU, i.e. compute values for each output slot.
-
-        Args:
-            inputs: Block input data for the transforming stage.
-
-        Returns:
-            Outputs calculated for the given inputs.
-
-        """
-
-    @abstractmethod
     def fit(self: BlockT, inputs: BlockInputData) -> BlockT:
         """Fit the block on the given input data.
 
