@@ -1,6 +1,7 @@
 from sklearn.metrics import roc_auc_score, accuracy_score, f1_score, r2_score
 
 from bosk.block import BaseBlock, BlockInputData, TransformOutputData
+from bosk.block.meta import BlockExecutionProperties
 from bosk.stages import Stages
 from bosk.block import BlockMeta
 from bosk.block.slot import InputSlotMeta, OutputSlotMeta
@@ -22,7 +23,8 @@ class RocAucBlock(BaseBlock):
             OutputSlotMeta(
                 name='roc-auc',
             )
-        ]
+        ],
+        execution_props=BlockExecutionProperties(cpu=True, gpu=False)
     )
 
     def __init__(self):
@@ -33,7 +35,7 @@ class RocAucBlock(BaseBlock):
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         return {
-            'roc-auc': roc_auc_score(inputs['gt_y'], inputs['pred_probas'][:, 1])
+            'roc-auc': roc_auc_score(inputs['gt_y'].data, inputs['pred_probas'].data[:, 1])
         }
 
 
@@ -53,7 +55,8 @@ class RocAucMultiLabelBlock(BaseBlock):
             OutputSlotMeta(
                 name='roc-auc',
             )
-        ]
+        ],
+        execution_props=BlockExecutionProperties(cpu=True, gpu=False)
     )
 
     def __init__(self):
@@ -64,7 +67,7 @@ class RocAucMultiLabelBlock(BaseBlock):
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         return {
-            'roc-auc': roc_auc_score(inputs['gt_y'], inputs['pred_probas'], multi_class='ovr')
+            'roc-auc': roc_auc_score(inputs['gt_y'].data, inputs['pred_probas'].data, multi_class='ovr')
         }
 
 
@@ -84,7 +87,8 @@ class AccuracyBlock(BaseBlock):
             OutputSlotMeta(
                 name='accuracy',
             )
-        ]
+        ],
+        execution_props=BlockExecutionProperties(cpu=True, gpu=False)
     )
 
     def __init__(self):
@@ -95,7 +99,7 @@ class AccuracyBlock(BaseBlock):
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         return {
-            'accuracy': accuracy_score(inputs['gt_y'], inputs['pred_probas'][:, 1])
+            'accuracy': accuracy_score(inputs['gt_y'].data, inputs['pred_probas'].data[:, 1])
         }
 
 
@@ -115,7 +119,8 @@ class F1ScoreBlock(BaseBlock):
             OutputSlotMeta(
                 name='f1-score',
             )
-        ]
+        ],
+        execution_props=BlockExecutionProperties(cpu=True, gpu=False)
     )
 
     def __init__(self):
@@ -126,7 +131,7 @@ class F1ScoreBlock(BaseBlock):
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         return {
-            'f1-score': f1_score(inputs['gt_y'], inputs['pred_probas'][:, 1])
+            'f1-score': f1_score(inputs['gt_y'].data, inputs['pred_probas'].data[:, 1])
         }
 
 
@@ -146,7 +151,8 @@ class R2ScoreBlock(BaseBlock):
             OutputSlotMeta(
                 name='r2-score',
             )
-        ]
+        ],
+        execution_props=BlockExecutionProperties(cpu=True, gpu=False)
     )
 
     def __init__(self):
@@ -157,5 +163,5 @@ class R2ScoreBlock(BaseBlock):
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         return {
-            'r2-score': r2_score(inputs['gt_y'], inputs['pred_probas'][:, 1])
+            'r2-score': r2_score(inputs['gt_y'].data, inputs['pred_probas'].data[:, 1])
         }

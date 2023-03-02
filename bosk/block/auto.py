@@ -64,7 +64,7 @@ def auto_block(_implicit_cls=None,
 
             def __prepare_kwargs(self, inputs: BlockInputData) -> Mapping[str, Data]:
                 kwargs = {
-                    slot_name: inputs[slot_name]
+                    slot_name: inputs[slot_name].data
                     for slot_name, _slot in self.slots.inputs.items()
                     if slot_name in inputs
                 }
