@@ -7,13 +7,18 @@ from ..stages import Stages
 from functools import wraps
 
 
-def auto_block(_implicit_cls=None, execution_props: Optional[BlockExecutionProperties] = None):
-    """Convert any fit-transform class into a block.
+def auto_block(_implicit_cls=None,
+               execution_props: Optional[BlockExecutionProperties] = None,
+               auto_state: bool = False):
+    """Decorator for conversion from a fit-transform class into a block.
 
     Args:
         _implicit_cls: Class with fit-transform interface.
                        It is automatically passed when `@auto_block` without
                        brackets is used. Otherwise it should be `None`.
+        execution_props: Custom block execution properties.
+        auto_state: Automatically implement `__getstate__` and `__setstate__` methods.
+                    These methods are required for serialization.
 
     Returns:
         Block wrapping function.
@@ -73,6 +78,28 @@ def auto_block(_implicit_cls=None, execution_props: Optional[BlockExecutionPrope
                 transformed = self.__instance.transform(**self.__prepare_kwargs(inputs))
                 return {'output': transformed}
 
+            def __get_instance_state(self):
+                if hasattr(self.__instance, '__getstate__'):
+                    return self.__instance.__getstate__()
+                if auto_state:
+                    return self.__instance.__dict__
+                else:
+                    raise NotImplementedError(
+                        f"{type(self.__instance)!r} has no '__getstate__' implementation. "
+                        "Please, implement this method or use `@auto_block(auto_state=True)` decorator."
+                    )
+
+            def __set_instance_state(self, instance_state):
+                if hasattr(self.__instance, '__setstate__'):
+                    return self.__instance.__setstate__(instance_state)
+                if auto_state:
+                    self.__instance.__dict__  = instance_state
+                else:
+                    raise NotImplementedError(
+                        f"{type(self.__instance)!r} has no '__setstate__' implementation. "
+                        "Please, implement this method or use `@auto_block(auto_state=True)` decorator."
+                    )
+
             def __getstate__(self):
                 """Get state. Required for serialization.
 
@@ -81,7 +108,7 @@ def auto_block(_implicit_cls=None, execution_props: Optional[BlockExecutionPrope
 
                 """
                 return {
-                    '__instance': self.__instance.__getstate__(),
+                    '__instance': self.__get_instance_state(),
                     '__args': self.__args,
                     '__kwargs': self.__kwargs,
                     'slots': self.slots,
@@ -97,7 +124,7 @@ def auto_block(_implicit_cls=None, execution_props: Optional[BlockExecutionPrope
                 self.__args = state['__args']
                 self.__kwargs = state['__kwargs']
                 self.__instance = cls(*self.__args, **self.__kwargs)
-                self.__instance.__setstate__(state['__instance'])
+                self.__set_instance_state(state['__instance'])
                 self.slots = state['slots']
 
         return AutoBlock

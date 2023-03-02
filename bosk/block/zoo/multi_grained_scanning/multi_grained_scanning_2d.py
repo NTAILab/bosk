@@ -7,7 +7,7 @@ from bosk.block import auto_block
 from bosk.block.zoo.multi_grained_scanning.multi_grained_scanning import MultiGrainedScanningBlock
 
 
-@auto_block
+@auto_block(auto_state=True)
 class MultiGrainedScanning2DBlock(MultiGrainedScanningBlock):
     def _window_slicing_data(self, X, y=None) -> 'Tuple[np.ndarray, Optional[np.ndarray]]':
         shape = self._shape_sample
