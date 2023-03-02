@@ -6,27 +6,29 @@ from sklearn.ensemble import (
 )
 
 from bosk.block import auto_block
+from bosk.block.meta import BlockExecutionProperties
+from bosk.data import CPUData
 
 
-@auto_block
+@auto_block(execution_props=BlockExecutionProperties(cpu=True, gpu=False))
 class RFRBlock(RandomForestRegressor):
     def transform(self, X):
-        return self.predict(X)
+        return CPUData(self.predict(X))
 
 
-@auto_block
+@auto_block(execution_props=BlockExecutionProperties(cpu=True, gpu=False))
 class ETRBlock(ExtraTreesRegressor):
     def transform(self, X):
-        return self.predict(X)
+        return CPUData(self.predict(X))
 
 
-@auto_block
+@auto_block(execution_props=BlockExecutionProperties(cpu=True, gpu=False))
 class CatBoostRegressorBlock(CatBoostRegressor):
     def transform(self, X):
-        return self.predict(X)
+        return CPUData(self.predict(X))
 
 
-@auto_block
+@auto_block(execution_props=BlockExecutionProperties(cpu=True, gpu=False))
 class XGBCRegressorBlock(XGBRegressor):
     def transform(self, X):
-        return self.predict(X)
+        return CPUData(self.predict(X))
