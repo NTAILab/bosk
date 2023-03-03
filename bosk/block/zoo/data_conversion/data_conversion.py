@@ -31,7 +31,6 @@ class ConcatBlock(BaseBlock):
             if isinstance(inputs[name], input_type):
                 ordered_inputs.append(inputs[name].data)
             else:
-                x = 0
                 raise ValueError("All inputs must be of the same type (CPUData or GPUData)")
         ordered_inputs = tuple(ordered_inputs)
         if input_type == CPUData:

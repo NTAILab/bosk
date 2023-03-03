@@ -93,7 +93,7 @@ def auto_block(_implicit_cls=None,
                 if hasattr(self.__instance, '__setstate__'):
                     return self.__instance.__setstate__(instance_state)
                 if auto_state:
-                    self.__instance.__dict__  = instance_state
+                    self.__instance.__dict__ = instance_state
                 else:
                     raise NotImplementedError(
                         f"{type(self.__instance)!r} has no '__setstate__' implementation. "

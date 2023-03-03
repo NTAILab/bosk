@@ -3,6 +3,8 @@ from typing import Any, Tuple, Optional
 
 import numpy as np
 
+from bosk.data import CPUData
+
 
 class MultiGrainedScanningBlock(ABC):
     def __init__(self, models: Tuple[Any, Any],
@@ -20,7 +22,7 @@ class MultiGrainedScanningBlock(ABC):
         return self
 
     def _window_slicing_fit(self, X, y) -> 'None':
-        sliced_X, sliced_y = self._window_slicing_data(X, y)
+        sliced_X, sliced_y = self._window_slicing_data(X.data, y.data)
         for model in self._models:
             if hasattr(model, 'fit'):
                 model.fit(sliced_X, sliced_y)
@@ -33,7 +35,7 @@ class MultiGrainedScanningBlock(ABC):
         pass
 
     def _window_slicing_predict(self, X) -> 'np.ndarray':
-        sliced_X, _ = self._window_slicing_data(X)
+        sliced_X, _ = self._window_slicing_data(X.data)
         predict_prob = np.array([])
         for model in self._models:
             if hasattr(model, 'predict_proba'):
@@ -43,7 +45,7 @@ class MultiGrainedScanningBlock(ABC):
                 raise Exception(
                     "Please check that the model used in 'MultiGrainedScanningBlock'"
                     " have the method 'predict_proba'")
-        return predict_prob.reshape([X.shape[0], -1])
+        return predict_prob.reshape([X.data.shape[0], -1])
 
-    def transform(self, X) -> 'np.ndarray':
-        return self._window_slicing_predict(X)
+    def transform(self, X) -> CPUData:
+        return CPUData(self._window_slicing_predict(X))

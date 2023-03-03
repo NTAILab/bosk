@@ -1,6 +1,6 @@
 from sklearn.datasets import make_moons
 
-from bosk.data import Data
+from bosk.data import Data, CPUData
 from bosk.block.zoo.data_weighting import WeightsBlock
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from .base import BasePipelineTest as BPT
@@ -67,7 +67,9 @@ class WeightedCSForestTest(BPT):
                         'roc-auc': roc_auc, 'labels': argmax_3})
 
     def make_dataset(self):
-        self.x, self.y = make_moons(noise=0.5, random_state=self.random_state)
+        x, y = make_moons(noise=0.5, random_state=self.random_state)
+        self.x = CPUData(x)
+        self.y = CPUData(y)
 
     def get_fit_data(self) -> Dict[str, Data]:
         if not hasattr(self, 'x'):

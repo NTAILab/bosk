@@ -1,5 +1,6 @@
 from time import sleep
 from bosk.block.meta import BlockExecutionProperties
+from bosk.data import CPUData
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.stages import Stage
 
@@ -23,13 +24,13 @@ import logging
 @auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
 class ParallelRFC(RandomForestClassifier):
     def transform(self, X):
-        return self.predict_proba(X)
+        return CPUData(self.predict_proba(X))
 
 
 @auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
 class ParallelETC(ExtraTreesClassifier):
     def transform(self, X):
-        return self.predict_proba(X)
+        return CPUData(self.predict_proba(X))
 
 
 @auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
@@ -45,7 +46,7 @@ class ParallelSleepStub:
 
     def transform(self, X):
         sleep(self.transform_time)
-        return X
+        return CPUData(X)
 
 
 def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
@@ -102,11 +103,11 @@ def test_proc(executor_class, ex_kw=None, forest_params=None):
         **ex_kw
     )
     train_X, train_y = load_breast_cancer(return_X_y=True)
-    fit_result = fit_executor({'X': train_X, 'y': train_y})
+    fit_result = fit_executor({'X': CPUData(train_X), 'y': CPUData(train_y)})
     logging.info("Fit successful")
-    train_result = transform_executor({'X': train_X})
+    train_result = transform_executor({'X': CPUData(train_X)})
     logging.info("Transform successful")
-    assert np.allclose(fit_result['probas'], train_result['probas']),\
+    assert np.allclose(fit_result['probas'].data, train_result['probas'].data),\
         "Fit probas are different from the transform ones"
 
 
