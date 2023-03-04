@@ -5,10 +5,12 @@ from .slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
 from ..data import Data
 from ..stages import Stages
 from functools import wraps
+import logging
 
 
 def auto_block(_implicit_cls=None,
                execution_props: Optional[BlockExecutionProperties] = None,
+               random_state_field: str | None = 'random_state',
                auto_state: bool = False):
     """Decorator for conversion from a fit-transform class into a block.
 
@@ -17,6 +19,8 @@ def auto_block(_implicit_cls=None,
                        It is automatically passed when `@auto_block` without
                        brackets is used. Otherwise it should be `None`.
         execution_props: Custom block execution properties.
+        random_state_field: Field name in the class that corresponds to object's random seed.
+            Pass `None` if the class doesn't have any.
         auto_state: Automatically implement `__getstate__` and `__setstate__` methods.
                     These methods are required for serialization.
 
@@ -126,6 +130,15 @@ def auto_block(_implicit_cls=None,
                 self.__instance = cls(*self.__args, **self.__kwargs)
                 self.__set_instance_state(state['__instance'])
                 self.slots = state['slots']
+
+            def set_random_state(self, seed: int) -> None:
+                if random_state_field is None:
+                    return super().set_random_state(seed)
+                if hasattr(self.__instance, random_state_field):
+                    setattr(self.__instance, random_state_field, seed)
+                else:
+                    logging.warning("%s doesn't have random_state_field '%s'", cls.__name__,
+                                    random_state_field)
 
         return AutoBlock
 

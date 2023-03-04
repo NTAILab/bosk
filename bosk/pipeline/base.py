@@ -39,3 +39,8 @@ class BasePipeline:
             conn.accept(visitor)
 
         visitor.visit(self)
+
+    def set_random_state(self, seed: int) -> None:
+        """Set random seed for each block in the pipeline."""
+        for block in self.nodes:
+            block.set_random_state(seed)

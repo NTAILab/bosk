@@ -119,3 +119,6 @@ class BaseBlock(ABC):
 
         """
         visitor.visit(self)
+
+    def set_random_state(self, seed: int) -> None:
+        """Set random seed for the block."""
