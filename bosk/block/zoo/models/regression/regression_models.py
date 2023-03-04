@@ -22,7 +22,7 @@ class ETRBlock(ExtraTreesRegressor):
         return CPUData(self.predict(X))
 
 
-@auto_block(execution_props=BlockExecutionProperties())
+@auto_block(execution_props=BlockExecutionProperties(), random_state_field='random_seed_')
 class CatBoostRegressorBlock(CatBoostRegressor):
     def transform(self, X):
         return CPUData(self.predict(X))
