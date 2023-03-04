@@ -4,6 +4,7 @@ import numpy as np
 
 from bosk.block import BaseBlock, BlockInputData, TransformOutputData
 from bosk.block.meta import make_simple_meta
+from bosk.data import CPUData
 
 
 class CSBlock(BaseBlock):
@@ -17,12 +18,12 @@ class CSBlock(BaseBlock):
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        X = inputs['X']
+        X = inputs['X'].data
         best_mask = X.max(axis=1) > self.eps
         best = X[best_mask]
         return {
-            'mask': ~best_mask,
-            'best': best,
+            'mask': CPUData(~best_mask),
+            'best': CPUData(best),
         }
 
 
@@ -39,9 +40,9 @@ class CSFilterBlock(BaseBlock):
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        mask = inputs['mask']
+        mask = inputs['mask'].data
         return {
-            name: inputs[name][mask]
+            name: CPUData(inputs[name].data[mask])
             for name in self.input_names
         }
 
@@ -56,12 +57,12 @@ class CSJoinBlock(BaseBlock):
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
-        best = inputs['best']
-        refined = inputs['refined']
-        mask = inputs['mask']
+        best = inputs['best'].data
+        refined = inputs['refined'].data
+        mask = inputs['mask'].data
         n_samples = mask.shape[0]
         rest_dims = best.shape[1:]
         result = np.empty((n_samples, *rest_dims), dtype=best.dtype)
         result[~mask] = best
         result[mask] = refined
-        return {'output': result}
+        return {'output': CPUData(result)}

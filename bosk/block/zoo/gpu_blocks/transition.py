@@ -20,7 +20,7 @@ class MoveToBlock(BaseBlock):
         input_data = inputs['X']
         input_type = type(input_data)
         if input_type not in [BaseData, CPUData, GPUData]:
-            raise TypeError("All inputs must be of type: CPUData or GPUData.")
+            return {'X': CPUData(input_data)}
         if self.to == 'CPU':
             return {'X': input_data.to_cpu()}
         elif self.to == 'GPU':

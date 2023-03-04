@@ -2,7 +2,6 @@
 
 from bosk.executor import *
 from bosk.executor.base import BaseExecutor
-from bosk.executor.parallel.greedy import GreedyParallelExecutor
 from bosk.executor.descriptor import HandlingDescriptor
 from bosk.stages import Stage
 from collections import defaultdict
@@ -83,11 +82,11 @@ def cross_test():
 
     def process_scores(exec_dict, postfix):
         for key, val in exec_dict.items():
-            if isinstance(val, float) or isinstance(val, int):
+            if isinstance(val.data, float) or isinstance(val.data, int):
                 logging.info('\t\t%s: %s', key, val)
             else:
-                logging.info('\t\t%s: ... (mean %.4f)', key, np.mean(val))
-            score_dict[key + f' ({postfix})'].append(val)
+                logging.info('\t\t%s: ... (mean %.4f)', key, np.mean(val.data))
+            score_dict[key + f' ({postfix})'].append(val.data)
     for p_w_cls in pip_wrappers:
         logging.info('Processing the %s pipeline wrapper', p_w_cls.__name__)
         score_dict = defaultdict(list)

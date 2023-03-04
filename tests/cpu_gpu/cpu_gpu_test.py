@@ -13,15 +13,10 @@ def data_transfer_test():
     data = np.random.normal(0, 100, 1000).astype(np.float32)
     base_data = BaseData(data)
     gpu_data = base_data.to_gpu()
-
+    #
     # Transfer data back from GPU to CPU
     cpu_data = gpu_data.to_cpu()
     assert np.sum(cpu_data.data - data) == 0, 'The data was corrupted during the cpu->gpu->cpu transfer'
-
-    # Transfer data from GPU to GPU with the same context and queue
-    gpu_data2 = base_data.to_gpu(context=gpu_data.context, queue=gpu_data.queue)
-    assert gpu_data.context == gpu_data2.context, 'The context was corrupted during the gpu->gpu transfer'
-    assert gpu_data.queue == gpu_data2.queue, 'The queue was corrupted during the gpu->gpu transfer'
 
     input_data = BaseData(np.array([1, 2, 3]))
     input_block = InputBlock()

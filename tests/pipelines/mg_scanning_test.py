@@ -4,7 +4,7 @@ from sklearn.ensemble import (
     ExtraTreesClassifier,
 )
 
-from bosk.data import Data
+from bosk.data import Data, CPUData
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.block.zoo.multi_grained_scanning import \
     (MultiGrainedScanning1DBlock, MultiGrainedScanning2DBlock)
@@ -44,7 +44,7 @@ class MGScanning1DTest(BPT):
 
     def make_dataset(self):
         iris = load_iris()
-        self.x, self.y = iris.data, iris.target
+        self.x, self.y = CPUData(iris.data), CPUData(iris.target)
 
     def get_fit_data(self) -> Dict[str, Data]:
         if not hasattr(self, 'x'):
@@ -95,7 +95,7 @@ class MGScanning2DTest(BPT):
 
     def make_dataset(self):
         digits = load_digits()
-        self.x, self.y = digits.data, digits.target
+        self.x, self.y = CPUData(digits.data), CPUData(digits.target)
 
     def get_fit_data(self) -> Dict[str, Data]:
         if not hasattr(self, 'x'):

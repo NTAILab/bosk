@@ -45,7 +45,7 @@ class BaseSerializerTest(ABC):
         for out in true_outs:
             assert out in pred_outs,\
                 f"There is no output '{out}' in the result of the deserialized pipeline computation"
-            assert np.sum(np.abs(pred_outs[out] - true_outs[out])) < eps,\
+            assert np.sum(np.abs(pred_outs[out].data - true_outs[out].data)) < eps,\
                 f"The output '{out}' is different from the reference value"
 
     def serializer_test(self):
