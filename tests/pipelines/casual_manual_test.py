@@ -12,20 +12,19 @@ from bosk.data import Data, CPUData
 class CasualManualForestTest(BPT):
     """Test case of the basic deep forest made manually with the connections."""
 
-    random_state: int = 42
     n_trees: int = 37
 
-    def get_pipeline(self) -> BasePipeline:
+    def _get_pipeline(self) -> BasePipeline:
         input_x = InputBlock()
         input_y = TargetInputBlock()
-        rf_1 = RFCBlock(random_state=self.random_state, n_estimators=self.n_trees)
-        et_1 = ETCBlock(random_state=self.random_state, n_estimators=self.n_trees)
+        rf_1 = RFCBlock(n_estimators=self.n_trees)
+        et_1 = ETCBlock(n_estimators=self.n_trees)
         concat_1 = ConcatBlock(['X_0', 'X_1'], axis=1)
-        rf_2 = RFCBlock(random_state=self.random_state, n_estimators=self.n_trees)
-        et_2 = ETCBlock(random_state=self.random_state, n_estimators=self.n_trees)
+        rf_2 = RFCBlock(n_estimators=self.n_trees)
+        et_2 = ETCBlock(n_estimators=self.n_trees)
         concat_2 = ConcatBlock(['X_0', 'X_1'], axis=1)
-        rf_3 = RFCBlock(random_state=self.random_state, n_estimators=self.n_trees)
-        et_3 = ETCBlock(random_state=self.random_state, n_estimators=self.n_trees)
+        rf_3 = RFCBlock(n_estimators=self.n_trees)
+        et_3 = ETCBlock(n_estimators=self.n_trees)
         stack_3 = StackBlock(['X_0', 'X_1'], axis=1)
         average_3 = AverageBlock(axis=1)
         argmax_3 = ArgmaxBlock(axis=1)
@@ -91,7 +90,7 @@ class CasualManualForestTest(BPT):
         )
 
     def make_dataset(self):
-        x, y = make_moons(noise=0.5, random_state=self.random_state)
+        x, y = make_moons(noise=0.5, random_state=self.random_seed)
         self.x = CPUData(x)
         self.y = CPUData(y)
 
