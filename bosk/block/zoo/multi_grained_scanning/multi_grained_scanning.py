@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Tuple, Optional
 
 import numpy as np
+import logging
 
 from bosk.data import CPUData
 
@@ -49,3 +50,10 @@ class MultiGrainedScanningBlock(ABC):
 
     def transform(self, X) -> CPUData:
         return CPUData(self._window_slicing_predict(X))
+
+    def set_random_state(self, seed: int) -> None:
+        for model in self._models:
+            if hasattr(model, 'random_state'):
+                model.random_state = seed
+            else:
+                logging.warning("Model %s doesn't have 'random_state' field")

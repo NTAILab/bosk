@@ -1,7 +1,7 @@
 from typing import Optional, Type, Mapping
-from .base import BaseBlock, BlockInputData, BlockOutputData, TransformOutputData
+from .base import BaseBlock, BlockInputData, TransformOutputData
 from .meta import BlockMeta, BlockExecutionProperties
-from .slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
+from .slot import InputSlotMeta, OutputSlotMeta
 from ..data import Data
 from ..stages import Stages
 from functools import wraps
@@ -20,7 +20,8 @@ def auto_block(_implicit_cls=None,
                        brackets is used. Otherwise it should be `None`.
         execution_props: Custom block execution properties.
         random_state_field: Field name in the class that corresponds to object's random seed.
-            Pass `None` if the class doesn't have any.
+            Pass `None` if the class doesn't have any. If the class already has 
+            the `set_random_state` method, it won't be redefined.
         auto_state: Automatically implement `__getstate__` and `__setstate__` methods.
                     These methods are required for serialization.
 
@@ -132,6 +133,8 @@ def auto_block(_implicit_cls=None,
                 self.slots = state['slots']
 
             def set_random_state(self, seed: int) -> None:
+                if hasattr(self.__instance, 'set_random_state'):
+                    return self.__instance.set_random_state(seed)
                 if random_state_field is None:
                     return super().set_random_state(seed)
                 if hasattr(self.__instance, random_state_field):
