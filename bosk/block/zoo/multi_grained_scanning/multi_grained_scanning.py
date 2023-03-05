@@ -56,4 +56,5 @@ class MultiGrainedScanningBlock(ABC):
             if hasattr(model, 'random_state'):
                 model.random_state = seed
             else:
-                logging.warning("Model %s doesn't have 'random_state' field")
+                logging.warning("Model %s doesn't have 'random_state' field",
+                                model.__class__.__name__)
