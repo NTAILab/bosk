@@ -10,13 +10,13 @@ from bosk.block.meta import BlockExecutionProperties
 from bosk.data import CPUData
 
 
-@auto_block(execution_props=BlockExecutionProperties())
+@auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
 class RFCBlock(RandomForestClassifier):
     def transform(self, X):
         return CPUData(self.predict_proba(X))
 
 
-@auto_block(execution_props=BlockExecutionProperties())
+@auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
 class ETCBlock(ExtraTreesClassifier):
     def transform(self, X):
         return CPUData(self.predict_proba(X))
