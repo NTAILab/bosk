@@ -13,7 +13,7 @@ class ConcatBlock(BaseBlock):
 
     def __init__(self, input_names: List[str], axis: int = -1):
         self.meta = make_simple_meta(input_names, ['output'],
-                                     execution_props=BlockExecutionProperties(cpu=True, gpu=True))
+                                     execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True))
         super().__init__()
         self.axis = axis
         self.ordered_input_names = None
@@ -48,7 +48,7 @@ class StackBlock(BaseBlock):
 
     def __init__(self, input_names: List[str], axis: int = -1):
         self.meta = make_simple_meta(input_names, ['output'],
-                                     execution_props=BlockExecutionProperties(cpu=True, gpu=True))
+                                     execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True))
         super().__init__()
         self.axis = axis
         self.ordered_input_names = None
@@ -78,7 +78,7 @@ class StackBlock(BaseBlock):
 
 
 class AverageBlock(BaseBlock):
-    meta = make_simple_meta(['X'], ['output'], execution_props=BlockExecutionProperties(cpu=True, gpu=True))
+    meta = make_simple_meta(['X'], ['output'], execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True))
 
     def __init__(self, axis: int = -1):
         super().__init__()
@@ -100,7 +100,7 @@ class AverageBlock(BaseBlock):
 
 
 class ArgmaxBlock(BaseBlock):
-    meta = make_simple_meta(['X'], ['output'], execution_props=BlockExecutionProperties(cpu=True, gpu=True))
+    meta = make_simple_meta(['X'], ['output'], execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True))
 
     def __init__(self, axis: int = -1):
         super().__init__()

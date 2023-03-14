@@ -10,13 +10,13 @@ from bosk.block.meta import BlockExecutionProperties
 from bosk.data import CPUData
 
 
-@auto_block(execution_props=BlockExecutionProperties())
+@auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
 class RFRBlock(RandomForestRegressor):
     def transform(self, X):
         return CPUData(self.predict(X))
 
 
-@auto_block(execution_props=BlockExecutionProperties())
+@auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
 class ETRBlock(ExtraTreesRegressor):
     def transform(self, X):
         return CPUData(self.predict(X))
