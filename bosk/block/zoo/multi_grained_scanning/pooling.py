@@ -6,6 +6,28 @@ from ...meta import make_simple_meta, BlockExecutionProperties
 from ....data import CPUData, GPUData
 
 
+AGGREGATION_FUNCTIONS = {
+    'max': partial(np.max, axis=-1),
+    'mean': partial(np.mean, axis=-1),
+}
+
+
+class PoolingIndices(NamedTuple):
+    """
+    Attributes:
+        xs_shape: Input shape.
+        full_index_tuple: Tuple of indices of each pixel for each group (corner position).
+        n_corners: Number of corners.
+        n_kernel_points: Number of points inside kernel.
+        pooled_shape: Pooling result shape (excluding the n_sample dimension).
+    """
+    xs_shape: Tuple[int]
+    full_index_tuple: Tuple[np.ndarray]
+    n_corners: int
+    n_kernel_points: int
+    pooled_shape: Tuple[int]
+
+
 class PoolingBlock(BaseBlock):
     """Pooling Block implements n-dimensional downsampling with an aggregation operation.
 
@@ -18,27 +40,6 @@ class PoolingBlock(BaseBlock):
         ['output'],
         execution_props=BlockExecutionProperties(cpu=True, gpu=False, plain=False)
     )
-
-    AGGREGATION_FUNCTIONS = {
-        'max': partial(np.max, axis=-1),
-        'mean': partial(np.mean, axis=-1),
-    }
-
-    class PoolingIndices(NamedTuple):
-        """
-        Attributes:
-            xs_shape: Input shape.
-            full_index_tuple: Tuple of indices of each pixel for each group (corner position).
-            n_corners: Number of corners.
-            n_kernel_points: Number of points inside kernel.
-            pooled_shape: Pooling result shape (excluding the n_sample dimension).
-        """
-        xs_shape: Tuple[int]
-        full_index_tuple: Tuple[np.ndarray]
-        n_corners: int
-        n_kernel_points: int
-        pooled_shape: Tuple[int]
-
 
     def __init__(self, kernel_size: Union[int, Tuple[int]] = 3,
                  stride: Union[None, int, Tuple[int]] = None,
@@ -79,8 +80,8 @@ class PoolingBlock(BaseBlock):
         """
         if callable(self.aggregation):
             return self.aggregation(grouped_data)
-        elif self.aggregation in self.AGGREGATION_FUNCTIONS:
-            return self.AGGREGATION_FUNCTIONS[self.aggregation](grouped_data)
+        elif self.aggregation in AGGREGATION_FUNCTIONS:
+            return AGGREGATION_FUNCTIONS[self.aggregation](grouped_data)
         raise ValueError(f'Wrong aggregation function: {self.aggregation!r}')
 
     def __prepare_kernel(self, n_spatial_dims):
@@ -139,7 +140,7 @@ class PoolingBlock(BaseBlock):
                 np.repeat(all_ids, n_channels, axis=1)
             ), axis=0)
         )
-        self.pooling_indices_ = self.PoolingIndices(
+        self.pooling_indices_ = PoolingIndices(
             xs_shape,
             full_index_tuple,
             corner_ids.shape[1],
