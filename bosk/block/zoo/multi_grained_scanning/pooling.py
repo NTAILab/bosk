@@ -43,7 +43,7 @@ class PoolingBlock(BaseBlock):
     def __init__(self, kernel_size: Union[int, Tuple[int]] = 3,
                  stride: Union[None, int, Tuple[int]] = None,
                  dilation: int = 1,
-                 padding: bool = False,
+                 padding: Optional[int] = None,
                  aggregation: str = 'max',
                  chunk_size: int = -1):
         """Initialize Pooling Block.
@@ -52,7 +52,8 @@ class PoolingBlock(BaseBlock):
             kernel_size: Kernel size (int or tuple).
             stride: Stride.
             dilation: Dilation (kernel stride).
-            padding: Use padding or crop.
+            padding: Padding size (see `numpy.pad`);
+                     if None padding is disabled.
             aggregation: Aggregation operation name.
             chunk_size: Chunk size. Affects performance.
 
@@ -147,8 +148,25 @@ class PoolingBlock(BaseBlock):
         )
         return self.pooling_indices_
 
+    def __pad(self, xs: np.ndarray) -> np.ndarray:
+        """Add zero padding to the input array.
+        """
+        n_spatial_dims = xs.ndim - 2
+        if isinstance(self.padding, tuple):
+            padding_size = self.padding
+        else:
+            padding_size = ((self.padding, self.padding),) * n_spatial_dims
+        return np.pad(
+            xs,
+            pad_width=((0, 0), (0, 0), *padding_size),
+            mode='edge',
+        )
+
+
     def __chunk_pooling(self, xs: np.ndarray) -> np.ndarray:
         n_samples, n_channels, *_ = xs.shape
+        if self.padding is not None:
+            xs = self.__pad(xs)
         pooling_indices = self.__prepare_pooling_indices(xs.shape)
         result = []
         for i in range(n_samples):
