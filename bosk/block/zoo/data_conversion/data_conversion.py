@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import jax.numpy as jnp
 import numpy as np
@@ -6,6 +6,57 @@ import numpy as np
 from bosk.block import BaseBlock, BlockInputData, TransformOutputData
 from bosk.block.meta import make_simple_meta, BlockExecutionProperties
 from bosk.data import GPUData, CPUData
+
+
+class ReshapeBlock(BaseBlock):
+    meta = None
+
+    def __init__(self, new_shape: Tuple[int], input_name: str = 'X'):
+        self.meta = make_simple_meta([input_name], [input_name],
+                                     execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True))
+        super().__init__()
+        self.new_shape = new_shape
+
+    def fit(self, _inputs: BlockInputData) -> 'ConcatBlock':
+        return self
+
+    def transform(self, inputs: BlockInputData) -> TransformOutputData:
+        assert len(inputs) == 1
+        name, inp = next(iter(inputs.items()))
+        if isinstance(inp, CPUData):
+            reshaped = CPUData(inp.data.reshape(self.new_shape))
+        elif isinstance(inp, GPUData):
+            reshaped = GPUData(inp.data.reshape(self.new_shape))
+        else:
+            raise NotImplementedError(f'Not implemented for input type: {type(inp)!r}')
+
+        return {name: reshaped}
+
+
+class FlattenBlock(BaseBlock):
+    """Flattens all dimension except the first.
+    """
+    meta = None
+
+    def __init__(self, input_name: str = 'X'):
+        self.meta = make_simple_meta([input_name], [input_name],
+                                     execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True))
+        super().__init__()
+
+    def fit(self, _inputs: BlockInputData) -> 'ConcatBlock':
+        return self
+
+    def transform(self, inputs: BlockInputData) -> TransformOutputData:
+        assert len(inputs) == 1
+        name, inp = next(iter(inputs.items()))
+        if isinstance(inp, CPUData):
+            reshaped = CPUData(inp.data.reshape((inp.data.shape[0], -1)))
+        elif isinstance(inp, GPUData):
+            reshaped = GPUData(inp.data.reshape((inp.data.shape[0], -1)))
+        else:
+            raise NotImplementedError(f'Not implemented for input type: {type(inp)!r}')
+
+        return {name: reshaped}
 
 
 class ConcatBlock(BaseBlock):
