@@ -17,7 +17,7 @@ class FitLambdaBlock(BaseBlock):
             inputs=[
                 InputSlotMeta(
                     name=inp,
-                    stages=Stages(transform=False, transform_on_fit=True),
+                    stages=Stages(transform=True, transform_on_fit=True),
                 )
                 for inp in inputs
             ],
