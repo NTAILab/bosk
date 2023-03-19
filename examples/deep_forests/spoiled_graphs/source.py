@@ -12,6 +12,8 @@ from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBloc
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
 from bosk.block.zoo.metrics import RocAucBlock
 from bosk.executor.topological import TopologicalExecutor
+from bosk.data import CPUData
+
 
 # one vital connection of this graph is forgotten
 # only one output rf_1_roc-auc remains
@@ -116,17 +118,18 @@ def make_rf_lost_connection(executor, **ex_kw):
     )
     return fit_executor, transform_executor
 
+
 def main():
     executor_class = TopologicalExecutor
     fit_executor, transform_executor = make_rf_lost_connection(executor_class)
 
     all_X, all_y = make_moons(noise=0.5, random_state=42)
     train_X, test_X, train_y, _ = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    fit_result = fit_executor({'X': train_X, 'y': train_y})
+    fit_result = fit_executor({'X': CPUData(train_X), 'y': CPUData(train_y)})
     print('fit result contains next data:')
     for key, val in fit_result.items():
         print(key, val)
-    test_result = transform_executor({'X': test_X})
+    test_result = transform_executor({'X': CPUData(test_X)})
     print('test result contains next data:')
     for key, val in test_result.items():
         print(key, val)

@@ -17,6 +17,7 @@ from sklearn.metrics import roc_auc_score
 
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
+from bosk.data import CPUData
 
 import warnings
 import copy
@@ -97,10 +98,12 @@ class BaseGrowingStrategy(ABC):
     def get_details(self) -> Mapping[str, Any]:
         ...
 
+
 class LayerFactoryBase(ABC):
     @abstractmethod
     def get_new_layer(self) -> BasePipeline:
         ...
+
 
 @dataclass
 class EarlyStoppingStrategy(BaseGrowingStrategy):
@@ -117,6 +120,7 @@ class EarlyStoppingStrategy(BaseGrowingStrategy):
     def get_details(self) -> Mapping[str, Any]:
         return {'iterations remain': self.max_iter_num - self._cur_iter}
 
+
 class ROCAUCStrategy(BaseGrowingStrategy):
     def __init__(self):
         self.last_score = 0
@@ -127,13 +131,14 @@ class ROCAUCStrategy(BaseGrowingStrategy):
         assert labels is not None
         if transform_results is None:
             return True
-        current_score = roc_auc_score(labels['labels'], transform_results['probas'][:, 1])
+        current_score = roc_auc_score(labels['labels'].data, transform_results['probas'].data[:, 1])
         result = self.last_score < current_score
         self.last_score = current_score
         return result
     
     def get_details(self) -> Mapping[str, Any]:
         return {'roc-auc test score': self.last_score}
+
 
 class ComplexGrowingStrategy(BaseGrowingStrategy):
     def __init__(self, strategies: Sequence[BaseGrowingStrategy]) -> None:
@@ -154,6 +159,7 @@ class ComplexGrowingStrategy(BaseGrowingStrategy):
                 else:
                     res[key] = val
         return res
+
 
 class SimpleDFLayerFactory(LayerFactoryBase):
     def __init__(self):
@@ -188,15 +194,19 @@ class SimpleDFLayerFactory(LayerFactoryBase):
         self.called += 1
         return b.build(inputs, outputs)
 
+
 class FitCallback(ABC):
     @abstractmethod
     def __call__(self, df_fit_output: Mapping[str, Data]) -> None:
         ...
 
+
 # this test is specically made to test unnecessary internal output
 class ROCAUCCallback(FitCallback):
     def __call__(self, df_fit_output: Mapping[str, Data]) -> None:
+        print(df_fit_output.keys())
         print('Fit roc-auc score:', df_fit_output['roc-auc'])
+
 
 class SimpleGrowingFitter():
     def __init__(self, pipeline: StepwisePipeline,
@@ -278,12 +288,13 @@ def main():
     growing_manager = SimpleGrowingFitter(growing_pipeline, SimpleDFLayerFactory(), final_strat,
         TopologicalExecutor, fit_callback=ROCAUCCallback())
 
-    growing_manager.fit({'X': train_X, 'y': train_y}, {'X': val_X}, {'labels': val_y})
+    growing_manager.fit({'X': CPUData(train_X), 'y': CPUData(train_y)}, {'X': CPUData(val_X)}, {'labels': CPUData(val_y)})
     tf_exec = growing_manager.get_transform_executor()
     output = tf_exec({'X': test_X})
 
     TopologicalPainter().from_executor(tf_exec).render('growing forest.png')
-    print("Test ROC-AUC:", roc_auc_score(test_y, output['probas'][:, 1]))
+    print("Test ROC-AUC:", roc_auc_score(test_y, output['probas'].data[:, 1]))
+
 
 if __name__ == "__main__":
     main()

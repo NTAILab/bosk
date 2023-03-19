@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 from bosk.executor.recursive import RecursiveExecutor
 from bosk.executor.topological import TopologicalExecutor
 from bosk.painter.topological import TopologicalPainter
+from bosk.data import CPUData
 
 from examples.deep_forests.casual.source import make_deep_forest, make_deep_forest_functional
 from examples.deep_forests.cs.simple import make_deep_forest_functional_confidence_screening
@@ -19,24 +20,28 @@ from examples.deep_forests.mg_scanning.mg_scanning import (make_deep_forest_func
                                                            make_deep_forest_functional_multi_grained_scanning_2d)
 from examples.deep_forests.weighted_cs.simple import make_deep_forest_weighted_confidence_screening
 
+
 def get_moons_dataset():
     all_X, all_y = make_moons(noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    return train_X, test_X, train_y, test_y
+    return CPUData(train_X), CPUData(test_X), CPUData(train_y), CPUData(test_y)
+
 
 def get_digits_dataset():
     digits = load_digits()
     all_X = digits.data
     all_y = digits.target
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    return train_X, test_X, train_y, test_y
+    return CPUData(train_X), CPUData(test_X), CPUData(train_y), CPUData(test_y)
+
 
 def get_iris_dataset():
     iris = load_iris()
     all_X = iris.data
     all_y = iris.target
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    return train_X, test_X, train_y, test_y
+    return CPUData(train_X), CPUData(test_X), CPUData(train_y),CPUData(test_y)
+
 
 class DeepForestWrapper():
     def __init__(self, df_factory, dataset_factory):
@@ -77,12 +82,13 @@ def main():
     }
     test_result_dict = dict()
     trouble_scores = []
+
     def print_scores(dictionary, postfix):
         for key, val in dictionary.items():
-                if isinstance(val, float) or isinstance(val, int):
+                if isinstance(val.data, float) or isinstance(val.data, int):
                     print(f'\t\t{key}:', val)
                 else:
-                    print(f'\t\t{key}: ... (mean {np.round(np.mean(val), 4)})', )
+                    print(f'\t\t{key}: ... (mean {np.round(np.mean(val.data), 4)})', )
                 score_dict[key + f' ({postfix})'].append(val)
     for df_name, df_wrapper in wrappers_dict.items():
         score_dict = defaultdict(list)
@@ -106,7 +112,7 @@ def main():
                 print(f'\tTaken {round(time() - time_stamp, 4)} s.')
             test_res = True
             for key, val in score_dict.items():
-                res = all([np.sum(np.abs(score - val[0])) < tol for score in val])
+                res = all([np.sum(np.abs(score.data - val[0].data)) < tol for score in val])
                 if not res:
                     trouble_scores.append(f'{df_name}, {key}')
                 test_res *= res
@@ -120,6 +126,7 @@ def main():
         print('The next scores were different:')
         for score in trouble_scores:
             print(score)
+
 
 if __name__ == "__main__":
     main()

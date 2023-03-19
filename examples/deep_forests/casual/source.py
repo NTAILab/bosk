@@ -17,6 +17,7 @@ from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBloc
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
 from bosk.block.zoo.metrics import RocAucBlock
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
+from bosk.data import CPUData
 
 
 def make_deep_forest(executor: BaseExecutor, **ex_kw):
@@ -159,13 +160,13 @@ def main():
 
     all_X, all_y = make_moons(noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    fit_result = fit_executor({'X': train_X, 'y': train_y})
+    fit_result = fit_executor({'X': CPUData(train_X), 'y': CPUData(train_y)})
     print("Fit successful")
-    train_result = transform_executor({'X': train_X})
-    print("Fit probas == probas on train:", np.allclose(fit_result['probas'], train_result['probas']))
-    test_result = transform_executor({'X': test_X})
+    train_result = transform_executor({'X': CPUData(train_X)})
+    print("Fit probas == probas on train:", np.allclose(fit_result['probas'].data, train_result['probas'].data))
+    test_result = transform_executor({'X': CPUData(test_X)})
     print(train_result.keys())
-    print("Train ROC-AUC:", roc_auc_score(train_y, train_result['probas'][:, 1]))
+    print("Train ROC-AUC:", roc_auc_score(train_y, train_result['probas'].data[:, 1]))
     print(
         "Train ROC-AUC calculated by fit_executor:",
         fit_result['roc-auc']
@@ -174,7 +175,7 @@ def main():
         "Train ROC-AUC for RF_1:",
         fit_result['rf_1_roc-auc']
     )
-    print("Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'][:, 1]))
+    print("Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'].data[:, 1]))
 
 
 if __name__ == "__main__":
