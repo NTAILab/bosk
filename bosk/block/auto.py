@@ -1,11 +1,13 @@
+from numpy.random import Generator
 from typing import Optional, Type, Mapping
 from .base import BaseBlock, BlockInputData, TransformOutputData
 from .meta import BlockMeta, BlockExecutionProperties
 from .slot import InputSlotMeta, OutputSlotMeta
 from ..data import Data
 from ..stages import Stages
+from ..utility import get_random_generator, get_rand_int
 from functools import wraps
-import logging
+import warnings
 
 
 def auto_block(_implicit_cls=None,
@@ -132,15 +134,16 @@ def auto_block(_implicit_cls=None,
                 self.__set_instance_state(state['__instance'])
                 self.slots = state['slots']
 
-            def set_random_state(self, seed: int) -> None:
+            def set_random_state(self, seed: Optional[int | Generator]) -> None:
                 if hasattr(self.__instance, 'set_random_state'):
                     return self.__instance.set_random_state(seed)
                 if random_state_field is None:
                     return super().set_random_state(seed)
                 if hasattr(self.__instance, random_state_field):
-                    setattr(self.__instance, random_state_field, seed)
+                    gen = get_random_generator(seed)
+                    setattr(self.__instance, random_state_field, get_rand_int(gen))
                 else:
-                    logging.warning("%s doesn't have random_state_field '%s'", cls.__name__,
+                    warnings.warn("%s doesn't have random_state_field '%s'", cls.__name__,
                                     random_state_field)
 
         return AutoBlock
