@@ -1,14 +1,18 @@
+from numpy.random import Generator
 from typing import Optional, Type, Mapping
-from .base import BaseBlock, BlockInputData, BlockOutputData, TransformOutputData
+from .base import BaseBlock, BlockInputData, TransformOutputData
 from .meta import BlockMeta, BlockExecutionProperties
-from .slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
+from .slot import InputSlotMeta, OutputSlotMeta
 from ..data import Data
 from ..stages import Stages
+from ..utility import get_random_generator, get_rand_int
 from functools import wraps
+import warnings
 
 
 def auto_block(_implicit_cls=None,
                execution_props: Optional[BlockExecutionProperties] = None,
+               random_state_field: str | None = 'random_state',
                auto_state: bool = False):
     """Decorator for conversion from a fit-transform class into a block.
 
@@ -17,6 +21,9 @@ def auto_block(_implicit_cls=None,
                        It is automatically passed when `@auto_block` without
                        brackets is used. Otherwise it should be `None`.
         execution_props: Custom block execution properties.
+        random_state_field: Field name in the class that corresponds to object's random seed.
+            Pass `None` if the class doesn't have any. If the class already has 
+            the `set_random_state` method, it won't be redefined.
         auto_state: Automatically implement `__getstate__` and `__setstate__` methods.
                     These methods are required for serialization.
 
@@ -126,6 +133,18 @@ def auto_block(_implicit_cls=None,
                 self.__instance = cls(*self.__args, **self.__kwargs)
                 self.__set_instance_state(state['__instance'])
                 self.slots = state['slots']
+
+            def set_random_state(self, seed: Optional[int | Generator]) -> None:
+                if hasattr(self.__instance, 'set_random_state'):
+                    return self.__instance.set_random_state(seed)
+                if random_state_field is None:
+                    return super().set_random_state(seed)
+                if hasattr(self.__instance, random_state_field):
+                    gen = get_random_generator(seed)
+                    setattr(self.__instance, random_state_field, get_rand_int(gen))
+                else:
+                    warnings.warn("%s doesn't have random_state_field '%s'", cls.__name__,
+                                    random_state_field)
 
         return AutoBlock
 

@@ -22,7 +22,7 @@ class ETCBlock(ExtraTreesClassifier):
         return CPUData(self.predict_proba(X))
 
 
-@auto_block(execution_props=BlockExecutionProperties())
+@auto_block(execution_props=BlockExecutionProperties(), random_state_field='random_seed_')
 class CatBoostClassifierBlock(CatBoostClassifier):
     def transform(self, X):
         return CPUData(self.predict_proba(X))

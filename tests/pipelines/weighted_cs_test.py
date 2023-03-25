@@ -9,21 +9,20 @@ from typing import Dict, Optional, Sequence, Tuple
 
 class WeightedCSForestTest(BPT):
 
-    random_state: int = 42
     n_trees: int = 23
 
     def make_deep_forest_layer(self, b, **inputs):
-        rf = b.RFC(random_state=self.random_state, n_estimators=self.n_trees)(**inputs)
-        et = b.ETC(random_state=self.random_state, n_estimators=self.n_trees)(**inputs)
+        rf = b.RFC(n_estimators=self.n_trees)(**inputs)
+        et = b.ETC(n_estimators=self.n_trees)(**inputs)
         stack = b.Stack(['rf', 'et'], axis=1)(rf=rf, et=et)
         average = b.Average(axis=1)(X=stack)
         return average
 
-    def get_pipeline(self):
+    def _get_pipeline(self):
         b = FunctionalPipelineBuilder()
         X, y = b.Input()(), b.TargetInput()()
-        rf_1 = b.RFC(random_state=42)(X=X, y=y)
-        et_1 = b.ETC(random_state=42)(X=X, y=y)
+        rf_1 = b.RFC()(X=X, y=y)
+        et_1 = b.ETC()(X=X, y=y)
         concat_1 = b.Concat(['rf_1', 'et_1'])(rf_1=rf_1, et_1=et_1)
         stack_1 = b.Stack(['rf_1', 'et_1'], axis=1)(rf_1=rf_1, et_1=et_1)
         average_1 = b.Average(axis=1)(X=stack_1)
@@ -67,7 +66,7 @@ class WeightedCSForestTest(BPT):
                         'roc-auc': roc_auc, 'labels': argmax_3})
 
     def make_dataset(self):
-        x, y = make_moons(noise=0.5, random_state=self.random_state)
+        x, y = make_moons(noise=0.5, random_state=self.random_seed)
         self.x = CPUData(x)
         self.y = CPUData(y)
 
