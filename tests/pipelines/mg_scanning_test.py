@@ -14,24 +14,23 @@ from typing import Dict, Optional, Sequence, Tuple
 
 class MGScanning1DTest(BPT):
 
-    random_state: int = 42
     n_trees: int = 17
 
-    def get_pipeline(self):
+    def _get_pipeline(self):
         b = FunctionalPipelineBuilder()
         X, y = b.Input()(), b.TargetInput()()
         ms = b.new(MultiGrainedScanning1DBlock, models=(
-            RandomForestClassifier(random_state=self.random_state, n_estimators=self.n_trees),
-            ExtraTreesClassifier(random_state=self.random_state, n_estimators=self.n_trees)),
+            RandomForestClassifier(n_estimators=self.n_trees),
+            ExtraTreesClassifier(n_estimators=self.n_trees)),
             window_size=2, stride=2)(X=X, y=y)
-        rf_1 = b.RFC(random_state=self.random_state)(X=ms, y=y)
-        et_1 = b.ETC(random_state=self.random_state)(X=ms, y=y)
+        rf_1 = b.RFC()(X=ms, y=y)
+        et_1 = b.ETC()(X=ms, y=y)
         concat_1 = b.Concat(['ms', 'rf_1', 'et_1'])(ms=ms, rf_1=rf_1, et_1=et_1)
-        rf_2 = b.RFC(random_state=self.random_state)(X=concat_1, y=y)
-        et_2 = b.ETC(random_state=self.random_state)(X=concat_1, y=y)
+        rf_2 = b.RFC()(X=concat_1, y=y)
+        et_2 = b.ETC()(X=concat_1, y=y)
         concat_2 = b.Concat(['ms', 'rf_2', 'et_2'])(ms=ms, rf_2=rf_2, et_2=et_2)
-        rf_3 = b.RFC(random_state=self.random_state)(X=concat_2, y=y)
-        et_3 = b.ETC(random_state=self.random_state)(X=concat_2, y=y)
+        rf_3 = b.RFC()(X=concat_2, y=y)
+        et_3 = b.ETC()(X=concat_2, y=y)
         stack_3 = b.Stack(['rf_3', 'et_3'], axis=1)(rf_3=rf_3, et_3=et_3)
         average_3 = b.Average(axis=1)(X=stack_3)
         argmax_3 = b.Argmax(axis=1)(X=average_3)
@@ -65,24 +64,23 @@ class MGScanning1DTest(BPT):
 
 class MGScanning2DTest(BPT):
 
-    random_state: int = 42
     n_trees: int = 13
 
-    def get_pipeline(self):
+    def _get_pipeline(self):
         b = FunctionalPipelineBuilder()
         X, y = b.Input()(), b.TargetInput()()
         ms = b.new(MultiGrainedScanning2DBlock, models=(
-            RandomForestClassifier(random_state=self.random_state, n_estimators=self.n_trees),
-            ExtraTreesClassifier(random_state=self.random_state, n_estimators=self.n_trees)),
+            RandomForestClassifier(n_estimators=self.n_trees),
+            ExtraTreesClassifier(n_estimators=self.n_trees)),
             window_size=5, stride=3, shape_sample=[8, 8])(X=X, y=y)
-        rf_1 = b.RFC(random_state=self.random_state)(X=ms, y=y)
-        et_1 = b.ETC(random_state=self.random_state)(X=ms, y=y)
+        rf_1 = b.RFC()(X=ms, y=y)
+        et_1 = b.ETC()(X=ms, y=y)
         concat_1 = b.Concat(['ms', 'rf_1', 'et_1'])(ms=ms, rf_1=rf_1, et_1=et_1)
-        rf_2 = b.RFC(random_state=self.random_state)(X=concat_1, y=y)
-        et_2 = b.ETC(random_state=self.random_state)(X=concat_1, y=y)
+        rf_2 = b.RFC()(X=concat_1, y=y)
+        et_2 = b.ETC()(X=concat_1, y=y)
         concat_2 = b.Concat(['ms', 'rf_2', 'et_2'])(ms=ms, rf_2=rf_2, et_2=et_2)
-        rf_3 = b.RFC(random_state=self.random_state)(X=concat_2, y=y)
-        et_3 = b.ETC(random_state=self.random_state)(X=concat_2, y=y)
+        rf_3 = b.RFC()(X=concat_2, y=y)
+        et_3 = b.ETC()(X=concat_2, y=y)
         stack_3 = b.Stack(['rf_3', 'et_3'], axis=1)(rf_3=rf_3, et_3=et_3)
         average_3 = b.Average(axis=1)(X=stack_3)
         argmax_3 = b.Argmax(axis=1)(X=average_3)
