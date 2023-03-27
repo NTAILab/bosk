@@ -27,15 +27,32 @@ class RocAucBlock(BaseBlock):
         execution_props=BlockExecutionProperties()
     )
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        """Initialize RocAucBlock.
+
+        Args:
+            **kwargs: Arguments for `sklearn.metrics.roc_auc_score`.
+
+        """
         super().__init__()
+        self.roc_auc_score_kwargs = kwargs
 
     def fit(self, _inputs: BlockInputData) -> 'RocAucBlock':
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
+        pred_probas = inputs['pred_probas'].data
+        if pred_probas.shape[1] == 2:
+            # the binary case is special for the `roc_auc_score`
+            pred_probas = pred_probas[:, 1]
         return {
-            'roc-auc': CPUData(roc_auc_score(inputs['gt_y'].data, inputs['pred_probas'].data[:, 1]))
+            'roc-auc': CPUData(
+                roc_auc_score(
+                    inputs['gt_y'].data,
+                    pred_probas,
+                    **self.roc_auc_score_kwargs
+                )
+            )
         }
 
 
@@ -75,7 +92,7 @@ class AccuracyBlock(BaseBlock):
     meta = BlockMeta(
         inputs=[
             InputSlotMeta(
-                name='pred_probas',
+                name='pred',
                 stages=Stages(transform=False, transform_on_fit=True),
             ),
             InputSlotMeta(
@@ -99,7 +116,7 @@ class AccuracyBlock(BaseBlock):
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         return {
-            'accuracy': CPUData(accuracy_score(inputs['gt_y'].data, inputs['pred_probas'].data[:, 1]))
+            'accuracy': CPUData(accuracy_score(inputs['gt_y'].data, inputs['pred'].data))
         }
 
 
@@ -107,7 +124,7 @@ class F1ScoreBlock(BaseBlock):
     meta = BlockMeta(
         inputs=[
             InputSlotMeta(
-                name='pred_probas',
+                name='pred',
                 stages=Stages(transform=False, transform_on_fit=True),
             ),
             InputSlotMeta(
@@ -123,15 +140,28 @@ class F1ScoreBlock(BaseBlock):
         execution_props=BlockExecutionProperties()
     )
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        """Initialize F1ScoreBlock.
+
+        Args:
+            **kwargs: Arguments for `sklearn.metrics.f1_score`.
+
+        """
         super().__init__()
+        self.f1_score_kwargs = kwargs
 
     def fit(self, _inputs: BlockInputData) -> 'F1ScoreBlock':
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         return {
-            'f1-score': CPUData(f1_score(inputs['gt_y'].data, inputs['pred_probas'].data[:, 1]))
+            'f1-score': CPUData(
+                f1_score(
+                    inputs['gt_y'].data,
+                    inputs['pred'].data,
+                    **self.f1_score_kwargs
+                )
+            )
         }
 
 
@@ -139,7 +169,7 @@ class R2ScoreBlock(BaseBlock):
     meta = BlockMeta(
         inputs=[
             InputSlotMeta(
-                name='pred_probas',
+                name='pred',
                 stages=Stages(transform=False, transform_on_fit=True),
             ),
             InputSlotMeta(
@@ -155,13 +185,26 @@ class R2ScoreBlock(BaseBlock):
         execution_props=BlockExecutionProperties()
     )
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        """Initialize R2ScoreBlock.
+
+        Args:
+            **kwargs: Arguments for `sklearn.metrics.r2_score`.
+
+        """
         super().__init__()
+        self.r2_score_kwargs = kwargs
 
     def fit(self, _inputs: BlockInputData) -> 'R2ScoreBlock':
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         return {
-            'r2-score': CPUData(r2_score(inputs['gt_y'].data, inputs['pred_probas'].data[:, 1]))
+            'r2-score': CPUData(
+                r2_score(
+                    inputs['gt_y'].data,
+                    inputs['pred'].data,
+                    **self.r2_score_kwargs
+                )
+            )
         }
