@@ -100,7 +100,7 @@ class PoolingBlock(BaseBlock):
         result = []
         for i in range(n_samples):
             grouped_data = xs[i][pooling_indices.full_index_tuple].reshape((
-                -1, pooling_indices.n_corners, pooling_indices.n_kernel_points
+                n_channels, pooling_indices.n_corners, pooling_indices.n_kernel_points
             ))
             aggregated = self.__aggregate(grouped_data)
             aggregated = aggregated.reshape((n_channels, *pooling_indices.pooled_shape))

@@ -166,7 +166,7 @@ class _ConvolutionHelper:
         full_index_tuple = tuple(
             np.concatenate((
                 np.arange(all_ids.shape[1] * n_channels)[np.newaxis] // all_ids.shape[1],
-                np.repeat(all_ids, n_channels, axis=1)
+                np.tile(all_ids, (1, n_channels))
             ), axis=0)
         )
         pooling_indices = _PoolingIndices(
