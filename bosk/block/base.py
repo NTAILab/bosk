@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Mapping, TypeVar
+from numpy.random import Generator
+from typing import Mapping, TypeVar, Optional
 
 from .meta import BlockMeta
 from ..data import Data
@@ -119,3 +120,8 @@ class BaseBlock(ABC):
 
         """
         visitor.visit(self)
+
+    def set_random_state(self, seed: Optional[int | Generator]) -> None:
+        """Set random seed for the block using numpy
+        random generator or integer value.
+        """

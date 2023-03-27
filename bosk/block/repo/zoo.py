@@ -2,17 +2,6 @@ from types import ModuleType
 from ..base import BaseBlock
 from .scope import ScopeBlockClassRepository
 from typing import Type, Union
-# from ..zoo.data_conversion.data_conversion import *
-# from ..zoo.data_weighting.data_weighting import *
-# from ..zoo.input_plugs.input_plugs import *
-# from ..zoo.metrics.metrics import *
-# from ..zoo.models.classification.classification_models import *
-# from ..zoo.models.regression.regression_models import *
-# from ..zoo.multi_grained_scanning.multi_grained_scanning import *
-# from ..zoo.multi_grained_scanning.multi_grained_scanning_1d import *
-# from ..zoo.multi_grained_scanning.multi_grained_scanning_2d import *
-# from ..zoo.routing.routing import *
-
 from ...block import zoo as zoo_module
 import importlib
 import pkgutil

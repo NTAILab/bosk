@@ -2,13 +2,14 @@ from typing import List
 
 import numpy as np
 
-from bosk.block import BaseBlock, BlockInputData, TransformOutputData
-from bosk.block.meta import make_simple_meta
-from bosk.data import CPUData
+from ...base import BaseBlock, BlockInputData, TransformOutputData
+from ...meta import BlockExecutionProperties, make_simple_meta
+from ....data import CPUData
 
 
 class CSBlock(BaseBlock):
-    meta = make_simple_meta(['X'], ['mask', 'best'])
+    meta = make_simple_meta(['X'], ['mask', 'best'],
+                            execution_props=BlockExecutionProperties(plain=True))
 
     def __init__(self, eps: float = 1.0):
         super().__init__()
@@ -33,7 +34,8 @@ class CSFilterBlock(BaseBlock):
     def __init__(self, input_names: List[str]):
         output_names = input_names
         self.input_names = input_names
-        self.meta = make_simple_meta(input_names + ['mask'], output_names)
+        self.meta = make_simple_meta(input_names + ['mask'], output_names,
+                                     execution_props=BlockExecutionProperties(plain=True))
         super().__init__()
 
     def fit(self, inputs: BlockInputData) -> 'CSFilterBlock':
@@ -48,7 +50,8 @@ class CSFilterBlock(BaseBlock):
 
 
 class CSJoinBlock(BaseBlock):
-    meta = make_simple_meta(['best', 'refined', 'mask'], ['output'])
+    meta = make_simple_meta(['best', 'refined', 'mask'], ['output'],
+                            execution_props=BlockExecutionProperties(plain=True))
 
     def __init__(self):
         super().__init__()

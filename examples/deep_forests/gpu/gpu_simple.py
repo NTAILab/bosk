@@ -109,8 +109,6 @@ def make_deep_forest_functional_advanced_cpu(executor, **ex_kw):
     X, y = b.Input()(), b.TargetInput()()
     rf_1 = b.RFC(random_state=42)(X=X, y=y)
     et_1 = b.ETC(random_state=42)(X=X, y=y)
-    # rf_1 = b.MoveTo("CPU")(X=rf_1)
-    # et_1 = b.MoveTo("CPU")(X=et_1)
     concat_1 = b.Concat(['X', 'rf_1', 'et_1'])(X=X, rf_1=rf_1, et_1=et_1)
     rf_2 = b.RFC(random_state=42)(X=concat_1, y=y)
     et_2 = b.ETC(random_state=42)(X=concat_1, y=y)

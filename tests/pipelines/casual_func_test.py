@@ -12,7 +12,7 @@ class CasualFuncForestTest(BPT):
     random_state: int = 42
     n_trees: int = 47
 
-    def get_pipeline(self) -> BasePipeline:
+    def _get_pipeline(self) -> BasePipeline:
         b = FunctionalPipelineBuilder()
         X, y = b.Input()(), b.TargetInput()()
         rf_1 = b.RFC(random_state=self.random_state, n_estimators=self.n_trees)(X=X, y=y)

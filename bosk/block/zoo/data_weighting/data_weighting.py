@@ -3,12 +3,14 @@ from __future__ import annotations
 import jax.numpy as jnp
 import numpy as np
 
-from bosk.block import auto_block
-from bosk.block.meta import BlockExecutionProperties
-from bosk.data import CPUData, GPUData
+from ...auto import auto_block
+from ...meta import BlockExecutionProperties
+from ....data import CPUData, GPUData
 
 
-@auto_block(auto_state=True, execution_props=BlockExecutionProperties(cpu=True, gpu=True))
+@auto_block(auto_state=True,
+            execution_props=BlockExecutionProperties(cpu=True, gpu=True),
+            random_state_field=None)
 class WeightsBlock:
     def __init__(self, ord: int = 1, device="CPU"):
         self._weights = None

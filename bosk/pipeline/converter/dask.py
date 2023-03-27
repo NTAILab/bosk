@@ -2,7 +2,7 @@ from functools import singledispatchmethod
 from typing import Any, Callable, Dict, List, Optional
 from abc import ABC, abstractmethod
 
-from bosk.stages import Stage
+from ...stages import Stage
 from ...visitor.base import BaseVisitor
 from ..base import BasePipeline
 from ...block.base import BaseBlock, BlockInputData
