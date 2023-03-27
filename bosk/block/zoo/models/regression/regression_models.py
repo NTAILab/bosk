@@ -5,9 +5,9 @@ from sklearn.ensemble import (
     ExtraTreesRegressor,
 )
 
-from bosk.block import auto_block
-from bosk.block.meta import BlockExecutionProperties
-from bosk.data import CPUData
+from ....auto import auto_block
+from ....meta import BlockExecutionProperties
+from .....data import CPUData
 
 
 @auto_block(execution_props=BlockExecutionProperties(threadsafe=True))

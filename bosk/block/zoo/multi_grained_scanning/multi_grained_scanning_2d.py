@@ -3,8 +3,8 @@ from typing import Tuple, Optional
 import itertools
 import numpy as np
 
-from bosk.block import auto_block
-from bosk.block.zoo.multi_grained_scanning.multi_grained_scanning import MultiGrainedScanningBlock
+from ...auto import auto_block
+from .multi_grained_scanning import MultiGrainedScanningBlock
 
 
 @auto_block(auto_state=True, random_state_field=None)

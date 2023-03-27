@@ -1,8 +1,8 @@
 from typing import Union
 
-from bosk.block import BaseBlock, TransformOutputData, BlockInputData
-from bosk.block.meta import make_simple_meta, BlockExecutionProperties
-from bosk.data import CPUData, GPUData, BaseData
+from ...base import BaseBlock, TransformOutputData, BlockInputData
+from ...meta import make_simple_meta, BlockExecutionProperties
+from ....data import CPUData, GPUData, BaseData
 
 
 class MoveToBlock(BaseBlock):

@@ -2,9 +2,9 @@ from typing import List
 
 import numpy as np
 
-from bosk.block import BaseBlock, BlockInputData, TransformOutputData
-from bosk.block.meta import BlockExecutionProperties, make_simple_meta
-from bosk.data import CPUData
+from ...base import BaseBlock, BlockInputData, TransformOutputData
+from ...meta import BlockExecutionProperties, make_simple_meta
+from ....data import CPUData
 
 
 class CSBlock(BaseBlock):
