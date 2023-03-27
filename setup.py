@@ -9,7 +9,7 @@ with open('requirements.txt') as f:
 setup(
     install_requires=[],
     name="bosk",
-    version=0.1.0,
+    version="0.1.0",
     author="NTAILab",
     description="Deep Forest package.",
     long_description=long_description,
