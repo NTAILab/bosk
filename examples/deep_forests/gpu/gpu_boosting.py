@@ -11,7 +11,7 @@ from bosk.executor.descriptor import HandlingDescriptor
 from bosk.executor.recursive import RecursiveExecutor
 from bosk.stages import Stage
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
-from bosk.data import CPUData, GPUData
+from bosk.data import CPUData
 
 
 def make_deep_forest_functional_gpu(executor, **ex_kw):
@@ -19,13 +19,9 @@ def make_deep_forest_functional_gpu(executor, **ex_kw):
     X, y = b.Input()(), b.TargetInput()()
     rf_1 = b.XGBClassifier(tree_method="gpu_hist", random_state=42)(X=X, y=y)
     et_1 = b.ETC(random_state=42)(X=X, y=y)
-    rf_1 = b.MoveTo("GPU")(X=rf_1)
-    et_1 = b.MoveTo("GPU")(X=et_1)
     concat_1 = b.Concat(['X', 'rf_1', 'et_1'])(X=X, rf_1=rf_1, et_1=et_1)
     rf_2 = b.XGBClassifier(tree_method="gpu_hist", random_state=42)(X=concat_1, y=y)
     et_2 = b.ETC(random_state=42)(X=concat_1, y=y)
-    rf_2 = b.MoveTo("GPU")(X=rf_2)
-    et_2 = b.MoveTo("GPU")(X=et_2)
     concat_2 = b.Concat(['X', 'rf_2', 'et_2'])(X=X, rf_2=rf_2, et_2=et_2)
     rf_3 = b.XGBClassifier(tree_method="gpu_hist", random_state=42)(X=concat_2, y=y)
     et_3 = b.ETC(random_state=42)(X=concat_2, y=y)
@@ -132,11 +128,11 @@ def run_gpu():
 
     all_X, all_y = make_moons(noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    fit_result = fit_executor({'X': GPUData(train_X), 'y': GPUData(train_y)})
+    fit_result = fit_executor({'X': CPUData(train_X), 'y': CPUData(train_y)})
     print("Fit successful")
-    train_result = transform_executor({'X': GPUData(train_X)})
+    train_result = transform_executor({'X': CPUData(train_X)})
     print("Fit probas == probas on train:", np.allclose(fit_result['probas'].data, train_result['probas'].data))
-    test_result = transform_executor({'X': GPUData(test_X)})
+    test_result = transform_executor({'X': CPUData(test_X)})
     print(train_result.keys())
     print("Train ROC-AUC:", roc_auc_score(train_y, train_result['probas'].data[:, 1]))
     print(

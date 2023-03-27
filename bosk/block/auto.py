@@ -42,9 +42,6 @@ def auto_block(_implicit_cls=None,
 
         """
         fit_argnames = set(cls.fit.__code__.co_varnames[1:cls.fit.__code__.co_argcount])
-        if len(fit_argnames) == 0:  # TODO: Arguments not found for XGBOOST
-            fit_argnames = set('X')
-            fit_argnames.add('y')
         transform_argnames = set(cls.transform.__code__.co_varnames[1:cls.transform.__code__.co_argcount])
 
         @wraps(cls, updated=())

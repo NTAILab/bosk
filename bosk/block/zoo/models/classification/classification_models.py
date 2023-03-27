@@ -30,5 +30,8 @@ class CatBoostClassifierBlock(CatBoostClassifier):
 
 @auto_block(execution_props=BlockExecutionProperties())
 class XGBClassifierBlock(XGBClassifier):
+    def fit(self, X, y):
+        super().fit(X, y)
+
     def transform(self, X):
         return CPUData(self.predict_proba(X))
