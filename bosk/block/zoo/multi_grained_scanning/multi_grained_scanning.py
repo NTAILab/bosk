@@ -5,8 +5,8 @@ import numpy as np
 from numpy.random import Generator
 import warnings
 
-from bosk.data import CPUData
-from bosk.utility import get_random_generator, get_rand_int
+from ....data import CPUData
+from ....utility import get_random_generator, get_rand_int
 
 
 class MultiGrainedScanningBlock(ABC):

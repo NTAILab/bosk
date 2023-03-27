@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, Sequence
 
-from bosk.pipeline.base import BasePipeline
+from .base import BasePipeline
 from .connection import Connection
 from ..block.slot import BlockInputSlot, BlockOutputSlot
 from ..block.base import BaseBlock
