@@ -15,6 +15,7 @@ from bosk.executor.descriptor import HandlingDescriptor
 from bosk.block.zoo.multi_grained_scanning import \
     (MultiGrainedScanning1DBlock, MultiGrainedScanning2DBlock)
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
+from bosk.data import CPUData
 
 
 def make_deep_forest_functional_multi_grained_scanning_1d(executor, **ex_kw):
@@ -138,13 +139,13 @@ def example_iris_dataset():
     all_X = iris.data
     all_y = iris.target
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    fit_result = fit_executor({'X': train_X, 'y': train_y})
+    fit_result = fit_executor({'X': CPUData(train_X), 'y': CPUData(train_y)})
     print("Fit successful")
-    train_result = transform_executor({'X': train_X})
-    print("Fit probas == probas on train:", np.allclose(fit_result['probas'], train_result['probas']))
-    test_result = transform_executor({'X': test_X})
+    train_result = transform_executor({'X': CPUData(train_X)})
+    print("Fit probas == probas on train:", np.allclose(fit_result['probas'].data, train_result['probas'].data))
+    test_result = transform_executor({'X': CPUData(test_X)})
     print(train_result.keys())
-    print("Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'], multi_class="ovr"))
+    print("Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'].data, multi_class="ovr"))
 
 
 def example_digits_dataset():
@@ -154,13 +155,13 @@ def example_digits_dataset():
     all_X = digits.data
     all_y = digits.target
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    fit_result = fit_executor({'X': train_X, 'y': train_y})
+    fit_result = fit_executor({'X': CPUData(train_X), 'y': CPUData(train_y)})
     print("Fit successful")
-    train_result = transform_executor({'X': train_X})
-    print("Fit probas == probas on train:", np.allclose(fit_result['probas'], train_result['probas']))
-    test_result = transform_executor({'X': test_X})
+    train_result = transform_executor({'X': CPUData(train_X)})
+    print("Fit probas == probas on train:", np.allclose(fit_result['probas'].data, train_result['probas'].data))
+    test_result = transform_executor({'X': CPUData(test_X)})
     print(train_result.keys())
-    print("Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'], multi_class="ovr"))
+    print("Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'].data, multi_class="ovr"))
 
 
 def main():

@@ -30,5 +30,8 @@ class CatBoostRegressorBlock(CatBoostRegressor):
 
 @auto_block(execution_props=BlockExecutionProperties())
 class XGBCRegressorBlock(XGBRegressor):
+    def fit(self, X, y):
+        super().fit(X, y)
+
     def transform(self, X):
         return CPUData(self.predict(X))
