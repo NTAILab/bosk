@@ -22,7 +22,7 @@ class NDimensionalMGScanning2DTest(BPT):
     random_state: int = 42
     n_trees: int = 13
 
-    def get_pipeline(self):
+    def _get_pipeline(self):
         b = FunctionalPipelineBuilder()
         X, y = b.Input()(), b.TargetInput()()
         X = b.Reshape((-1, 1, 8, 8))(X=X)
