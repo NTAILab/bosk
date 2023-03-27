@@ -5,16 +5,40 @@ from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.data import BaseData
 from collections import deque, defaultdict
+from copy import deepcopy
+from .metric import BaseMetric
 import joblib
 from functools import cache
-from typing import List, Callable, Set, Dict
+from typing import List, Set, Dict
+
+
+class BaseForeignModel(ABC):
+
+    @abstractmethod
+    def fit(self, data: Dict[str, BaseData]) -> None:
+        """Method to handle the data dictionary and fit the model."""
+
+    @abstractmethod
+    def predict(self, data: Dict[str, BaseData]) -> Dict[str, BaseData]:
+        """Method for using the fitted model and obtain transformed 
+        data dictionary."""
 
 
 @cache
 def get_block_hash(block: BaseBlock):
     return joblib.hash(block)
 
+
 class BaseComparator(ABC):
+    def _get_results_dict(self, nested_dict:
+                          Dict[str, float | List[float]]) -> Dict[str, Dict[str, float | List[float]]]:
+        res_dict = dict()
+        for i in range(len(self.optim_pipelines)):
+            res_dict[f'pipeline_{i}'] = deepcopy(nested_dict)
+        for i in range(len(self.models)):
+            res_dict[f'model_{i}'] = deepcopy(nested_dict)
+        return res_dict
+
     def _get_aj_lists(self, pipeline: BasePipeline):
         conn_map_blocks: Dict[BaseBlock, Set[BaseBlock]] = defaultdict(set)  # output->input, forward pass
         conn_map_conns: Dict[BlockInputSlot, BlockOutputSlot] = dict()  # input->output, backward pass
@@ -43,8 +67,9 @@ class BaseComparator(ABC):
                 return blocks_iso[cp_prev_block] == pip_prev_block
         return True
 
-    def __init__(self, pipelines: List[BasePipeline], common_part: BasePipeline) -> None:
-        
+    def __init__(self, pipelines: List[BasePipeline], common_part: BasePipeline,
+                 foreign_models: List[BaseForeignModel]) -> None:
+
         # 1. Step of bfs in common part is leading
         # 2. Each time when block is extracted on step 1, we look in the queue
         # of other pipelines for isomorphic blocks (compare blocks + conns)
@@ -61,7 +86,7 @@ class BaseComparator(ABC):
         # by the original output block.
         # 7. Otherwise, we disconnect the original block (isomorphic for the common's part
         # output) from the corresponding block in the pipeline and mark correspondig input
-        # slot as new input of the pipeline (we will pass data from the common's part to 
+        # slot as new input of the pipeline (we will pass data from the common's part to
         # this input).
 
         conn_map_blocks_cp, conn_map_conns_cp = self._get_aj_lists(common_part)
@@ -73,7 +98,7 @@ class BaseComparator(ABC):
         queue_list = []
         block_iso_list = []
         conn_iso_list = []
-        
+
         for pipeline in pipelines:
             cur_blocks_al, cur_conns_al = self._get_aj_lists(pipeline)
             conn_maps_blocks.append(cur_blocks_al)
@@ -96,7 +121,8 @@ class BaseComparator(ABC):
                 match_idxes = [i for i, hash in enumerate(queue_hashes) if hash == cur_block_hash]
                 match_block: BaseBlock = None
                 for idx in match_idxes:
-                    if self._compare_blocks(cur_block, queue_list[i][idx], conn_map_conns_cp, conn_maps_conns[i], block_iso_list[i]):
+                    if self._compare_blocks(cur_block, queue_list[i][idx],
+                                            conn_map_conns_cp, conn_maps_conns[i], block_iso_list[i]):
                         match_block = queue_list[i][idx]
                         # delete matched block from the queue
                         del queue_list[i][idx]
@@ -184,7 +210,16 @@ class BaseComparator(ABC):
             new_blocks = pipeline.nodes + extra_blocks
             self.optim_pipelines.append(BasePipeline(new_blocks, new_conns, new_inputs, new_outputs))
         self.common_pipeline = common_part
+        self.models = foreign_models
 
     @abstractmethod
-    def get_score(self, data: Dict[str, BaseData], metrics: List[Callable]):
-        """Function to obtain results of different metrics for the models."""
+    def get_score(self, data: Dict[str, BaseData],
+                  metrics: List[BaseMetric]) -> Dict[str, Dict[str, float | List[float]]]:
+        """Function to obtain results of different metrics for the models.
+        Returns:
+            Dictionary with keys as models' names (`pipeline_i` for i-th pipeline and 
+            `model_i` for i-th foreign model) and values as dictionaries. These dictionaries
+            contain metrics' names as keys (metric name for the named metrics and `metric_i`
+            for the unnamed ones) and scores as values. List length of n corresponds to n
+            iterations or folds.
+        """
