@@ -1,5 +1,5 @@
-from bosk.block.slot import InputSlotMeta, OutputSlotMeta
-from bosk.stages import Stages
+from ...slot import InputSlotMeta, OutputSlotMeta
+from ....stages import Stages
 import numpy as np
 from typing import List, Optional, Tuple, Union, NamedTuple
 from functools import partial

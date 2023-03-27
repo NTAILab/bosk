@@ -1,7 +1,7 @@
 from typing import Callable, Sequence
-from bosk.block.meta import BlockExecutionProperties
-from bosk.block.slot import InputSlotMeta, OutputSlotMeta
-from bosk.stages import Stages
+from ...meta import BlockExecutionProperties
+from ...slot import InputSlotMeta, OutputSlotMeta
+from ....stages import Stages
 from ...base import BaseBlock, BlockInputData, BlockMeta, TransformOutputData
 
 

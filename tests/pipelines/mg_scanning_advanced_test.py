@@ -22,7 +22,7 @@ class AdvancedMGScanning2DTest(BPT):
     random_state: int = 42
     n_trees: int = 13
 
-    def get_pipeline(self):
+    def _get_pipeline(self):
         b = FunctionalPipelineBuilder()
         X, y = b.Input()(), b.TargetInput()()
         ms = b.new(MultiGrainedScanning2DBlock, models=(

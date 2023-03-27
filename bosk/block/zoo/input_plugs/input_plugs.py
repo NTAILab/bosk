@@ -1,8 +1,7 @@
-from bosk.block import BaseBlock, BlockInputData, TransformOutputData
-from bosk.stages import Stages
-from bosk.block import BlockMeta
-from bosk.block.slot import InputSlotMeta, OutputSlotMeta
-from bosk.block.meta import BlockExecutionProperties, make_simple_meta
+from ...base import BaseBlock, BlockInputData, TransformOutputData
+from ....stages import Stages
+from ...slot import InputSlotMeta, OutputSlotMeta
+from ...meta import BlockMeta, BlockExecutionProperties, make_simple_meta
 
 
 class InputBlock(BaseBlock):

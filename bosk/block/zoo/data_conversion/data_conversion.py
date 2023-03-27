@@ -3,9 +3,9 @@ from typing import List, Tuple
 import jax.numpy as jnp
 import numpy as np
 
-from bosk.block import BaseBlock, BlockInputData, TransformOutputData
-from bosk.block.meta import make_simple_meta, BlockExecutionProperties
-from bosk.data import GPUData, CPUData
+from ...base import BaseBlock, BlockInputData, TransformOutputData
+from ...meta import make_simple_meta, BlockExecutionProperties
+from ....data import GPUData, CPUData
 
 
 class ReshapeBlock(BaseBlock):

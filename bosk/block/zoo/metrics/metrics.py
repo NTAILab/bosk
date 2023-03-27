@@ -1,11 +1,10 @@
 from sklearn.metrics import roc_auc_score, accuracy_score, f1_score, r2_score
 
-from bosk.block import BaseBlock, BlockInputData, TransformOutputData
-from bosk.block.meta import BlockExecutionProperties
-from bosk.data import CPUData
-from bosk.stages import Stages
-from bosk.block import BlockMeta
-from bosk.block.slot import InputSlotMeta, OutputSlotMeta
+from ...base import BaseBlock, BlockInputData, TransformOutputData
+from ...meta import BlockMeta, BlockExecutionProperties
+from ....data import CPUData
+from ....stages import Stages
+from ...slot import InputSlotMeta, OutputSlotMeta
 
 
 class RocAucBlock(BaseBlock):
