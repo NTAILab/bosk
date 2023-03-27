@@ -9,6 +9,12 @@ from ._convolution_helpers import (
     _ConvolutionParams,
     _ConvolutionHelper,
 )
+from ._pooling_impl import (
+    _njit_max_pooling_1d,
+    _njit_mean_pooling_1d,
+    _njit_max_pooling_2d,
+    _njit_mean_pooling_2d,
+)
 
 
 AGGREGATION_FUNCTIONS = {
@@ -35,7 +41,8 @@ class PoolingBlock(BaseBlock):
                  dilation: int = 1,
                  padding: Optional[int] = None,
                  aggregation: str = 'max',
-                 chunk_size: int = -1):
+                 chunk_size: int = -1,
+                 impl_type: str = 'index'):
         """Initialize Pooling Block.
 
         Args:
@@ -46,6 +53,7 @@ class PoolingBlock(BaseBlock):
                      if None padding is disabled.
             aggregation: Aggregation operation name.
             chunk_size: Chunk size. Affects performance.
+            impl_type: Implementation type ('index', 'njit').
 
         """
         super().__init__()
@@ -57,6 +65,7 @@ class PoolingBlock(BaseBlock):
         )
         self.aggregation = aggregation
         self.chunk_size = chunk_size
+        self.impl_type = impl_type
         self.pooling_indices_: Optional[_PoolingIndices] = None
         self.helper_ = _ConvolutionHelper(self.params)
 
@@ -83,7 +92,7 @@ class PoolingBlock(BaseBlock):
         self.pooling_indices_ = self.helper_.prepare_pooling_indices(xs_shape)
         return self.pooling_indices_
 
-    def __chunk_pooling(self, xs: np.ndarray) -> np.ndarray:
+    def __index_based_chunk_pooling(self, xs: np.ndarray) -> np.ndarray:
         n_samples, n_channels, *_ = xs.shape
         if self.params.padding is not None:
             xs = self.helper_.pad(xs)
@@ -98,6 +107,43 @@ class PoolingBlock(BaseBlock):
             result.append(aggregated)
         result = np.stack(result, axis=0)
         return result
+
+    def __njit_based_chunk_pooling(self, xs: np.ndarray) -> np.ndarray:
+        if self.params.padding is not None:
+            xs = self.helper_.pad(xs)
+        n_samples, n_channels, *spatial_dims = xs.shape
+        kernel_size = self.helper_.check_kernel_size(len(spatial_dims))
+        stride = self.helper_.check_stride(spatial_dims, kernel_size)
+        pooled_shape = self.helper_.get_pooled_shape(spatial_dims, kernel_size, stride)
+        result = np.zeros((n_samples, n_channels, *pooled_shape), dtype=xs.dtype)
+        if len(spatial_dims) == 2:
+            if self.aggregation == 'max':
+                _njit_max_pooling_2d(xs, result, kernel_size, stride, self.params.dilation)
+            elif self.aggregation == 'mean':
+                _njit_mean_pooling_2d(xs, result, kernel_size, stride, self.params.dilation)
+            else:
+                raise NotImplementedError(f'{self.aggregation=}')
+        elif len(spatial_dims) == 1:
+            if self.aggregation == 'max':
+                _njit_max_pooling_1d(xs, result, kernel_size, stride, self.params.dilation)
+            elif self.aggregation == 'mean':
+                _njit_mean_pooling_1d(xs, result, kernel_size, stride, self.params.dilation)
+            else:
+                raise NotImplementedError(f'{self.aggregation=}')
+        else:
+            raise ValueError(
+                f'Cannot run njit implementation on {len(spatial_dims)}-dimensional input, '
+                'please check the number of dimensions and if it is >= 3, use impl_type="index"'
+            )
+        return result
+
+    def __chunk_pooling(self, xs: np.ndarray) -> np.ndarray:
+        if self.impl_type == 'index':
+            return self.__index_based_chunk_pooling(xs)
+        elif self.impl_type == 'njit':
+            return self.__njit_based_chunk_pooling(xs)
+        raise ValueError(f'Wrong {self.impl_type=}')
+
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         """Apply Pooling to input 'X'.

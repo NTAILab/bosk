@@ -30,6 +30,36 @@ class _ConvolutionHelper:
     def __init__(self, params: _ConvolutionParams):
         self.params = params
 
+    def check_stride(self, spatial_dims: Tuple[int], kernel_size: Tuple[int]):
+        """Check the stride and return a correct stride tuple.
+
+        Args:
+            spatial_dims: Spatial dimensions.
+            kernel_size: Kernel dimensions.
+
+        Returns:
+            Stride tuple.
+
+        """
+        n_spatial_dims = len(spatial_dims)
+        if self.params.stride is None:
+            stride = kernel_size
+        elif isinstance(self.params.stride, tuple):
+            stride = self.params.stride
+        else:
+            stride = (self.params.stride,) * n_spatial_dims
+        return stride
+
+    def get_pooled_shape(self, spatial_dims: Tuple[int], kernel_size: Tuple[int], stride: Tuple[int]):
+        pooled_shape = tuple([
+            (
+                (spatial_dims[i] // s) if s >= kernel_size[i]
+                else ((spatial_dims[i] - kernel_size[i] + 1) // s)
+            )
+            for i, s in enumerate(stride)
+        ])
+        return pooled_shape
+
     def prepare_corner(self, spatial_dims: Tuple[int], kernel_size: Tuple[int]):
         """Prepare sliding window corner ids.
 
@@ -41,13 +71,7 @@ class _ConvolutionHelper:
             Sliding window corner indices.
 
         """
-        n_spatial_dims = len(spatial_dims)
-        if self.params.stride is None:
-            stride = kernel_size
-        elif isinstance(self.params.stride, tuple):
-            stride = self.params.stride
-        else:
-            stride = (self.params.stride,) * n_spatial_dims
+        stride = self.check_stride(spatial_dims, kernel_size)
         corner_ids = np.stack(
             np.meshgrid(*[
                 np.arange(
@@ -64,6 +88,21 @@ class _ConvolutionHelper:
         )
         return corner_ids
 
+    def check_kernel_size(self, n_spatial_dims: int):
+        """Check the kernel size and return a correct kernel size tuple.
+
+        Args:
+            n_spatial_dims: Number of spatial dimensions.
+
+        Returns:
+            Kernel size tuple.
+
+        """
+        if isinstance(self.params.kernel_size, tuple):
+            kernel_size = self.params.kernel_size
+        else:
+            kernel_size = (self.params.kernel_size,) * n_spatial_dims
+        return kernel_size
 
     def prepare_kernel(self, n_spatial_dims: int):
         """Prepare kernel indices.
@@ -75,17 +114,13 @@ class _ConvolutionHelper:
             Tuple (kernel size, kernel indices).
 
         """
-        if isinstance(self.params.kernel_size, tuple):
-            kernel_size = self.params.kernel_size
-        else:
-            kernel_size = (self.params.kernel_size,) * n_spatial_dims
+        kernel_size = self.check_kernel_size(n_spatial_dims)
         kernel_ids = np.stack(np.meshgrid(*[np.arange(k) for k in kernel_size], indexing='ij'), axis=0)
         # kernel_ids shape: (n_spatial_dims, k_1, ..., k_nsd)
         if self.params.dilation > 1:
             kernel_ids = kernel_ids[:, np.all(kernel_ids % self.params.dilation == 0, axis=0)]
         kernel_ids = kernel_ids.reshape((kernel_ids.shape[0], -1))
         return kernel_size, kernel_ids
-
 
     def pad(self, xs: np.ndarray) -> np.ndarray:
         """Add symmetric edge padding to the input array.
@@ -107,7 +142,6 @@ class _ConvolutionHelper:
             pad_width=((0, 0), (0, 0), *padding_size),
             mode='edge',
         )
-
 
     def prepare_pooling_indices(self, xs_shape: Tuple[int]):
         """Prepare pooling indices using convolution parameters and the input shape.
@@ -143,7 +177,6 @@ class _ConvolutionHelper:
             pooled_shape
         )
         return pooling_indices
-
 
     def slice(self, xs: np.ndarray, pooling_indices: _PoolingIndices) -> np.ndarray:
         """Cut or slice the data into pieces.
