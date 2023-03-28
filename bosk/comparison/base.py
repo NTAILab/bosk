@@ -9,10 +9,14 @@ from copy import deepcopy
 from .metric import BaseMetric
 import joblib
 from functools import cache
-from typing import List, Set, Dict
+from typing import List, Set, Dict, Optional, Iterable
 
 
 class BaseForeignModel(ABC):
+    """Adapter class for all models, defined outside
+    of the `bosk` framework. It is needed to make sure
+    that the model handles bosk's style of the data transmission. 
+    """
 
     @abstractmethod
     def fit(self, data: Dict[str, BaseData]) -> None:
@@ -26,10 +30,24 @@ class BaseForeignModel(ABC):
 
 @cache
 def get_block_hash(block: BaseBlock):
+    """Helper function to obtain blocks' hashes
+    and cache them.
+    """
     return joblib.hash(block)
 
 
 class BaseComparator(ABC):
+    """Class that performes comparison of different models.
+    The models, defined via `bosk` framework, marked as `pipelines`
+    and may have a common part in them to optimize calculations
+    (common part pipeline will be executed once and retreived 
+    data will be used in other pipelines). The common part must be
+    a common begining of all pipelines.
+
+    The models, defined with others but `bosk` frameworks, are
+    marked as `models` and must be wrapped in `BaseForeignModel`
+    adapter to handle the `bosk` data transmission style.
+    """
     def _get_results_dict(self, nested_dict:
                           Dict[str, float | List[float]]) -> Dict[str, Dict[str, float | List[float]]]:
         res_dict = dict()
@@ -67,9 +85,29 @@ class BaseComparator(ABC):
                 return blocks_iso[cp_prev_block] == pip_prev_block
         return True
 
-    def __init__(self, pipelines: List[BasePipeline], common_part: BasePipeline,
-                 foreign_models: List[BaseForeignModel]) -> None:
+    def __init__(self, pipelines: Optional[BasePipeline | List[BasePipeline]], 
+                 common_part: Optional[BasePipeline],
+                 foreign_models: Optional[BaseForeignModel | List[BaseForeignModel]]) -> None:
+        
+        # boundary cases
+        if pipelines is None and foreign_models is None:
+            raise RuntimeError("You must select models to compare")
+        if pipelines is not None and not isinstance(pipelines, Iterable):
+            pipelines = [pipelines]
+        if foreign_models is not None and not isinstance(foreign_models, Iterable):
+            foreign_models = [foreign_models]
+        if (pipelines is None or len(pipelines) == 1) and common_part is not None:
+            raise RuntimeError("You must select multiple pipelines to use common part optimization")
+        
+        self.models = [] if foreign_models is None else foreign_models
+        if common_part is None:
+            self.common_pipeline = None
+            self.optim_pipelines = [] if pipelines is None else pipelines
+            return
+        
+        self.common_pipeline = common_part
 
+        # pipelines' optimization process  
         # 1. Step of bfs in common part is leading
         # 2. Each time when block is extracted on step 1, we look in the queue
         # of other pipelines for isomorphic blocks (compare blocks + conns)
@@ -209,8 +247,6 @@ class BaseComparator(ABC):
                     new_conns.append(conn)
             new_blocks = pipeline.nodes + extra_blocks
             self.optim_pipelines.append(BasePipeline(new_blocks, new_conns, new_inputs, new_outputs))
-        self.common_pipeline = common_part
-        self.models = foreign_models
 
     @abstractmethod
     def get_score(self, data: Dict[str, BaseData],

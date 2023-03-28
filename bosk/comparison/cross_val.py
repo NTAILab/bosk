@@ -6,7 +6,6 @@ from bosk.pipeline.base import BasePipeline
 from bosk.stages import Stage
 from bosk.executor.topological import TopologicalExecutor
 from bosk.executor.descriptor import HandlingDescriptor
-from bosk.painter.topological import TopologicalPainter
 from copy import deepcopy
 import numpy as np
 from typing import List, Dict
@@ -15,6 +14,12 @@ import logging
 
 
 class CVComparator(BaseComparator):
+    """Comparator that uses a cross-validation
+    strategy of checking model's performance. You can create
+    your own iterator (based on sklearn's `BaseCrossValidator` class)
+    that will define indexes, taken in each fold,
+    or you can use predefined iterators from the `sklearn`.
+    """
 
     def _get_nested_res_dict(self, metrics: List[BaseMetric]) -> Dict[str, List]:
         nested_res_dict = dict()
@@ -55,26 +60,27 @@ class CVComparator(BaseComparator):
 
         res_dict = self._get_results_dict(self._get_nested_res_dict(metrics))
         idx = np.arange(n)
-        metrics_train_hist = []
-        metrics_test_hist = []
-        for i in range(len(self.optim_pipelines)):
-            metrics_train_hist.append([[] for _ in range(len(metrics))])
-            metrics_test_hist.append([[] for _ in range(len(metrics))])
         for i, (train_idx, test_idx) in enumerate(self.cv_strat.split(idx)):
             logging.info('Processing fold #%i', i)
 
+            # getting fold subsets of data 
             train_dict = dict()
             test_dict = dict()
             for key, val in data.items():
                 train_dict[key] = val.__class__(val.data[train_idx])
                 test_dict[key] = val.__class__(val.data[test_idx])
 
-            train_exec = self.exec_cls(self.common_pipeline,
-                                       HandlingDescriptor.from_classes(Stage.FIT))
-            common_train_res = train_exec(train_dict)
-            test_exec = self.exec_cls(self.common_pipeline,
-                                      HandlingDescriptor.from_classes(Stage.TRANSFORM))
-            common_test_res = test_exec(test_dict)
+            # processing the common part
+            if self.common_pipeline is None:
+                common_train_res = dict()
+                common_test_res = common_train_res
+            else:
+                train_exec = self.exec_cls(self.common_pipeline,
+                                        HandlingDescriptor.from_classes(Stage.FIT))
+                common_train_res = train_exec(train_dict)
+                test_exec = self.exec_cls(self.common_pipeline,
+                                        HandlingDescriptor.from_classes(Stage.TRANSFORM))
+                common_test_res = test_exec(test_dict)
 
             for j, cur_pipeline in enumerate(self.optim_pipelines):
                 pipeline = deepcopy(cur_pipeline)
@@ -107,13 +113,6 @@ class CVComparator(BaseComparator):
                 pip_test_exec = self.exec_cls(pipeline,
                                               HandlingDescriptor.from_classes(Stage.TRANSFORM))
                 pip_test_res = pip_test_exec(cur_test_dict)
-
-                # todo: debug feature, remove the painting after
-                if i == 0:
-                    TopologicalPainter().from_executor(train_exec).render('common_pipeline_fit.png')
-                    TopologicalPainter().from_executor(test_exec).render('common_pipeline_tf.png')
-                    TopologicalPainter().from_executor(pip_tr_exec).render(f'optim_pipeline_{j}_fit.png')
-                    TopologicalPainter().from_executor(pip_test_exec).render(f'optim_pipeline_{j}_tf.png')
 
                 self._write_fold_info_to_dict(res_dict, f'pipeline_{j}', metrics,
                                               train_dict, pip_train_res,

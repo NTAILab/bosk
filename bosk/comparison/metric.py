@@ -4,6 +4,9 @@ from typing import Dict, Optional, Callable
 
 
 class BaseMetric(ABC):
+    """Base class for all metrics, taking part in the
+    models' comparison process.
+    """
     def __init__(self, name: Optional[str] = None) -> None:
         super().__init__()
         self.name = name
