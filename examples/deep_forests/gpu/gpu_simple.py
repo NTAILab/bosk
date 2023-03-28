@@ -7,6 +7,7 @@ from sklearn.datasets import make_moons
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
+from bosk.executor.handlers import GPUBlockHandler, CPUBlockHandler
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.executor.recursive import RecursiveExecutor
 from bosk.executor.base import BaseExecutor
@@ -33,7 +34,7 @@ def make_deep_forest_functional_cpu(executor, **ex_kw):
             {'X': X, 'y': y},
             {'concat': concat_1}
         ),
-        HandlingDescriptor.from_classes(Stage.FIT),
+        HandlingDescriptor.from_classes(Stage.FIT, block_handler_cls=CPUBlockHandler),
         inputs=['X', 'y'],
         outputs=['concat'],
         **ex_kw
@@ -43,7 +44,7 @@ def make_deep_forest_functional_cpu(executor, **ex_kw):
             {'X': X, 'y': y},
             {'concat': concat_1}
         ),
-        HandlingDescriptor.from_classes(Stage.TRANSFORM),
+        HandlingDescriptor.from_classes(Stage.TRANSFORM, block_handler_cls=CPUBlockHandler),
         inputs=['X'],
         outputs=['concat'],
         **ex_kw
@@ -62,7 +63,7 @@ def make_deep_forest_functional_gpu(executor, **ex_kw):
             {'X': X, 'y': y},
             {'concat': concat_1}
         ),
-        HandlingDescriptor.from_classes(Stage.FIT),
+        HandlingDescriptor.from_classes(Stage.FIT, block_handler_cls=GPUBlockHandler),
         inputs=['X', 'y'],
         outputs=['concat'],
         **ex_kw
@@ -72,7 +73,7 @@ def make_deep_forest_functional_gpu(executor, **ex_kw):
             {'X': X, 'y': y},
             {'concat': concat_1}
         ),
-        HandlingDescriptor.from_classes(Stage.TRANSFORM),
+        HandlingDescriptor.from_classes(Stage.TRANSFORM, block_handler_cls=GPUBlockHandler),
         inputs=['X'],
         outputs=['concat'],
         **ex_kw
@@ -86,10 +87,10 @@ def run_cpu():
 
     all_X, all_y = make_moons(n_samples=1000000, noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    fit_executor({'X': CPUData(train_X), 'y': CPUData(train_y)})
+    fit_executor({'X': train_X, 'y': train_y})
     print("Fit successful")
-    transform_executor({'X': CPUData(train_X)})
-    transform_executor({'X': CPUData(test_X)})
+    transform_executor({'X': train_X})
+    transform_executor({'X': test_X})
 
 
 def run_gpu():
@@ -98,10 +99,10 @@ def run_gpu():
 
     all_X, all_y = make_moons(n_samples=1000000, noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    fit_result = fit_executor({'X': GPUData(train_X), 'y': GPUData(train_y)})
+    fit_executor({'X': train_X, 'y': train_y})
     print("Fit successful")
-    transform_executor({'X': GPUData(train_X)})
-    transform_executor({'X': GPUData(test_X)})
+    transform_executor({'X': train_X})
+    transform_executor({'X': test_X})
 
 
 def make_deep_forest_functional_advanced_cpu(executor, **ex_kw):
@@ -127,7 +128,7 @@ def make_deep_forest_functional_advanced_cpu(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        HandlingDescriptor.from_classes(Stage.FIT),
+        HandlingDescriptor.from_classes(Stage.FIT, block_handler_cls=CPUBlockHandler),
         inputs=['X', 'y'],
         outputs=['probas', 'rf_1_roc-auc', 'roc-auc'],
         **ex_kw
@@ -137,7 +138,7 @@ def make_deep_forest_functional_advanced_cpu(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'labels': argmax_3}
         ),
-        HandlingDescriptor.from_classes(Stage.TRANSFORM),
+        HandlingDescriptor.from_classes(Stage.TRANSFORM, block_handler_cls=CPUBlockHandler),
         inputs=['X'],
         outputs=['probas', 'labels'],
         **ex_kw
@@ -174,7 +175,7 @@ def make_deep_forest_functional_advanced_gpu(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        HandlingDescriptor.from_classes(Stage.FIT),
+        HandlingDescriptor.from_classes(Stage.FIT, block_handler_cls=GPUBlockHandler),
         inputs=['X', 'y'],
         outputs=['probas', 'rf_1_roc-auc', 'roc-auc'],
         **ex_kw
@@ -184,7 +185,7 @@ def make_deep_forest_functional_advanced_gpu(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'labels': argmax_3}
         ),
-        HandlingDescriptor.from_classes(Stage.TRANSFORM),
+        HandlingDescriptor.from_classes(Stage.TRANSFORM, block_handler_cls=GPUBlockHandler),
         inputs=['X'],
         outputs=['probas', 'labels'],
         **ex_kw

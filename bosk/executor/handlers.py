@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from typing import Mapping
 
 # from .base import InputSlotToDataMapping
-from ..data import Data
+from ..data import Data, CPUData, GPUData, BaseData
 from ..stages import Stage
 from ..block.slot import BlockInputSlot, BaseSlot
 from ..block.base import BaseBlock, BlockOutputData
@@ -92,15 +93,73 @@ class DefaultBlockHandler(BaseBlockHandler):
         super().__init__(stage)
 
     def execute_block(self, block: BaseBlock, block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
+        filtered_block_input_mapping = defaultdict(Data)
         if self.stage == Stage.FIT:
-            block.fit({
-                slot.meta.name: values
-                for slot, values in block_input_mapping.items()
-                if slot.meta.stages.fit
-            })
-        filtered_block_input_mapping = {
-            slot.meta.name: values
-            for slot, values in block_input_mapping.items()
-            if slot.meta.stages.transform or (self.stage == Stage.FIT and slot.meta.stages.transform_on_fit)
-        }
+            filtered_block_input_mapping_fit = defaultdict()
+            for slot, values in block_input_mapping.items():
+                if slot.meta.stages.fit:
+                    filtered_block_input_mapping_fit[slot.meta.name] = values
+                if slot.meta.stages.transform or (self.stage == Stage.FIT and slot.meta.stages.transform_on_fit):
+                    filtered_block_input_mapping[slot.meta.name] = values
+            block.fit(filtered_block_input_mapping_fit)
+        return block.wrap(block.transform(filtered_block_input_mapping))
+
+
+class GPUBlockHandler(BaseBlockHandler):
+    def __init__(self, stage: Stage) -> None:
+        assert (stage == Stage.FIT or stage == Stage.TRANSFORM), "Stage is not implemented"
+        super().__init__(stage)
+
+    def execute_block(self, block: BaseBlock, block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
+        if self.stage == Stage.FIT:
+            filtered_block_input_mapping_fit = defaultdict(GPUData)
+            for slot, values in block_input_mapping.items():
+                if slot.meta.stages.fit:
+                    if isinstance(values, BaseData) or isinstance(values, CPUData):
+                        filtered_block_input_mapping_fit[slot.meta.name] = values.to_gpu()
+                    else:
+                        filtered_block_input_mapping_fit[slot.meta.name] = GPUData(values)
+            block.fit(filtered_block_input_mapping_fit)
+
+        filtered_block_input_mapping = defaultdict(GPUData)
+        for slot, values in block_input_mapping.items():
+            if slot.meta.stages.transform or (self.stage == Stage.FIT and slot.meta.stages.transform_on_fit):
+                if isinstance(values, BaseData) or isinstance(values, CPUData):
+                    filtered_block_input_mapping[slot.meta.name] = values.to_gpu()
+                else:
+                    filtered_block_input_mapping[slot.meta.name] = GPUData(values)
+
+        output = block.transform(filtered_block_input_mapping)
+
+        # convert output to CPUData if necessary
+        if isinstance(output, GPUData):
+            output = output.to_cpu()
+
+        return block.wrap(output)
+
+
+class CPUBlockHandler(BaseBlockHandler):
+    def __init__(self, stage: Stage) -> None:
+        assert (stage == Stage.FIT or stage == Stage.TRANSFORM), "Stage is not implemented"
+        super().__init__(stage)
+
+    def execute_block(self, block: BaseBlock, block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
+        if self.stage == Stage.FIT:
+            filtered_block_input_mapping_fit = defaultdict(CPUData)
+            for slot, values in block_input_mapping.items():
+                if slot.meta.stages.fit:
+                    if isinstance(values, BaseData) or isinstance(values, GPUData):
+                        filtered_block_input_mapping_fit[slot.meta.name] = values.to_cpu()
+                    else:
+                        filtered_block_input_mapping_fit[slot.meta.name] = CPUData(values)
+            block.fit(filtered_block_input_mapping_fit)
+
+        filtered_block_input_mapping = defaultdict(CPUData)
+        for slot, values in block_input_mapping.items():
+            if slot.meta.stages.transform or (self.stage == Stage.FIT and slot.meta.stages.transform_on_fit):
+                if isinstance(values, BaseData) or isinstance(values, GPUData):
+                    filtered_block_input_mapping[slot.meta.name] = values.to_cpu()
+                else:
+                    filtered_block_input_mapping[slot.meta.name] = CPUData(values)
+
         return block.wrap(block.transform(filtered_block_input_mapping))
