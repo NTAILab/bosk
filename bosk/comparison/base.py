@@ -27,6 +27,10 @@ class BaseForeignModel(ABC):
         """Method for using the fitted model and obtain transformed 
         data dictionary."""
 
+    @abstractmethod
+    def set_random_state(self, random_state: int) -> None:
+        """Set random state for the model."""
+
 
 @cache
 def get_block_hash(block: BaseBlock):
@@ -48,6 +52,9 @@ class BaseComparator(ABC):
     marked as `models` and must be wrapped in `BaseForeignModel`
     adapter to handle the `bosk` data transmission style.
     """
+
+    random_state: int
+
     def _get_results_dict(self, nested_dict:
                           Dict[str, float | List[float]]) -> Dict[str, Dict[str, float | List[float]]]:
         res_dict = dict()
@@ -85,10 +92,11 @@ class BaseComparator(ABC):
                 return blocks_iso[cp_prev_block] == pip_prev_block
         return True
 
-    def __init__(self, pipelines: Optional[BasePipeline | List[BasePipeline]], 
+    def __init__(self, pipelines: Optional[BasePipeline | List[BasePipeline]],
                  common_part: Optional[BasePipeline],
-                 foreign_models: Optional[BaseForeignModel | List[BaseForeignModel]]) -> None:
-        
+                 foreign_models: Optional[BaseForeignModel | List[BaseForeignModel]],
+                 random_state: Optional[int] = None) -> None:
+
         # boundary cases
         if pipelines is None and foreign_models is None:
             raise RuntimeError("You must select models to compare")
@@ -98,16 +106,22 @@ class BaseComparator(ABC):
             foreign_models = [foreign_models]
         if (pipelines is None or len(pipelines) == 1) and common_part is not None:
             raise RuntimeError("You must select multiple pipelines to use common part optimization")
-        
+
+        self.random_state = random_state
         self.models = [] if foreign_models is None else foreign_models
+        for model in self.models:
+            model.set_random_state(random_state)
+        if pipelines is not None:
+            for pipeline in pipelines:
+                    pipeline.set_random_state(random_state)
         if common_part is None:
             self.common_pipeline = None
             self.optim_pipelines = [] if pipelines is None else pipelines
             return
-        
         self.common_pipeline = common_part
+        self.common_pipeline.set_random_state(random_state)
 
-        # pipelines' optimization process  
+        # pipelines' optimization process
         # 1. Step of bfs in common part is leading
         # 2. Each time when block is extracted on step 1, we look in the queue
         # of other pipelines for isomorphic blocks (compare blocks + conns)
@@ -250,7 +264,7 @@ class BaseComparator(ABC):
 
     @abstractmethod
     def get_score(self, data: Dict[str, BaseData],
-                  metrics: List[BaseMetric]) -> Dict[str, Dict[str, float | List[float]]]:
+                  metrics: List[BaseMetric], random_) -> Dict[str, Dict[str, float | List[float]]]:
         """Function to obtain results of different metrics for the models.
         Returns:
             Dictionary with keys as models' names (`pipeline_i` for i-th pipeline and 

@@ -30,8 +30,8 @@ class CVComparator(BaseComparator):
             nested_res_dict[name + '_train'] = []
             nested_res_dict[name + '_test'] = []
         return nested_res_dict
-    
-    def _write_fold_info_to_dict(self, res_dict, dict_key, 
+
+    def _write_fold_info_to_dict(self, res_dict, dict_key,
                                  metrics, train_dict, pred_train_dict,
                                  test_dict, pred_test_dict) -> None:
         for i, metric in enumerate(metrics):
@@ -45,8 +45,9 @@ class CVComparator(BaseComparator):
 
     def __init__(self, pipelines: List[BasePipeline], common_part: BasePipeline,
                  foreign_models: List[BaseForeignModel], cv_strat: BaseCrossValidator,
-                 exec_cls: BaseExecutor = TopologicalExecutor) -> None:
-        super().__init__(pipelines, common_part, foreign_models)
+                 exec_cls: BaseExecutor = TopologicalExecutor, random_state: int = None) -> None:
+        super().__init__(pipelines, common_part, foreign_models, random_state)
+        cv_strat.random_state = random_state
         self.cv_strat = cv_strat
         self.exec_cls = exec_cls
 
@@ -63,7 +64,7 @@ class CVComparator(BaseComparator):
         for i, (train_idx, test_idx) in enumerate(self.cv_strat.split(idx)):
             logging.info('Processing fold #%i', i)
 
-            # getting fold subsets of data 
+            # getting fold subsets of data
             train_dict = dict()
             test_dict = dict()
             for key, val in data.items():
@@ -76,10 +77,10 @@ class CVComparator(BaseComparator):
                 common_test_res = common_train_res
             else:
                 train_exec = self.exec_cls(self.common_pipeline,
-                                        HandlingDescriptor.from_classes(Stage.FIT))
+                                           HandlingDescriptor.from_classes(Stage.FIT))
                 common_train_res = train_exec(train_dict)
                 test_exec = self.exec_cls(self.common_pipeline,
-                                        HandlingDescriptor.from_classes(Stage.TRANSFORM))
+                                          HandlingDescriptor.from_classes(Stage.TRANSFORM))
                 common_test_res = test_exec(test_dict)
 
             for j, cur_pipeline in enumerate(self.optim_pipelines):
@@ -126,5 +127,5 @@ class CVComparator(BaseComparator):
                 self._write_fold_info_to_dict(res_dict, f'model_{j}', metrics,
                                               train_dict, model_train_res,
                                               test_dict, model_test_res)
-        
+
         return res_dict

@@ -27,6 +27,9 @@ class RFCModel(BaseForeignModel):
     def predict(self, data: Dict[str, BaseData]) -> Dict[str, BaseData]:
         return {'output': CPUData(self.forest.predict_proba(data['X'].to_cpu().data))}
 
+    def set_random_state(self, random_state: int) -> None:
+        self.forest.random_state = random_state
+
 
 class CatBoostModel(BaseForeignModel):
     def __init__(self) -> None:
@@ -40,63 +43,66 @@ class CatBoostModel(BaseForeignModel):
     def predict(self, data: Dict[str, BaseData]) -> Dict[str, BaseData]:
         return {'output': CPUData(self.grad_boost.predict_proba(data['X'].to_cpu().data))}
 
+    def set_random_state(self, random_state: int) -> None:
+        self.grad_boost.random_state = random_state
 
-def get_pipeline_1(n_trees, random_state):
+
+def get_pipeline_1(n_trees):
     # simple pipeline, same as the common part
     b = FunctionalPipelineBuilder()
     X, y = b.Input()(), b.TargetInput()()
-    rf_1 = b.RFC(random_state=random_state, n_estimators=n_trees)(X=X, y=y)
-    et_1 = b.ETC(random_state=random_state, n_estimators=n_trees)(X=X, y=y)
+    rf_1 = b.RFC(n_estimators=n_trees)(X=X, y=y)
+    et_1 = b.ETC(n_estimators=n_trees)(X=X, y=y)
     concat_1 = b.Concat(['X', 'rf_1', 'et_1'])(X=X, rf_1=rf_1, et_1=et_1)
-    rf_2 = b.RFC(random_state=random_state, n_estimators=n_trees)(X=concat_1, y=y)
+    rf_2 = b.RFC(n_estimators=n_trees)(X=concat_1, y=y)
     return b.build({'X': X, 'y': y}, {'output': rf_2})
 
 
-def get_pipeline_2(n_trees, random_state):
+def get_pipeline_2(n_trees):
     # adding just two blocks in the end, results must be the same
     b = FunctionalPipelineBuilder()
     X, y = b.Input()(), b.TargetInput()()
-    rf_1 = b.RFC(random_state=random_state, n_estimators=n_trees)(X=X, y=y)
-    et_1 = b.ETC(random_state=random_state, n_estimators=n_trees)(X=X, y=y)
+    rf_1 = b.RFC(n_estimators=n_trees)(X=X, y=y)
+    et_1 = b.ETC(n_estimators=n_trees)(X=X, y=y)
     concat_1 = b.Concat(['X', 'rf_1', 'et_1'])(X=X, rf_1=rf_1, et_1=et_1)
-    rf_2 = b.RFC(random_state=random_state, n_estimators=n_trees)(X=concat_1, y=y)
+    rf_2 = b.RFC(n_estimators=n_trees)(X=concat_1, y=y)
     stack = b.Stack(['rf_2_1', 'rf_2_2'], axis=2)(rf_2_1=rf_2, rf_2_2=rf_2)
     av = b.Average(axis=2)(X=stack)
     return b.build({'X': X, 'y': y}, {'output': av})
 
 
-def get_pipeline_3(n_trees, random_state):
+def get_pipeline_3(n_trees):
     # little bit wrong definition of the common part,
     # but it must work
     b = FunctionalPipelineBuilder()
     X, y = b.Input()(), b.TargetInput()()
-    rf_1 = b.RFC(random_state=random_state, n_estimators=n_trees)(X=X, y=y)
-    et_1 = b.ETC(random_state=random_state, n_estimators=n_trees)(X=X, y=y)
+    rf_1 = b.RFC(n_estimators=n_trees)(X=X, y=y)
+    et_1 = b.ETC(n_estimators=n_trees)(X=X, y=y)
     concat_1 = b.Concat(['X', 'rf_1', 'et_1'])(X=X, rf_1=rf_1, et_1=et_1)
-    rf_2 = b.RFC(random_state=random_state, n_estimators=n_trees)(X=concat_1, y=y)
-    et_2 = b.ETC(random_state=random_state, n_estimators=n_trees)(X=concat_1, y=y)
+    rf_2 = b.RFC(n_estimators=n_trees)(X=concat_1, y=y)
+    et_2 = b.ETC(n_estimators=n_trees)(X=concat_1, y=y)
     concat_2 = b.Concat(['rf_2', 'et_2', 'X'])(X=X, rf_2=rf_2, et_2=et_2)
-    et_3 = b.ETC(random_state=random_state, n_estimators=n_trees)(X=concat_2, y=y)
+    et_3 = b.ETC(n_estimators=n_trees)(X=concat_2, y=y)
     return b.build({'X': X, 'y': y}, {'output': et_3})
 
 
-def get_pipeline_4(n_trees, random_state):
+def get_pipeline_4(n_trees):
     b = FunctionalPipelineBuilder()
     X, y = b.Input()(), b.TargetInput()()
-    rf_1 = b.RFC(random_state=random_state, n_estimators=n_trees)(X=X, y=y)
-    et_1 = b.ETC(random_state=random_state, n_estimators=n_trees)(X=X, y=y)
+    rf_1 = b.RFC(n_estimators=n_trees)(X=X, y=y)
+    et_1 = b.ETC(n_estimators=n_trees)(X=X, y=y)
     concat_1 = b.Concat(['X', 'rf_1', 'et_1'])(X=X, rf_1=rf_1, et_1=et_1)
-    rf_2 = b.RFC(random_state=random_state, n_estimators=n_trees)(X=concat_1, y=y)
+    rf_2 = b.RFC(n_estimators=n_trees)(X=concat_1, y=y)
     concat_2 = b.Concat(['rf_2', 'X'])(X=X, rf_2=rf_2, )
-    et_3 = b.ETC(random_state=random_state, n_estimators=n_trees)(X=concat_2, y=y)
+    et_3 = b.ETC(n_estimators=n_trees)(X=concat_2, y=y)
     return b.build({'X': X, 'y': y}, {'output': et_3})
 
 
-def get_pipelines(n_trees=10, random_state=42):
-    pip_1 = get_pipeline_1(n_trees, random_state)
-    common_part = get_pipeline_1(n_trees, random_state)
-    pip_2 = get_pipeline_2(n_trees, random_state)
-    pip_3 = get_pipeline_3(n_trees, random_state)
+def get_pipelines(n_trees=10):
+    pip_1 = get_pipeline_1(n_trees)
+    common_part = get_pipeline_1(n_trees)
+    pip_2 = get_pipeline_2(n_trees)
+    pip_3 = get_pipeline_3(n_trees)
     return common_part, [pip_1, pip_2, pip_3]
 
 
@@ -110,11 +116,12 @@ def my_roc_auc(y_true, y_pred):
 
 def comparison_cv_basic_test():
     log_test_name()
+    random_state = 42
     common_part, pipelines = get_pipelines()
     models = [RFCModel(), CatBoostModel()]
     cv_strat = KFold(shuffle=True, n_splits=3)
-    comparator = CVComparator(pipelines, common_part, models, cv_strat)
-    x, y = make_moons(noise=0.5, random_state=42)
+    comparator = CVComparator(pipelines, common_part, models, cv_strat, random_state=random_state)
+    x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
         'X': CPUData(x),
         'y': CPUData(y),
@@ -138,10 +145,11 @@ def comparison_cv_basic_test():
 
 def no_pipelines_test():
     log_test_name()
+    random_state = 42
     models = [RFCModel(), CatBoostModel()]
     cv_strat = KFold(shuffle=True, n_splits=3)
-    comparator = CVComparator(None, None, models, cv_strat)
-    x, y = make_moons(noise=0.5, random_state=42)
+    comparator = CVComparator(None, None, models, cv_strat, random_state=random_state)
+    x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
         'X': CPUData(x),
         'y': CPUData(y),
@@ -164,10 +172,11 @@ def no_pipelines_test():
 
 def no_foreign_models_test():
     log_test_name()
+    random_state = 42
     common_part, pipelines = get_pipelines()
     cv_strat = KFold(shuffle=True, n_splits=3)
-    comparator = CVComparator(pipelines, common_part, None, cv_strat)
-    x, y = make_moons(noise=0.5, random_state=42)
+    comparator = CVComparator(pipelines, common_part, None, cv_strat, random_state=random_state)
+    x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
         'X': CPUData(x),
         'y': CPUData(y),
@@ -188,18 +197,18 @@ def no_foreign_models_test():
             logging.info(f'\t{key}: {val}')
 
 
-def get_optim_test_pipelines(n_trees=13, random_state=42):
-    pip_1 = get_pipeline_1(n_trees, random_state)
-    pip_2 = get_pipeline_2(n_trees, random_state)
-    pip_3 = get_pipeline_3(n_trees, random_state)
-    common_part = get_pipeline_1(n_trees, random_state)
+def get_optim_test_pipelines(n_trees=13):
+    pip_1 = get_pipeline_1(n_trees)
+    pip_2 = get_pipeline_2(n_trees)
+    pip_3 = get_pipeline_3(n_trees)
+    common_part = get_pipeline_1(n_trees)
     return common_part, [pip_1, pip_2, pip_3]
 
 
 def get_unoptim_res(random_state):
-    common_part, pipelines = get_pipelines(random_state=random_state)
-    cv_strat = KFold(shuffle=True, n_splits=5, random_state=random_state)
-    comparator = CVComparator(pipelines, None, None, cv_strat)
+    _, pipelines = get_pipelines()
+    cv_strat = KFold(shuffle=True, n_splits=5)
+    comparator = CVComparator(pipelines, None, None, cv_strat, random_state=random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
         'X': CPUData(x),
@@ -211,9 +220,9 @@ def get_unoptim_res(random_state):
 
 
 def get_optim_res(random_state):
-    common_part, pipelines = get_pipelines(random_state=random_state)
-    cv_strat = KFold(shuffle=True, n_splits=5, random_state=random_state)
-    comparator = CVComparator(pipelines, common_part, None, cv_strat)
+    common_part, pipelines = get_pipelines()
+    cv_strat = KFold(shuffle=True, n_splits=5)
+    comparator = CVComparator(pipelines, common_part, None, cv_strat, random_state=random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
         'X': CPUData(x),
