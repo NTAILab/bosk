@@ -3,7 +3,7 @@ from inspect import signature
 from dataclasses import dataclass
 from ..stages import Stage
 from .handlers import DefaultBlockHandler, DefaultSlotHandler, \
-    BaseSlotHandler, BaseBlockHandler
+    BaseSlotHandler, BaseBlockHandler, CPUBlockHandler
 
 HandlingDescriptorT = TypeVar('HandlingDescriptorT', bound='HandlingDescriptor')
 
@@ -29,7 +29,7 @@ class HandlingDescriptor():
             "Incompatible handlers' stages"
 
     @classmethod
-    def from_classes(cls, stage: Stage, block_handler_cls: Type[BaseBlockHandler] = DefaultBlockHandler, block_handler_kw={},
+    def from_classes(cls, stage: Stage, block_handler_cls: Type[BaseBlockHandler] = CPUBlockHandler, block_handler_kw={},
                      slot_handler_cls: Type[BaseSlotHandler] = DefaultSlotHandler, slot_handler_kw={}) -> HandlingDescriptorT:
         """Static method to make the handling descriptor out of the stage info and handlers' types.
 

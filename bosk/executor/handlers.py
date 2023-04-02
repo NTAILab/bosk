@@ -93,9 +93,9 @@ class DefaultBlockHandler(BaseBlockHandler):
         super().__init__(stage)
 
     def execute_block(self, block: BaseBlock, block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
-        filtered_block_input_mapping = defaultdict(Data)
+        filtered_block_input_mapping = dict()
         if self.stage == Stage.FIT:
-            filtered_block_input_mapping_fit = defaultdict()
+            filtered_block_input_mapping_fit = dict()
             for slot, values in block_input_mapping.items():
                 if slot.meta.stages.fit:
                     filtered_block_input_mapping_fit[slot.meta.name] = values
@@ -112,22 +112,42 @@ class GPUBlockHandler(BaseBlockHandler):
 
     def execute_block(self, block: BaseBlock, block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
         if self.stage == Stage.FIT:
-            filtered_block_input_mapping_fit = defaultdict(GPUData)
+            filtered_block_input_mapping_fit = dict()
             for slot, values in block_input_mapping.items():
                 if slot.meta.stages.fit:
-                    if isinstance(values, BaseData) or isinstance(values, CPUData):
-                        filtered_block_input_mapping_fit[slot.meta.name] = values.to_gpu()
+                    if slot.parent_block.meta.execution_props.gpu:
+                        if isinstance(values, BaseData) or isinstance(values, CPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values.to_gpu()
+                        elif isinstance(values, GPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values
+                        else:
+                            filtered_block_input_mapping_fit[slot.meta.name] = GPUData(values)
                     else:
-                        filtered_block_input_mapping_fit[slot.meta.name] = GPUData(values)
+                        if isinstance(values, BaseData) or isinstance(values, GPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values.to_cpu()
+                        elif isinstance(values, CPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values
+                        else:
+                            filtered_block_input_mapping_fit[slot.meta.name] = CPUData(values)
             block.fit(filtered_block_input_mapping_fit)
 
-        filtered_block_input_mapping = defaultdict(GPUData)
+        filtered_block_input_mapping = dict()
         for slot, values in block_input_mapping.items():
             if slot.meta.stages.transform or (self.stage == Stage.FIT and slot.meta.stages.transform_on_fit):
-                if isinstance(values, BaseData) or isinstance(values, CPUData):
-                    filtered_block_input_mapping[slot.meta.name] = values.to_gpu()
+                if slot.parent_block.meta.execution_props.gpu:
+                    if isinstance(values, BaseData) or isinstance(values, CPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values.to_gpu()
+                    elif isinstance(values, GPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values
+                    else:
+                        filtered_block_input_mapping[slot.meta.name] = GPUData(values)
                 else:
-                    filtered_block_input_mapping[slot.meta.name] = GPUData(values)
+                    if isinstance(values, BaseData) or isinstance(values, GPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values.to_cpu()
+                    elif isinstance(values, CPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values
+                    else:
+                        filtered_block_input_mapping[slot.meta.name] = CPUData(values)
 
         output = block.transform(filtered_block_input_mapping)
 
@@ -145,21 +165,41 @@ class CPUBlockHandler(BaseBlockHandler):
 
     def execute_block(self, block: BaseBlock, block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
         if self.stage == Stage.FIT:
-            filtered_block_input_mapping_fit = defaultdict(CPUData)
+            filtered_block_input_mapping_fit = dict()
             for slot, values in block_input_mapping.items():
                 if slot.meta.stages.fit:
-                    if isinstance(values, BaseData) or isinstance(values, GPUData):
-                        filtered_block_input_mapping_fit[slot.meta.name] = values.to_cpu()
+                    if slot.parent_block.meta.execution_props.cpu:
+                        if isinstance(values, BaseData) or isinstance(values, GPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values.to_cpu()
+                        elif isinstance(values, CPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values
+                        else:
+                            filtered_block_input_mapping_fit[slot.meta.name] = CPUData(values)
                     else:
-                        filtered_block_input_mapping_fit[slot.meta.name] = CPUData(values)
+                        if isinstance(values, BaseData) or isinstance(values, CPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values.to_gpu()
+                        elif isinstance(values, GPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values
+                        else:
+                            filtered_block_input_mapping_fit[slot.meta.name] = GPUData(values)
             block.fit(filtered_block_input_mapping_fit)
 
-        filtered_block_input_mapping = defaultdict(CPUData)
+        filtered_block_input_mapping = dict()
         for slot, values in block_input_mapping.items():
             if slot.meta.stages.transform or (self.stage == Stage.FIT and slot.meta.stages.transform_on_fit):
-                if isinstance(values, BaseData) or isinstance(values, GPUData):
-                    filtered_block_input_mapping[slot.meta.name] = values.to_cpu()
+                if slot.parent_block.meta.execution_props.cpu:
+                    if isinstance(values, BaseData) or isinstance(values, GPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values.to_cpu()
+                    elif isinstance(values, CPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values
+                    else:
+                        filtered_block_input_mapping[slot.meta.name] = CPUData(values)
                 else:
-                    filtered_block_input_mapping[slot.meta.name] = CPUData(values)
+                    if isinstance(values, BaseData) or isinstance(values, CPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values.to_gpu()
+                    elif isinstance(values, GPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values
+                    else:
+                        filtered_block_input_mapping[slot.meta.name] = GPUData(values)
 
         return block.wrap(block.transform(filtered_block_input_mapping))

@@ -30,7 +30,8 @@ class OutputSlotMeta(BaseSlotMeta):
     """
 
 
-BaseBlock = TypeVar('BaseBlock') # will be removed later
+BaseBlock = TypeVar('BaseBlock')  # will be removed later
+
 
 @dataclass(eq=False, frozen=False)
 class BaseSlot:
