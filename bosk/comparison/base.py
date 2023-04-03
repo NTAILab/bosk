@@ -5,11 +5,11 @@ from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.data import BaseData
 from collections import deque, defaultdict
-from copy import deepcopy
 from .metric import BaseMetric
 import joblib
 from functools import cache
 from typing import List, Set, Dict, Optional, Iterable
+from pandas import DataFrame
 
 
 class BaseForeignModel(ABC):
@@ -55,18 +55,11 @@ class BaseComparator(ABC):
 
     random_state: int
 
-    def _get_results_dict(self, nested_dict:
-                          Dict[str, float | List[float]]) -> Dict[str, Dict[str, float | List[float]]]:
-        res_dict = dict()
-        for i in range(len(self.optim_pipelines)):
-            res_dict[f'pipeline_{i}'] = deepcopy(nested_dict)
-        for i in range(len(self.models)):
-            res_dict[f'model_{i}'] = deepcopy(nested_dict)
-        return res_dict
-
     def _get_aj_lists(self, pipeline: BasePipeline):
-        conn_map_blocks: Dict[BaseBlock, Set[BaseBlock]] = defaultdict(set)  # output->input, forward pass
-        conn_map_conns: Dict[BlockInputSlot, BlockOutputSlot] = dict()  # input->output, backward pass
+        # output->input, forward pass
+        conn_map_blocks: Dict[BaseBlock, Set[BaseBlock]] = defaultdict(set)
+        # input->output, backward pass
+        conn_map_conns: Dict[BlockInputSlot, BlockOutputSlot] = dict()
         for conn in pipeline.connections:
             conn_map_blocks[conn.src.parent_block].add(conn.dst.parent_block)
             conn_map_conns[conn.dst] = conn.src
@@ -109,17 +102,18 @@ class BaseComparator(ABC):
 
         self.random_state = random_state
         self.models = [] if foreign_models is None else foreign_models
-        for model in self.models:
-            model.set_random_state(random_state)
-        if pipelines is not None:
-            for pipeline in pipelines:
+        self.common_pipeline = common_part
+        if random_state is not None:
+            for model in self.models:
+                model.set_random_state(random_state)
+            if pipelines is not None:
+                for pipeline in pipelines:
                     pipeline.set_random_state(random_state)
+            if common_part is not None:
+                self.common_pipeline.set_random_state(random_state)
         if common_part is None:
-            self.common_pipeline = None
             self.optim_pipelines = [] if pipelines is None else pipelines
             return
-        self.common_pipeline = common_part
-        self.common_pipeline.set_random_state(random_state)
 
         # pipelines' optimization process
         # 1. Step of bfs in common part is leading
@@ -263,8 +257,7 @@ class BaseComparator(ABC):
             self.optim_pipelines.append(BasePipeline(new_blocks, new_conns, new_inputs, new_outputs))
 
     @abstractmethod
-    def get_score(self, data: Dict[str, BaseData],
-                  metrics: List[BaseMetric], random_) -> Dict[str, Dict[str, float | List[float]]]:
+    def get_score(self, data: Dict[str, BaseData], metrics: List[BaseMetric]) -> DataFrame:
         """Function to obtain results of different metrics for the models.
         Returns:
             Dictionary with keys as models' names (`pipeline_i` for i-th pipeline and 

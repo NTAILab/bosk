@@ -3,13 +3,13 @@ from bosk.comparison.base import BaseForeignModel
 from bosk.comparison.metric import MetricWrapper
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.data import CPUData, BaseData
+from bosk.utility import timer_wrap
 from sklearn.datasets import make_moons
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestClassifier
 from catboost import CatBoostClassifier
 import numpy as np
-from time import time
 from typing import Dict
 from ..utility import log_test_name
 import logging
@@ -128,19 +128,11 @@ def comparison_cv_basic_test():
     }
     metrics = [MetricWrapper(my_acc, name='accuracy'), MetricWrapper(my_roc_auc, name='roc_auc')]
     cv_res = comparator.get_score(data, metrics)
-    models_keys = [f'pipeline_{i}' for i in range(len(pipelines))]
-    models_keys += [f'model_{i}' for i in range(len(models))]
-    assert all([key in cv_res for key in models_keys]), \
+    models_num = len(pipelines) + len(models)
+    assert len(set(cv_res.loc[:, 'model name'])) == models_num, \
         "Not all the models are in the comparison result"
-    for model_name, nested_dict in cv_res.items():
-        for key, val in nested_dict.items():
-            assert len(val) == cv_strat.get_n_splits(), \
-                f"Not all the folds were proceeded for the {model_name} model"
-    logging.info("CV comparator done the work, following results were retrieved")
-    for model_name, nested_dict in cv_res.items():
-        logging.info(model_name)
-        for key, val in nested_dict.items():
-            logging.info(f'\t{key}: {val}')
+    assert cv_res.loc[:, 'fold #'].max() + 1 == cv_strat.get_n_splits(), \
+        "Not all the folds were proceeded"
 
 
 def no_pipelines_test():
@@ -156,18 +148,11 @@ def no_pipelines_test():
     }
     metrics = [MetricWrapper(my_acc, name='accuracy'), MetricWrapper(my_roc_auc, name='roc_auc')]
     cv_res = comparator.get_score(data, metrics)
-    models_keys = [f'model_{i}' for i in range(len(models))]
-    assert all([key in cv_res for key in models_keys]), \
+    models_num = len(models)
+    assert len(set(cv_res.loc[:, 'model name'])) == models_num, \
         "Not all the models are in the comparison result"
-    for model_name, nested_dict in cv_res.items():
-        for key, val in nested_dict.items():
-            assert len(val) == cv_strat.get_n_splits(), \
-                f"Not all the folds were proceeded for the {model_name} model"
-    logging.info("CV comparator done the work, following results were retrieved")
-    for model_name, nested_dict in cv_res.items():
-        logging.info(model_name)
-        for key, val in nested_dict.items():
-            logging.info(f'\t{key}: {val}')
+    assert cv_res.loc[:, 'fold #'].max() + 1 == cv_strat.get_n_splits(), \
+        "Not all the folds were proceeded"
 
 
 def no_foreign_models_test():
@@ -183,30 +168,24 @@ def no_foreign_models_test():
     }
     metrics = [MetricWrapper(my_acc, name='accuracy'), MetricWrapper(my_roc_auc, name='roc_auc')]
     cv_res = comparator.get_score(data, metrics)
-    models_keys = [f'pipeline_{i}' for i in range(len(pipelines))]
-    assert all([key in cv_res for key in models_keys]), \
+    models_num = len(pipelines)
+    assert len(set(cv_res.loc[:, 'model name'])) == models_num, \
         "Not all the models are in the comparison result"
-    for model_name, nested_dict in cv_res.items():
-        for key, val in nested_dict.items():
-            assert len(val) == cv_strat.get_n_splits(), \
-                f"Not all the folds were proceeded for the {model_name} model"
-    logging.info("CV comparator done the work, following results were retrieved")
-    for model_name, nested_dict in cv_res.items():
-        logging.info(model_name)
-        for key, val in nested_dict.items():
-            logging.info(f'\t{key}: {val}')
+    assert cv_res.loc[:, 'fold #'].max() + 1 == cv_strat.get_n_splits(), \
+        "Not all the folds were proceeded"
 
 
 def get_optim_test_pipelines(n_trees=13):
     pip_1 = get_pipeline_1(n_trees)
     pip_2 = get_pipeline_2(n_trees)
-    pip_3 = get_pipeline_3(n_trees)
+    pip_3 = get_pipeline_4(n_trees)
     common_part = get_pipeline_1(n_trees)
     return common_part, [pip_1, pip_2, pip_3]
 
 
+@timer_wrap
 def get_unoptim_res(random_state):
-    _, pipelines = get_pipelines()
+    _, pipelines = get_optim_test_pipelines()
     cv_strat = KFold(shuffle=True, n_splits=5)
     comparator = CVComparator(pipelines, None, None, cv_strat, random_state=random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
@@ -219,8 +198,9 @@ def get_unoptim_res(random_state):
     return cv_res
 
 
+@timer_wrap
 def get_optim_res(random_state):
-    common_part, pipelines = get_pipelines()
+    common_part, pipelines = get_optim_test_pipelines()
     cv_strat = KFold(shuffle=True, n_splits=5)
     comparator = CVComparator(pipelines, common_part, None, cv_strat, random_state=random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
@@ -237,21 +217,15 @@ def optimization_test():
     log_test_name()
     random_state = 42
     tol = 1e-6
-    time_stamp = time()
-    unoptim_res = get_unoptim_res(random_state)
-    unoptim_time = time() - time_stamp
-    time_stamp = time()
-    optim_res = get_optim_res(random_state)
-    optim_time = time() - time_stamp
-
-    for model_name, nested_dict in unoptim_res.items():
-        assert model_name in optim_res, "Different results were retrieved"
-        for key, val in nested_dict.items():
-            assert key in optim_res[model_name], "Different results were retrieved"
-            assert len(val) == len(optim_res[model_name][key]), "Different results were retrieved"
-            assert all(abs(val[i] - optim_res[model_name][key][i]) < tol for i in range(len(val))), \
-                "Different results were retrieved"
-
+    unoptim_res, unoptim_time = get_unoptim_res(random_state)
+    optim_res, optim_time = get_optim_res(random_state)
+    diff = unoptim_res.compare(optim_res, 0)
+    if len(diff.columns) > 1 or 'time' not in diff.columns:
+        assert diff.select_dtypes(include=np.number).columns == diff.columns,\
+            "Different results were retrieved"
+        reason_diff = diff.loc[::2, diff.columns != 'time'].to_numpy()\
+            - diff.loc[1::2, diff.columns != 'time'].to_numpy()
+        assert np.sum(reason_diff) < tol, "Different results were retrieved"
     assert optim_time < unoptim_time, "Optimization was useless"
     logging.info('Time of unoptimized run: %f s.', unoptim_time)
     logging.info('Time of optimized run: %f s.', optim_time)
