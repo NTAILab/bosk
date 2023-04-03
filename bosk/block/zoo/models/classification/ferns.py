@@ -132,13 +132,15 @@ def calculate_bucket_stats(bucket_indices: jnp.ndarray, n_buckets: int, y: jnp.n
     """
     DIRICHLET_EPS = 1
 
-    bucket_stats = []
-    for c in range(n_classes):
-        class_ind = jnp.where(y == c, 1, 0)
-        bucket_stats.append(
-            jax.vmap(lambda b: jnp.zeros((n_buckets,)).at[b].add(class_ind), in_axes=1, out_axes=0)(bucket_indices)
-        )
-    bucket_stats = jnp.stack(bucket_stats, axis=0)
+    bucket_stats = jax.vmap(
+        lambda c: jax.vmap(
+                lambda b: jnp.zeros((n_buckets,)).at[b].add(jnp.where(y == c, 1, 0)),
+                in_axes=1,
+                out_axes=0
+            )(bucket_indices),
+        in_axes=0,
+        out_axes=0
+    )(jnp.arange(n_classes))
     bucket_stats = bucket_stats + DIRICHLET_EPS  # Dirichlet prior (to avoid zero probabilities)
     bucket_stats = bucket_stats / bucket_stats.sum(axis=2)[:, :, jnp.newaxis]
     # bucket_stats shape: (n_classes, n_ferns, n_buckets)
@@ -256,7 +258,7 @@ class RandomFernsBlock(BaseBlock):
                 ],
                 self.n_buckets,
                 y[data_ids],
-                n_classes=self.n_classes_
+                n_classes=self.n_classes_,
             )
             for i, data_ids in enumerate(group_data_indices)
         )
