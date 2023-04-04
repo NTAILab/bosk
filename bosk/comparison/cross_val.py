@@ -14,6 +14,7 @@ from typing import List, Dict, Optional
 from sklearn.model_selection import BaseCrossValidator
 from pandas import DataFrame
 import logging
+import warnings
 
 
 class CVComparator(BaseComparator):
@@ -59,11 +60,13 @@ class CVComparator(BaseComparator):
 
     def __init__(self, pipelines: List[BasePipeline], common_part: BasePipeline,
                  foreign_models: List[BaseForeignModel], cv_strat: BaseCrossValidator,
-                 exec_cls: BaseExecutor = TopologicalExecutor, random_state: Optional[int] = None) -> None:
+                 exec_cls: BaseExecutor = TopologicalExecutor, suppress_exec_warn: bool = True, 
+                 random_state: Optional[int] = None) -> None:
         super().__init__(pipelines, common_part, foreign_models, random_state)
         cv_strat.random_state = random_state
         self.cv_strat = cv_strat
         self.exec_cls = exec_cls
+        self.warn_context = 'ignore' if suppress_exec_warn else 'default'
 
     def get_score(self, data: Dict[str, BaseData], metrics: List[BaseMetric]) -> DataFrame:
         n = None
@@ -92,30 +95,32 @@ class CVComparator(BaseComparator):
                 train_common_part_time = 0
                 test_common_part_time = 0
             else:
-                train_exec = self.exec_cls(self.common_pipeline,
-                                           HandlingDescriptor.from_classes(Stage.FIT))
-                common_train_res, train_common_part_time = timer_wrap(train_exec)(train_data_dict)
-                test_exec = self.exec_cls(self.common_pipeline,
-                                          HandlingDescriptor.from_classes(Stage.TRANSFORM))
-                common_test_res, test_common_part_time = timer_wrap(test_exec)(test_data_dict)
+                with warnings.catch_warnings():
+                    warnings.simplefilter(self.warn_context)
+                    train_exec = self.exec_cls(self.common_pipeline,
+                                            HandlingDescriptor.from_classes(Stage.FIT))
+                    common_train_res, train_common_part_time = timer_wrap(train_exec)(train_data_dict)
+
+                    test_exec = self.exec_cls(self.common_pipeline,
+                                            HandlingDescriptor.from_classes(Stage.TRANSFORM))
+                    common_test_res, test_common_part_time = timer_wrap(test_exec)(test_data_dict)
 
             for j, cur_pipeline in enumerate(self.optim_pipelines):
                 pip_name = f'deep forest {j}'
                 self._write_preamble(dataframe_dict, pip_name, i)
 
                 pipeline = deepcopy(cur_pipeline)
-                cur_train_dict = self._get_pers_inp_dict(
-                    pipeline, common_train_res, train_data_dict)
-
-                pip_tr_exec = self.exec_cls(pipeline, HandlingDescriptor.from_classes(Stage.FIT))
-                pip_train_res, train_time = timer_wrap(pip_tr_exec)(cur_train_dict)
-                dataframe_dict['time'].append(train_common_part_time + train_time)
-
+                cur_train_dict = self._get_pers_inp_dict(pipeline, common_train_res, train_data_dict)
                 cur_test_dict = self._get_pers_inp_dict(pipeline, common_test_res, test_data_dict)
+                with warnings.catch_warnings():
+                    warnings.simplefilter(self.warn_context)
+                    pip_tr_exec = self.exec_cls(pipeline, HandlingDescriptor.from_classes(Stage.FIT))
+                    pip_train_res, train_time = timer_wrap(pip_tr_exec)(cur_train_dict)
+                    dataframe_dict['time'].append(train_common_part_time + train_time)
 
-                pip_test_exec = self.exec_cls(pipeline, HandlingDescriptor.from_classes(Stage.TRANSFORM))
-                pip_test_res, test_time = timer_wrap(pip_test_exec)(cur_test_dict)
-                dataframe_dict['time'].append(test_common_part_time + test_time)
+                    pip_test_exec = self.exec_cls(pipeline, HandlingDescriptor.from_classes(Stage.TRANSFORM))
+                    pip_test_res, test_time = timer_wrap(pip_test_exec)(cur_test_dict)
+                    dataframe_dict['time'].append(test_common_part_time + test_time)
 
                 self._write_fold_info_to_dict(dataframe_dict, metrics,
                                               train_data_dict, pip_train_res,
