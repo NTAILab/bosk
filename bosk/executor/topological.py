@@ -188,17 +188,15 @@ class TopologicalExecutor(BaseExecutor):
                     node_input_data[inp_slot] = inp_data
                 outputs = self._execute_block(node, node_input_data)
                 slots_values.update(outputs)
-        except Exception:
+        except Exception as ex:
             warnings.warn(
                 f'Unable to compute data for the "{name}" input of the "{repr(node)}" block.')
+            raise ex
             warnings.warn('The execution is terminated.')
 
         result: Mapping[str, Data] = dict()
         for output_name, output_slot in self.pipeline.outputs.items():
             if self.outputs is None or output_name in self.outputs:
-                slot_data = slots_values.get(output_slot, None)
-                if slot_data is None:
-                    warnings.warn(f'Unable to compute data for the "{output_name}" output.')
-                    continue
+                slot_data = slots_values.get(output_slot)
                 result[output_name] = slot_data
         return result
