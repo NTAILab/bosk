@@ -114,6 +114,7 @@ class _ConvolutionHelper:
             Tuple (kernel size, kernel indices).
 
         """
+        assert n_spatial_dims > 0, 'Number of spatial dimensions should be at least 1'
         kernel_size = self.check_kernel_size(n_spatial_dims)
         kernel_ids = np.stack(np.meshgrid(*[np.arange(k) for k in kernel_size], indexing='ij'), axis=0)
         # kernel_ids shape: (n_spatial_dims, k_1, ..., k_nsd)
