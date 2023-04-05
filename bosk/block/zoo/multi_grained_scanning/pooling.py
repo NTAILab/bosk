@@ -1,6 +1,9 @@
+from operator import mul
 import numpy as np
-from typing import Optional, Tuple, Union, NamedTuple
-from functools import partial
+from jax import numpy as jnp
+from jax import lax
+from typing import Optional, Sequence, Tuple, Union, NamedTuple
+from functools import partial, reduce
 from ...base import BaseBlock, BlockInputData, TransformOutputData
 from ...meta import make_simple_meta, BlockExecutionProperties
 from ....data import CPUData, GPUData
@@ -19,7 +22,9 @@ from ._pooling_impl import (
 
 AGGREGATION_FUNCTIONS = {
     'max': partial(np.max, axis=-1),
+    'min': partial(np.min, axis=-1),
     'mean': partial(np.mean, axis=-1),
+    'sum': partial(np.sum, axis=-1),
 }
 
 
@@ -33,7 +38,7 @@ class PoolingBlock(BaseBlock):
     meta = make_simple_meta(
         ['X'],
         ['output'],
-        execution_props=BlockExecutionProperties(cpu=True, gpu=False, plain=False)
+        execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=False)
     )
 
     def __init__(self, kernel_size: Union[int, Tuple[int]] = 3,
@@ -51,9 +56,14 @@ class PoolingBlock(BaseBlock):
             dilation: Dilation (kernel stride).
             padding: Padding size (see `numpy.pad`);
                      if None padding is disabled.
-            aggregation: Aggregation operation name.
+            aggregation: Aggregation operation name ('max', 'min', 'mean', 'sum') or function.
+                         If the function is given, it should aggregate by the last axis;
+                         also the function can be passed only if `impl_type` is `index`
+                         and input data are at CPU.
             chunk_size: Chunk size. Affects performance.
-            impl_type: Implementation type ('index', 'njit').
+            impl_type: Implementation type ('index', 'njit', 'jax').
+                       Note that 'jax' impl type will move data to GPU.
+                       For the GPU input data only 'jax' implementation is available.
 
         """
         super().__init__()
@@ -137,13 +147,60 @@ class PoolingBlock(BaseBlock):
             )
         return result
 
+    def __jax_based_pooling(self, xs: jnp.ndarray) -> jnp.ndarray:
+        JAX_AGG = {
+            'max': (-jnp.inf, lax.max),
+            'min': (jnp.inf, lax.min),
+            'mean': (0.0, lax.add),
+            'sum': (0.0, lax.add),
+        }
+        _n_samples, _n_channels, *spatial_dims = xs.shape
+        assert len(spatial_dims) > 0, f'Need at least one spatial dimension to apply pooling. Input shape: {xs.shape!r}'
+        assert self.aggregation in JAX_AGG, f'Aggregation ({self.aggregation!r}) must be one of {JAX_AGG.keys()!r}'
+        # prepare conv parameters
+        kernel_size = self.helper_.check_kernel_size(len(spatial_dims))
+        window_dimensions = (1, 1, *kernel_size)  # (N, C, n_1, ..., n_d)
+        strides = self.helper_.check_stride(spatial_dims, kernel_size)
+        window_strides = (1, 1, *strides)
+        # prepare padding
+        if self.params.padding is None:
+            padding = 'valid'
+        elif isinstance(self.params.padding, str):
+            padding = self.params.padding
+        elif isinstance(self.params.padding, Sequence):
+            assert len(self.params.padding) == len(spatial_dims), 'Padding sequence should correspond to spatial dims'
+            padding = ((0, 0), (0, 0), *self.params.padding)
+        elif type(self.params.padding) == int:
+            # symmetric padding
+            p = self.params.padding
+            padding = ((0, 0), (0, 0)) + ((p, p),) * len(spatial_dims)
+        else:
+            raise ValueError(f'Unsupported padding: {self.params.padding!r}')
+
+        window_dilation = (1, 1, *(self.params.dilation,) * len(spatial_dims))
+        # prepare reduction ops
+        init_value, computation = JAX_AGG[self.aggregation]
+        result = lax.reduce_window(
+            xs,
+            init_value,
+            computation,
+            window_dimensions,
+            window_strides,
+            padding,
+            window_dilation=window_dilation,
+        )
+        if self.aggregation == 'mean':
+            # need to divide by window size
+            window_size = reduce(mul, kernel_size, 1)
+            result = result / window_size
+        return result
+
     def __chunk_pooling(self, xs: np.ndarray) -> np.ndarray:
         if self.impl_type == 'index':
             return self.__index_based_chunk_pooling(xs)
         elif self.impl_type == 'njit':
             return self.__njit_based_chunk_pooling(xs)
         raise ValueError(f'Wrong {self.impl_type=}')
-
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         """Apply Pooling to input 'X'.
@@ -154,16 +211,23 @@ class PoolingBlock(BaseBlock):
 
         """
         assert 'X' in inputs
-        assert isinstance(inputs['X'], CPUData)
         xs = inputs['X'].data
         # shape: (n_samples, n_channels, n_features_1, ..., n_features_k)
-        if self.chunk_size <= 0:
-            result = self.__chunk_pooling(xs)
+        if isinstance(inputs['X'], GPUData) or self.impl_type == 'jax':
+            # can process even CPU data, since JAX natively works with NumPy arrays
+            result = self.__jax_based_pooling(xs)
+            return {'output': GPUData(result)}
+        elif isinstance(inputs['X'], CPUData):
+            if self.chunk_size <= 0:
+                result = self.__chunk_pooling(xs)
+            else:
+                n_samples = xs.shape[0]
+                n_chunks = round(np.ceil(n_samples / self.chunk_size))
+                result = np.concatenate([
+                    self.__chunk_pooling(xs_chunk)
+                    for xs_chunk in np.split(xs, n_chunks)
+                ], axis=0)
+            return {'output': CPUData(result)}
         else:
-            n_samples = xs.shape[0]
-            n_chunks = round(np.ceil(n_samples / self.chunk_size))
-            result = np.concatenate([
-                self.__chunk_pooling(xs_chunk)
-                for xs_chunk in np.split(xs, n_chunks)
-            ], axis=0)
-        return {'output': CPUData(result)}
+            raise NotImplementedError(f'Not implemented for type {type(inputs["X"])!r}')
+
