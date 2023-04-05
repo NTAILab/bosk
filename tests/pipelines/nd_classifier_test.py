@@ -58,7 +58,16 @@ class NDimensionalClassifier2DTest(BPT):
         pooled = b.Flatten()(X=pooled)
         rf_1 = b.RFC(random_state=self.random_state)(X=pooled, y=y)
         et_1 = b.ETC(random_state=self.random_state)(X=pooled, y=y)
-        concat_1 = b.Concat(['ms', 'rf_1', 'et_1'])(ms=pooled, rf_1=rf_1, et_1=et_1)
+        ferns_1 = b.RandomFerns(
+            n_groups=5,
+            n_ferns_in_group=5,
+            fern_size=5,
+            kind='binary',
+            bootstrap=True,
+            n_jobs=None,
+            random_state=self.random_state
+        )(X=pooled, y=y)
+        concat_1 = b.Concat(['ms', 'rf_1', 'et_1', 'ferns_1'])(ms=pooled, rf_1=rf_1, et_1=et_1, ferns_1=ferns_1)
         rf_2 = b.RFC(random_state=self.random_state)(X=concat_1, y=y)
         et_2 = b.ETC(random_state=self.random_state)(X=concat_1, y=y)
         concat_2 = b.Concat(['ms', 'rf_2', 'et_2'])(ms=pooled, rf_2=rf_2, et_2=et_2)
