@@ -190,6 +190,7 @@ class MGSRandomFernsBlock(BaseBlock):
         ],
         execution_props=BlockExecutionProperties(gpu=True),
     )
+    pooling_indices_ = None
 
     def __init__(self, n_groups: int = 10,
                  n_ferns_in_group: int = 20,
@@ -239,6 +240,36 @@ class MGSRandomFernsBlock(BaseBlock):
         )
         self.helper_ = _ConvolutionHelper(self.params)
         self.pooling_indices_ = None
+
+    def __getstate__(self) -> dict:
+        ATTRS = (
+            'n_groups', 'n_ferns_in_group', 'n_ferns', 'fern_size',
+            'kind', 'n_buckets', 'bootstrap', 'n_jobs', 'random_state',
+            'n_classes_', 'params', 'helper_'
+        )
+        state = {
+            k: getattr(self, k)
+            for k in ATTRS
+            if hasattr(self, k)
+        }
+        TO_NUMPY = ('ferns_', 'prior_', 'bucket_stats_', 'classes_')
+        for k in TO_NUMPY:
+            if hasattr(self, k):
+                v = getattr(self, k)
+                if k == 'ferns_':
+                    # ferns is an exception, the tuple may contain arrays of different types
+                    state[k] = tuple(np.asarray(el) for el in v)
+                else:
+                    state[k] = np.asarray(getattr(self, k))
+        return state
+
+    def __setstate__(self, state: dict):
+        for k, v in state.items():
+            if k == 'ferns_':
+                v = tuple(jnp.asarray(el) for el in v)
+            elif isinstance(v, np.ndarray):
+                v = jnp.asarray(v)
+            setattr(self, k, v)
 
     def _classifier_init(self, y):
         check_classification_targets(y)
