@@ -245,7 +245,8 @@ class MGSRandomFernsBlock(BaseBlock):
         ATTRS = (
             'n_groups', 'n_ferns_in_group', 'n_ferns', 'fern_size',
             'kind', 'n_buckets', 'bootstrap', 'n_jobs', 'random_state',
-            'n_classes_', 'params', 'helper_'
+            'n_classes_', 'params', 'helper_',
+            'slots',  # BaseBlock attribute
         )
         state = {
             k: getattr(self, k)
