@@ -5,7 +5,6 @@ from bosk.data import BaseData
 from bosk.pipeline.base import BasePipeline
 from bosk.stages import Stage
 from bosk.executor.topological import TopologicalExecutor
-from bosk.executor.descriptor import HandlingDescriptor
 from copy import deepcopy
 import numpy as np
 from typing import List, Dict
@@ -76,11 +75,9 @@ class CVComparator(BaseComparator):
                 common_train_res = dict()
                 common_test_res = common_train_res
             else:
-                train_exec = self.exec_cls(self.common_pipeline,
-                                           HandlingDescriptor.from_classes(Stage.FIT))
+                train_exec = self.exec_cls(self.common_pipeline, Stage.FIT)
                 common_train_res = train_exec(train_dict)
-                test_exec = self.exec_cls(self.common_pipeline,
-                                          HandlingDescriptor.from_classes(Stage.TRANSFORM))
+                test_exec = self.exec_cls(self.common_pipeline, Stage.TRANSFORM)
                 common_test_res = test_exec(test_dict)
 
             for j, cur_pipeline in enumerate(self.optim_pipelines):
@@ -96,8 +93,7 @@ class CVComparator(BaseComparator):
                         raise RuntimeError(
                             f"Unable to find '{key}' key neither in the data nor in the common part")
 
-                pip_tr_exec = self.exec_cls(pipeline,
-                                            HandlingDescriptor.from_classes(Stage.FIT))
+                pip_tr_exec = self.exec_cls(pipeline, Stage.FIT)
                 pip_train_res = pip_tr_exec(cur_train_dict)
 
                 # build personal test dict
@@ -111,8 +107,7 @@ class CVComparator(BaseComparator):
                         raise RuntimeError(
                             f"Unable to find '{key}' key neither in the data nor in the common part")
 
-                pip_test_exec = self.exec_cls(pipeline,
-                                              HandlingDescriptor.from_classes(Stage.TRANSFORM))
+                pip_test_exec = self.exec_cls(pipeline, Stage.TRANSFORM)
                 pip_test_res = pip_test_exec(cur_test_dict)
 
                 self._write_fold_info_to_dict(res_dict, f'pipeline_{j}', metrics,

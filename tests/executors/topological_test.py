@@ -6,7 +6,6 @@ from bosk.block.zoo.data_conversion import AverageBlock, ArgmaxBlock, ConcatBloc
 from bosk.executor.topological import TopologicalExecutor
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.painter.topological import TopologicalPainter
-from bosk.executor.descriptor import HandlingDescriptor
 from bosk.stages import Stage
 from ..painters import PIC_SAVE_DIR, PIC_SAVE_FMT
 import logging
@@ -42,7 +41,7 @@ class BaseTopSortChecker(ABC):
     @abstractmethod
     def get_order_requirements(self) -> List[List[BaseBlock]]:
         """Get list of ordered chains, that must appear in the topological order.
-        For example, chain [Block1, Block2, Block3] means that the topological 
+        For example, chain [Block1, Block2, Block3] means that the topological
         order must contain Block1 < Block2 < Block3 subsequence."""
 
     def _check_blocks_presence(self, top_order: List[BaseBlock]) -> bool:
@@ -256,17 +255,14 @@ class TopologicalExecTest():
         painter = TopologicalPainter()
         pip_wrapper = self._get_pw_to_paint()
         pipeline = pip_wrapper.get_pipeline()
-        fit_executor = TopologicalExecutor(pipeline,
-                                           HandlingDescriptor.from_classes(Stage.FIT),
-                                           *pip_wrapper.get_fit_in_out())
+        fit_executor = TopologicalExecutor(pipeline, Stage.FIT, *pip_wrapper.get_fit_in_out())
         painter.from_executor(fit_executor)
         fit_filename = f'{dirname}/{filename}_fit'
         painter.render(fit_filename, PIC_SAVE_FMT)
         assert isfile(fit_filename + f'.{PIC_SAVE_FMT}'), "Fit pipeline wasn't rendered"
         logging.info('Rendered the fit graph, please see and check "%s"', fit_filename)
         painter = TopologicalPainter()
-        tf_executor = TopologicalExecutor(pipeline, HandlingDescriptor.from_classes(Stage.TRANSFORM),
-                                          *pip_wrapper.get_transform_in_out())
+        tf_executor = TopologicalExecutor(pipeline, Stage.TRANSFORM, *pip_wrapper.get_transform_in_out())
         painter.from_executor(tf_executor)
         tf_filename = f'{dirname}/{filename}_transform'
         painter.render(tf_filename, PIC_SAVE_FMT)
@@ -286,8 +282,7 @@ class TopologicalExecTest():
             test = test_cls()
             pipeline = test.get_pipeline()
             inp_blocks = [slot.parent_block for slot in pipeline.inputs.values()]
-            executor = TopologicalExecutor(pipeline,
-                                           HandlingDescriptor.from_classes(test.get_stage()))
+            executor = TopologicalExecutor(pipeline, test.get_stage())
             top_sort_order = executor._topological_sort(executor._get_forward_aj_list(), inp_blocks)
             test.check_topological_sort(top_sort_order)
 
@@ -296,8 +291,7 @@ class TopologicalExecTest():
         log_test_name()
         checker = DFSChecker()
         pipeline = checker.get_pipeline()
-        executor = TopologicalExecutor(pipeline,
-                                       HandlingDescriptor.from_classes(Stage.FIT))
+        executor = TopologicalExecutor(pipeline, Stage.FIT)
         input_blocks = [slot.parent_block for slot in pipeline.inputs.values()]
         output_blocks = [slot.parent_block for slot in pipeline.outputs.values()]
         forward_pass = executor._dfs(executor._get_forward_aj_list(), input_blocks)

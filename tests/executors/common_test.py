@@ -2,7 +2,6 @@
 
 from bosk.executor import *
 from bosk.executor.base import BaseExecutor
-from bosk.executor.descriptor import HandlingDescriptor
 from bosk.stages import Stage
 from collections import defaultdict
 import numpy as np
@@ -56,8 +55,7 @@ def fit_transform_test():
             logging.info('Fit process succeeded')
             logging.info('Starting transform process')
             data = pipeline_wrapper.get_transform_data()
-            executor = e_cls(fitted_pipeline, HandlingDescriptor.from_classes(Stage.TRANSFORM),
-                             *pipeline_wrapper.get_transform_in_out())
+            executor = e_cls(fitted_pipeline, Stage.TRANSFORM, *pipeline_wrapper.get_transform_in_out())
             executor(data)
             logging.info('Transform process succeeded')
         except Exception as exp:
@@ -99,8 +97,7 @@ def cross_test():
             process_scores(fit_dict, 'fit')
             logging.info('Starting transform with the %s executor', e_cls.__name__)
             tf_data = p_w.get_transform_data()
-            executor = e_cls(fitted_pipeline, HandlingDescriptor.from_classes(Stage.TRANSFORM),
-                             *p_w.get_transform_in_out())
+            executor = e_cls(fitted_pipeline, Stage.TRANSFORM, *p_w.get_transform_in_out())
             tf_dict = executor(tf_data)
             logging.info('Transform results:')
             process_scores(tf_dict, 'transform')

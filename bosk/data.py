@@ -1,7 +1,5 @@
 from typing import Any, Union
-
 import jax.numpy as jnp
-
 import numpy as np
 
 Data = Any

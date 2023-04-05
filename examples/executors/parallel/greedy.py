@@ -27,7 +27,6 @@ from bosk.executor.parallel.greedy import (
 #                                                            make_deep_forest_functional_multi_grained_scanning_2d)
 # from examples.deep_forests.weighted_cs.simple import make_deep_forest_weighted_confidence_screening
 from sklearn.metrics import roc_auc_score
-from bosk.executor.descriptor import HandlingDescriptor
 from bosk.block.auto import auto_block
 from joblib import parallel_backend
 
@@ -87,7 +86,7 @@ def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        HandlingDescriptor.from_classes(Stage.FIT),
+        stage=Stage.FIT,
         inputs=['X', 'y'],
         outputs=['probas', 'rf_1_roc-auc', 'roc-auc'],
         # outputs=['probas'],
@@ -98,7 +97,7 @@ def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'labels': argmax_3}
         ),
-        HandlingDescriptor.from_classes(Stage.TRANSFORM),
+        stage=Stage.TRANSFORM,
         inputs=['X'],
         outputs=['probas', 'labels'],
         **ex_kw

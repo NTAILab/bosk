@@ -10,7 +10,6 @@ from bosk.pipeline.connection import Connection
 from bosk.pipeline import BasePipeline
 from bosk.executor.topological import TopologicalExecutor
 from bosk.stages import Stage
-from bosk.executor.descriptor import HandlingDescriptor
 from sklearn.datasets import make_moons
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
@@ -27,13 +26,13 @@ from collections import defaultdict
 class StepwisePipeline():
     """Structure that provides possibility to build the pipeline
     step by step. You select input blocks and output names of the final pipeline
-    and then merge new parts into the global result. 
-    
+    and then merge new parts into the global result.
+
     The main idea is to use same names of the inputs and outputs which should be
     connected between steps.
-    
+
     The common input blocks will try to connect with every added step.
-    
+
     The global output slots will be chosen by the common output names and the
     preference will be given to the last added output slot with the corresponding name.
 
@@ -93,7 +92,7 @@ class BaseGrowingStrategy(ABC):
                 transform_results: Optional[Mapping[str, Data]] = None,
                 fit_results: Optional[Mapping[str, Data]] = None) -> bool:
         ...
-    
+
     @abstractmethod
     def get_details(self) -> Mapping[str, Any]:
         ...
@@ -107,7 +106,7 @@ class LayerFactoryBase(ABC):
 
 @dataclass
 class EarlyStoppingStrategy(BaseGrowingStrategy):
-    max_iter_num: int 
+    max_iter_num: int
     patience: int # todo
     _cur_iter: int = field(default=0, init=False)
 
@@ -116,7 +115,7 @@ class EarlyStoppingStrategy(BaseGrowingStrategy):
                 fit_results: Optional[Mapping[str, Data]] = None) -> bool:
         self._cur_iter += 1
         return self._cur_iter < self.max_iter_num
-    
+
     def get_details(self) -> Mapping[str, Any]:
         return {'iterations remain': self.max_iter_num - self._cur_iter}
 
@@ -135,7 +134,7 @@ class ROCAUCStrategy(BaseGrowingStrategy):
         result = self.last_score < current_score
         self.last_score = current_score
         return result
-    
+
     def get_details(self) -> Mapping[str, Any]:
         return {'roc-auc test score': self.last_score}
 
@@ -143,12 +142,12 @@ class ROCAUCStrategy(BaseGrowingStrategy):
 class ComplexGrowingStrategy(BaseGrowingStrategy):
     def __init__(self, strategies: Sequence[BaseGrowingStrategy]) -> None:
         self.strat_seq = copy.copy(strategies)
-    
+
     def need_grow(self, labels: Optional[Mapping[str, Data]] = None,
                 transform_results: Optional[Mapping[str, Data]] = None,
                 fit_results: Optional[Mapping[str, Data]] = None) -> bool:
         return all(map(lambda strat: strat.need_grow(labels, transform_results, fit_results), self.strat_seq))
-    
+
     def get_details(self) -> Mapping[str, Any]:
         res = dict()
         for i, strat in enumerate(self.strat_seq):
@@ -237,13 +236,11 @@ class SimpleGrowingFitter():
         while True:
             print(f'--- Iteration {i} ---')
             new_layer = self.layer_factory.get_new_layer()
-            fit_exec = self.exec_cls(new_layer,
-                HandlingDescriptor.from_classes(Stage.FIT), **self.exec_kw)
+            fit_exec = self.exec_cls(new_layer, stage=Stage.FIT, **self.exec_kw)
             fit_output = fit_exec(input_fit_data)
             if self.fit_callback is not None:
                 self.fit_callback(fit_output)
-            tf_exec = self.exec_cls(new_layer,
-                HandlingDescriptor.from_classes(Stage.TRANSFORM), **self.exec_kw)
+            tf_exec = self.exec_cls(new_layer, stage=Stage.TRANSFORM, **self.exec_kw)
             test_output = tf_exec(input_test_data)
             f_need_continue = self.strategy.need_grow(labels, test_output, fit_output)
             self._print_log()
@@ -256,16 +253,16 @@ class SimpleGrowingFitter():
             input_test_data.update(test_output)
             i += 1
         self.is_fitted = True
-        
+
     def get_pipeline(self):
         assert self.is_fitted, "You must fit the deep forest first"
         return self.growing_pipeline.build_base_pipeline()
-    
+
     def get_transform_executor(self):
         assert self.is_fitted, "You must fit the deep forest first"
         return self.exec_cls(
             self.growing_pipeline.build_base_pipeline(),
-            HandlingDescriptor.from_classes(Stage.TRANSFORM),
+            stage=Stage.TRANSFORM,
             inputs=self.growing_pipeline.common_inputs.keys(),
             outputs=self.growing_pipeline.common_outputs,
         )

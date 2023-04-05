@@ -1,9 +1,10 @@
 from typing import Dict, Mapping, Union, Sequence, Optional
 
+
 from ..data import Data
-from .base import BaseExecutor
+from .base import BaseBlockExecutor, BaseExecutor, BaseSlotHandler
+from .base import Stage
 from ..pipeline import BasePipeline
-from .descriptor import HandlingDescriptor
 from ..block.slot import BlockInputSlot, BlockOutputSlot
 from .utility import get_connection_map
 
@@ -14,23 +15,28 @@ class RecursiveExecutor(BaseExecutor):
     Considers only input-output slots information to match slots.
 
     Attributes:
-        _conn_map: Pipeline connections, represented as a hash map, the keys are blocks' input slots, 
-            the values are output ones. Each input slot corresponds no more than one 
+        _conn_map: Pipeline connections, represented as a hash map, the keys are blocks' input slots,
+            the values are output ones. Each input slot corresponds no more than one
             output slot, so this representation is correct.
 
     Args:
         pipeline: Sets :attr:`.BaseExecutor.__pipeline`.
-        stage_descriptor: Sets :attr:`.BaseExecutor.__stage`, 
-            :attr:`.BaseExecutor.__slots_handler` and :attr:`.BaseExecutor.__blocks_handler`.
+        stage: Sets :attr:`.BaseExecutor.__stage`,
         inputs: Sets :attr:`.BaseExecutor.__inputs`.
         outputs: Sets :attr:`.BaseExecutor.__outputs`.
+        slot_handler: Sets :attr:`.BaseExecutor.__slot_handler` with `_prepare_slot_handler` method.
+        block_executor: Sets :attr:`.BaseExecutor.__block_executor` with `_prepare_block_executor` method.
     """
 
     _conn_map: Mapping[BlockInputSlot, BlockOutputSlot]
 
-    def __init__(self, pipeline: BasePipeline, handl_desc: HandlingDescriptor,
-                 inputs: Optional[Sequence[str]] = None, outputs: Optional[Sequence[str]] = None) -> None:
-        super().__init__(pipeline, handl_desc, inputs, outputs)
+    def __init__(self, pipeline: BasePipeline,
+                 stage: Stage,
+                 inputs: Optional[Sequence[str]] = None,
+                 outputs: Optional[Sequence[str]] = None,
+                 slot_handler: Optional[BaseSlotHandler] = None,
+                 block_executor: Optional[BaseBlockExecutor] = None) -> None:
+        super().__init__(pipeline, stage, inputs, outputs, slot_handler, block_executor)
         self._conn_map = get_connection_map(self)
 
     def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:
