@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Mapping
+from typing import Mapping, Dict
 
 # from .base import InputSlotToDataMapping
 from ..data import Data
 from ..stages import Stage
 from ..block.slot import BlockInputSlot, BaseSlot
 from ..block.base import BaseBlock, BlockOutputData
+from ..utility import timer_wrap
 
 InputSlotToDataMapping = Mapping[BlockInputSlot, Data]  # circular import
 
@@ -104,3 +105,31 @@ class DefaultBlockHandler(BaseBlockHandler):
             if slot.meta.stages.transform or (self.stage == Stage.FIT and slot.meta.stages.transform_on_fit)
         }
         return block.wrap(block.transform(filtered_block_input_mapping))
+
+
+class TimerBlockHandler(BaseBlockHandler):
+    def __init__(self, stage: Stage) -> None:
+        assert (stage == Stage.FIT or stage == Stage.TRANSFORM), "Stage is not implemented"
+        super().__init__(stage)
+        self._time_dict = dict()
+
+    def execute_block(self, block: BaseBlock, block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
+        fit_time = 0
+        if self.stage == Stage.FIT:
+            _, fit_time = timer_wrap(block.fit)({
+                slot.meta.name: values
+                for slot, values in block_input_mapping.items()
+                if slot.meta.stages.fit
+            })
+        filtered_block_input_mapping = {
+            slot.meta.name: values
+            for slot, values in block_input_mapping.items()
+            if slot.meta.stages.transform or (self.stage == Stage.FIT and slot.meta.stages.transform_on_fit)
+        }
+        tf_res, tf_time = timer_wrap(block.transform)(filtered_block_input_mapping)
+        self._time_dict[block] = fit_time + tf_time
+        return block.wrap(tf_res)
+
+    @property
+    def blocks_time(self) -> Dict[BaseBlock, float]:
+        return self._time_dict.copy()

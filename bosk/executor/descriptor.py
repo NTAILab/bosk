@@ -1,11 +1,8 @@
-from typing import TypeVar, Type
-from inspect import signature
+from typing import Type
 from dataclasses import dataclass
 from ..stages import Stage
 from .handlers import DefaultBlockHandler, DefaultSlotHandler, \
     BaseSlotHandler, BaseBlockHandler
-
-HandlingDescriptorT = TypeVar('HandlingDescriptorT', bound='HandlingDescriptor')
 
 
 @dataclass(frozen=True, init=True)
@@ -30,7 +27,7 @@ class HandlingDescriptor():
 
     @classmethod
     def from_classes(cls, stage: Stage, block_handler_cls: Type[BaseBlockHandler] = DefaultBlockHandler, block_handler_kw={},
-                     slot_handler_cls: Type[BaseSlotHandler] = DefaultSlotHandler, slot_handler_kw={}) -> HandlingDescriptorT:
+                     slot_handler_cls: Type[BaseSlotHandler] = DefaultSlotHandler, slot_handler_kw={}) -> 'HandlingDescriptor':
         """Static method to make the handling descriptor out of the stage info and handlers' types.
 
         Args:
@@ -45,7 +42,7 @@ class HandlingDescriptor():
         return HandlingDescriptor(stage=stage, block_handler=block_handler, slot_handler=slot_handler)
 
     @classmethod
-    def from_instances(cls, block_handler: BaseBlockHandler, slot_handler: BaseSlotHandler) -> HandlingDescriptorT:
+    def from_instances(cls, block_handler: BaseBlockHandler, slot_handler: BaseSlotHandler) -> 'HandlingDescriptor':
         """Static method to make the handling descriptor out of instantiated block and slot handlers. 
         The handlers must process the same computational stage.
 

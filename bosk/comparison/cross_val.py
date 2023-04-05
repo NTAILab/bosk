@@ -1,16 +1,18 @@
 from .base import BaseComparator, BaseForeignModel
 from .metric import BaseMetric
-from bosk.executor.base import BaseExecutor
 from bosk.data import BaseData
+from bosk.block.base import BaseBlock
+from bosk.executor.base import BaseExecutor
 from bosk.pipeline.base import BasePipeline
 from bosk.stages import Stage
 from bosk.executor.topological import TopologicalExecutor
 from bosk.executor.descriptor import HandlingDescriptor
+from bosk.executor.handlers import DefaultBlockHandler, TimerBlockHandler, DefaultSlotHandler
 from bosk.utility import timer_wrap
 from collections import defaultdict
 from copy import deepcopy
 import numpy as np
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from sklearn.model_selection import BaseCrossValidator
 from pandas import DataFrame
 import logging
@@ -25,14 +27,37 @@ class CVComparator(BaseComparator):
     or you can use predefined iterators from the `sklearn`.
     """
 
-    def _write_fold_info_to_dict(self, df_dict, metrics,
-                                 train_data_dict, train_pred_dict,
-                                 test_data_dict, test_pred_dict) -> None:
+    def _write_metrics_info_to_dict(self, df_dict, metrics,
+                                    train_data_dict, train_pred_dict,
+                                    test_data_dict, test_pred_dict) -> None:
         for i, metric in enumerate(metrics):
             df_dict[self._metrics_names[i]].append(
                 metric.get_score(train_data_dict, train_pred_dict))
             df_dict[self._metrics_names[i]].append(
                 metric.get_score(test_data_dict, test_pred_dict))
+
+    # copy isomorphism is returned only for blocks' time measuring case
+    def _get_copy_pipeline(self, pip_num: int) -> Tuple[BasePipeline, Dict[BaseBlock, BaseBlock] | None]:
+        orig_pip = self.optim_pipelines[pip_num]
+        pip_copy = deepcopy(orig_pip)
+        if not self.measure_blk_time:
+            return pip_copy, None
+        extra_blocks_num = len(self._new_blocks_list[pip_num])
+        copy_iso = dict()  # copy_pip-> orig_pip
+        for i in range(len(orig_pip.nodes) - extra_blocks_num):
+            copy_iso[pip_copy.nodes[i]] = orig_pip.nodes[i]
+        return pip_copy, copy_iso
+
+    def _get_times_dict(self, common_times, pip_times,
+                        common_part_iso, copy_iso) -> Dict[BaseBlock, float]:
+        res = dict()
+        for block, time in pip_times.items():
+            orig_block = copy_iso.get(block, None)
+            if orig_block is not None:
+                res[orig_block] = time
+        for block, time in common_times.items():
+            res[common_part_iso[block]] = time
+        return res
 
     def _get_pers_inp_dict(self, pipeline, common_output, input_dict) -> Dict[str, BaseData]:
         personal_dict = dict()
@@ -60,14 +85,26 @@ class CVComparator(BaseComparator):
 
     def __init__(self, pipelines: List[BasePipeline], common_part: BasePipeline,
                  foreign_models: List[BaseForeignModel], cv_strat: BaseCrossValidator,
-                 exec_cls: BaseExecutor = TopologicalExecutor, suppress_exec_warn: bool = True, 
+                 exec_cls: BaseExecutor = TopologicalExecutor, exec_kw=None,
+                 get_blocks_times: bool = False, suppress_exec_warn: bool = True,
                  random_state: Optional[int] = None) -> None:
         super().__init__(pipelines, common_part, foreign_models, random_state)
         cv_strat.random_state = random_state
         self.cv_strat = cv_strat
         self.exec_cls = exec_cls
+        if exec_kw is None:
+            self.exec_kw = dict()
+        else:
+            forbidden_exec_args = ['pipeline', 'handl_desc']
+            if any([key in exec_kw for key in forbidden_exec_args]):
+                raise RuntimeError(
+                    f"You mustn't specify following args for executor: {forbidden_exec_args}")
+            self.exec_kw = exec_kw
+        self.measure_blk_time = get_blocks_times
+        self.block_hlr_cls = TimerBlockHandler if get_blocks_times else DefaultBlockHandler
         self.warn_context = 'ignore' if suppress_exec_warn else 'default'
 
+    # columns: model name | fold # | train/test | time | blocks time | metric name 1 | ... | metric name n
     def get_score(self, data: Dict[str, BaseData], metrics: List[BaseMetric]) -> DataFrame:
         n = None
         for value in data.values():
@@ -81,7 +118,7 @@ class CVComparator(BaseComparator):
         dataframe_dict = defaultdict(list)
         for i, (train_idx, test_idx) in enumerate(self.cv_strat.split(idx)):
             logging.info('Processing fold #%i', i)
-            
+
             # getting fold subsets of data
             train_data_dict, test_data_dict = dict(), dict()
             for key, val in data.items():
@@ -97,34 +134,54 @@ class CVComparator(BaseComparator):
             else:
                 with warnings.catch_warnings():
                     warnings.simplefilter(self.warn_context)
-                    train_exec = self.exec_cls(self.common_pipeline,
-                                            HandlingDescriptor.from_classes(Stage.FIT))
-                    common_train_res, train_common_part_time = timer_wrap(train_exec)(train_data_dict)
-
-                    test_exec = self.exec_cls(self.common_pipeline,
-                                            HandlingDescriptor.from_classes(Stage.TRANSFORM))
+                    hl_dsc = HandlingDescriptor.from_classes(Stage.FIT, self.block_hlr_cls)
+                    train_exec = self.exec_cls(self.common_pipeline, hl_dsc)
+                    common_train_res, train_common_part_time = timer_wrap(
+                        train_exec)(train_data_dict)
+                    if self.measure_blk_time:
+                        common_block_train_times = hl_dsc.block_handler.blocks_time
+                    hl_dsc = HandlingDescriptor.from_classes(Stage.TRANSFORM, self.block_hlr_cls)
+                    test_exec = self.exec_cls(self.common_pipeline, hl_dsc)
                     common_test_res, test_common_part_time = timer_wrap(test_exec)(test_data_dict)
+                    if self.measure_blk_time:
+                        common_block_test_times = hl_dsc.block_handler.blocks_time
 
-            for j, cur_pipeline in enumerate(self.optim_pipelines):
+            for j in range(len(self.optim_pipelines)):
                 pip_name = f'deep forest {j}'
                 self._write_preamble(dataframe_dict, pip_name, i)
 
-                pipeline = deepcopy(cur_pipeline)
-                cur_train_dict = self._get_pers_inp_dict(pipeline, common_train_res, train_data_dict)
+                pipeline, copy_iso = self._get_copy_pipeline(j)
+                cur_train_dict = self._get_pers_inp_dict(
+                    pipeline, common_train_res, train_data_dict)
                 cur_test_dict = self._get_pers_inp_dict(pipeline, common_test_res, test_data_dict)
                 with warnings.catch_warnings():
                     warnings.simplefilter(self.warn_context)
-                    pip_tr_exec = self.exec_cls(pipeline, HandlingDescriptor.from_classes(Stage.FIT))
+                    hl_dsc = HandlingDescriptor.from_classes(Stage.FIT, self.block_hlr_cls)
+                    pip_tr_exec = self.exec_cls(pipeline, hl_dsc)
                     pip_train_res, train_time = timer_wrap(pip_tr_exec)(cur_train_dict)
                     dataframe_dict['time'].append(train_common_part_time + train_time)
-
-                    pip_test_exec = self.exec_cls(pipeline, HandlingDescriptor.from_classes(Stage.TRANSFORM))
+                    if self.measure_blk_time:
+                        pip_block_train_times = hl_dsc.block_handler.blocks_time
+                    hl_dsc = HandlingDescriptor.from_classes(Stage.TRANSFORM, self.block_hlr_cls)
+                    pip_test_exec = self.exec_cls(pipeline, hl_dsc)
                     pip_test_res, test_time = timer_wrap(pip_test_exec)(cur_test_dict)
                     dataframe_dict['time'].append(test_common_part_time + test_time)
+                    if self.measure_blk_time:
+                        pip_block_test_times = hl_dsc.block_handler.blocks_time
+                        orig_pip_train_times = self._get_times_dict(
+                            common_block_train_times, pip_block_train_times,
+                            self._block_iso_list[j], copy_iso
+                        )
+                        dataframe_dict['blocks time'].append(orig_pip_train_times)
+                        orig_pip_test_times = self._get_times_dict(
+                            common_block_test_times, pip_block_test_times,
+                            self._block_iso_list[j], copy_iso
+                        )
+                        dataframe_dict['blocks time'].append(orig_pip_test_times)
 
-                self._write_fold_info_to_dict(dataframe_dict, metrics,
-                                              train_data_dict, pip_train_res,
-                                              test_data_dict, pip_test_res)
+                self._write_metrics_info_to_dict(dataframe_dict, metrics,
+                                                 train_data_dict, pip_train_res,
+                                                 test_data_dict, pip_test_res)
 
             for j, cur_model in enumerate(self.models):
                 model_name = f'model {j}'
@@ -135,9 +192,11 @@ class CVComparator(BaseComparator):
                 model_test_res, model_test_time = timer_wrap(model.predict)(test_data_dict)
                 dataframe_dict['time'].append(model_train_time)
                 dataframe_dict['time'].append(model_test_time)
-                self._write_fold_info_to_dict(dataframe_dict, metrics,
-                                              train_data_dict, model_train_res,
-                                              test_data_dict, model_test_res)
+                self._write_metrics_info_to_dict(dataframe_dict, metrics,
+                                                 train_data_dict, model_train_res,
+                                                 test_data_dict, model_test_res)
+                if self.measure_blk_time:
+                    dataframe_dict['blocks time'] += [None] * 2
 
         del self._metrics_names  # it's a helper field only for this func call
         return DataFrame(dataframe_dict)

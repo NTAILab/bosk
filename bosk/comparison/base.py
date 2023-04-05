@@ -144,6 +144,7 @@ class BaseComparator(ABC):
         queue_list = []
         block_iso_list = []
         conn_iso_list = []
+        self._new_blocks_list = []
 
         for pipeline in pipelines:
             cur_blocks_al, cur_conns_al = self._get_aj_lists(pipeline)
@@ -255,6 +256,9 @@ class BaseComparator(ABC):
                     new_conns.append(conn)
             new_blocks = pipeline.nodes + extra_blocks
             self.optim_pipelines.append(BasePipeline(new_blocks, new_conns, new_inputs, new_outputs))
+            self._conn_iso_list = conn_iso_list
+            self._block_iso_list = block_iso_list
+            self._new_blocks_list.append(extra_blocks)
 
     @abstractmethod
     def get_score(self, data: Dict[str, BaseData], metrics: List[BaseMetric]) -> DataFrame:

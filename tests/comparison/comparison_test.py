@@ -2,6 +2,10 @@ from bosk.comparison.cross_val import CVComparator
 from bosk.comparison.base import BaseForeignModel
 from bosk.comparison.metric import MetricWrapper
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
+from bosk.executor.descriptor import HandlingDescriptor
+from bosk.executor.topological import TopologicalExecutor
+from bosk.executor.handlers import TimerBlockHandler
+from bosk.stages import Stage
 from bosk.data import CPUData, BaseData
 from bosk.utility import timer_wrap
 from sklearn.datasets import make_moons
@@ -13,6 +17,7 @@ import numpy as np
 from typing import Dict
 from ..utility import log_test_name
 import logging
+import warnings
 
 
 class RFCModel(BaseForeignModel):
@@ -229,3 +234,43 @@ def optimization_test():
     assert optim_time < unoptim_time, "Optimization was useless"
     logging.info('Time of unoptimized run: %f s.', unoptim_time)
     logging.info('Time of optimized run: %f s.', optim_time)
+
+
+def blocks_times_test():
+    log_test_name()
+    random_state = 42
+    common_part, pipelines = get_pipelines()
+    models = [RFCModel(), CatBoostModel()]
+    cv_strat = KFold(shuffle=True, n_splits=3)
+    comparator = CVComparator(pipelines, common_part, models, cv_strat, 
+                              get_blocks_times=True, random_state=random_state)
+    x, y = make_moons(noise=0.5, random_state=random_state)
+    data = {
+        'X': CPUData(x),
+        'y': CPUData(y),
+    }
+    metrics = [MetricWrapper(my_acc, name='accuracy'), MetricWrapper(my_roc_auc, name='roc_auc')]
+    cv_res = comparator.get_score(data, metrics)
+    for i, pipeline in enumerate(pipelines):
+        fit_desc = HandlingDescriptor.from_classes(Stage.FIT, TimerBlockHandler)
+        tf_desc = HandlingDescriptor.from_classes(Stage.TRANSFORM, TimerBlockHandler)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            TopologicalExecutor(pipeline, fit_desc)(data)
+            TopologicalExecutor(pipeline, tf_desc)(data)
+        true_fit_blocks_time = fit_desc.block_handler.blocks_time
+        true_tf_blocks_time = tf_desc.block_handler.blocks_time
+        sub_df = cv_res.loc[cv_res.loc[:, 'model name'] == f'deep forest {i}', ['train/test', 'time', 'blocks time']]
+        blocks_time_dict_list = sub_df.loc[:, 'blocks time']
+        for idx, time_dict in blocks_time_dict_list.items():
+            if sub_df.loc[idx, 'train/test'] == 'train':
+                pip_blocks = set(true_fit_blocks_time.keys())
+            else:
+                pip_blocks = set(true_tf_blocks_time.keys())
+            assert set(time_dict.keys()) == pip_blocks, \
+                "Blocks, presented in the profiling result, do not match with the ones in the pipeline"
+            assert sum(time_dict.values()) < sub_df.loc[idx, 'time'], \
+                "Sum of blocks' times must be smaller than total execution time"
+    for i in range(len(models)):
+        assert all(cv_res.loc[cv_res.loc[:, 'model name'] == f'model {i}', 'blocks time'].apply(lambda x: x == None)), \
+            "For foreign models blocks times must be None"
