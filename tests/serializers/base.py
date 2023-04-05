@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from bosk.pipeline.serializer.base import BasePipelineSerializer
 from bosk.executor.recursive import RecursiveExecutor
-from bosk.executor.descriptor import HandlingDescriptor
 from bosk.pipeline.base import BasePipeline
 from bosk.stages import Stage
 import numpy as np
@@ -61,8 +60,7 @@ class BaseSerializerTest(ABC):
             fitted_pipeline, fit_output = fit_pipeline(pipeline, pw.get_fit_data(),
                                                        RecursiveExecutor, *pw.get_fit_in_out())
             tf_data = pw.get_transform_data()
-            executor = RecursiveExecutor(fitted_pipeline, HandlingDescriptor.from_classes(Stage.TRANSFORM),
-                                         *pw.get_transform_in_out())
+            executor = RecursiveExecutor(fitted_pipeline, Stage.TRANSFORM, *pw.get_transform_in_out())
             tf_output = executor(tf_data)
             ser_list = self.get_serializers()
             logging.info('%s has provided %i variety(ies) of the serializer',
@@ -85,8 +83,7 @@ class BaseSerializerTest(ABC):
                 logging.info('Dump of the fitted pipeline is done')
                 fitted_pipeline = serializer.load(fit_filename)
                 self._check_inputs_outputs(fitted_pipeline)
-                executor = RecursiveExecutor(fitted_pipeline, HandlingDescriptor.from_classes(Stage.TRANSFORM),
-                                             *pw.get_transform_in_out())
+                executor = RecursiveExecutor(fitted_pipeline, Stage.TRANSFORM, *pw.get_transform_in_out())
                 cur_tf_output = executor(tf_data)
                 self._check_outputs(tf_output, cur_tf_output)
                 logging.info('Test is successful, deleting temp files')

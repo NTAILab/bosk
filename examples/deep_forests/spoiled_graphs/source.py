@@ -6,7 +6,6 @@ from sklearn.model_selection import train_test_split
 
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.stages import Stage
-from bosk.executor.descriptor import HandlingDescriptor
 from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
 from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
@@ -94,7 +93,7 @@ def make_rf_lost_connection(executor, **ex_kw):
 
     fit_executor = executor(
         pipeline,
-        HandlingDescriptor.from_classes(Stage.FIT),
+        stage=Stage.FIT,
         inputs={
             'X': input_x.slots.inputs['X'],
             'y': input_y.slots.inputs['y'],
@@ -108,7 +107,7 @@ def make_rf_lost_connection(executor, **ex_kw):
     )
     transform_executor = executor(
         pipeline,
-        HandlingDescriptor.from_classes(Stage.TRANSFORM),
+        stage=Stage.TRANSFORM,
         inputs={'X': input_x.slots.inputs['X']},
         outputs={
             'probas': average_3.slots.outputs['output'],
