@@ -84,6 +84,19 @@ class BaseComparator(ABC):
                 # is isomorphic to the corresponding block of the pipeline
                 return blocks_iso[cp_prev_block] == pip_prev_block
         return True
+    
+    def _set_random_state(self, random_state=None):
+        if random_state is not None:
+            for model in self.models:
+                model.set_random_state(random_state)
+            for pipeline in self._optim_pipelines:
+                pipeline.set_random_state(random_state)
+            if self._common_pipeline is not None:
+                self._common_pipeline.set_random_state(random_state)
+    
+    def _set_manual_state(self, pipeline, random_state):
+        for node in pipeline.nodes:
+            node.set_random_state(random_state)
 
     def __init__(self, pipelines: Optional[BasePipeline | List[BasePipeline]],
                  common_part: Optional[BasePipeline],
@@ -103,17 +116,16 @@ class BaseComparator(ABC):
         self.random_state = random_state
         self.models = [] if foreign_models is None else foreign_models
         self._common_pipeline = common_part
-        if random_state is not None:
-            for model in self.models:
-                model.set_random_state(random_state)
-            if pipelines is not None:
-                for pipeline in pipelines:
-                    pipeline.set_random_state(random_state)
-            if common_part is not None:
-                self._common_pipeline.set_random_state(random_state)
+
         if common_part is None:
             self._optim_pipelines = [] if pipelines is None else pipelines
+            self._set_random_state(self.random_state)
             return
+
+        pre_ran_state = 0 # fixed random state for proper joblib hash generation
+        self._set_manual_state(common_part, pre_ran_state)
+        for pipeline in pipelines:
+            self._set_manual_state(pipeline, pre_ran_state)
 
         # pipelines' optimization process
         # 1. Step of bfs in common part is leading
@@ -260,6 +272,7 @@ class BaseComparator(ABC):
             self._conn_iso_list = conn_iso_list
             self._block_iso_list = block_iso_list
             self._new_blocks_list.append(extra_blocks)
+        self._set_random_state(self.random_state)
 
     @abstractmethod
     def get_score(self, data: Dict[str, BaseData], metrics: List[BaseMetric]) -> DataFrame:

@@ -1,6 +1,7 @@
 from bosk.comparison.cross_val import CVComparator
 from bosk.comparison.base import BaseForeignModel
 from bosk.comparison.metric import MetricWrapper
+from bosk.pipeline import BasePipeline
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.executor.descriptor import HandlingDescriptor
 from bosk.executor.topological import TopologicalExecutor
@@ -14,6 +15,7 @@ from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestClassifier
 from catboost import CatBoostClassifier
 import numpy as np
+import random
 from typing import Dict
 from ..utility import log_test_name
 import logging
@@ -123,6 +125,42 @@ def comparison_cv_basic_test():
     log_test_name()
     random_state = 42
     common_part, pipelines = get_pipelines()
+    models = [RFCModel(), CatBoostModel()]
+    cv_strat = KFold(shuffle=True, n_splits=3)
+    comparator = CVComparator(pipelines, common_part, models, cv_strat, random_state=random_state)
+    x, y = make_moons(noise=0.5, random_state=random_state)
+    data = {
+        'X': CPUData(x),
+        'y': CPUData(y),
+    }
+    metrics = [MetricWrapper(my_acc, name='accuracy'), MetricWrapper(my_roc_auc, name='roc_auc')]
+    cv_res = comparator.get_score(data, metrics)
+    models_num = len(pipelines) + len(models)
+    assert len(set(cv_res.loc[:, 'model name'])) == models_num, \
+        "Not all the models are in the comparison result"
+    assert cv_res.loc[:, 'fold #'].max() + 1 == cv_strat.get_n_splits(), \
+        "Not all the folds were proceeded"
+
+
+def shuffle_test():
+    # same as the basic test, but with shuffled
+    # blocks and connections
+    log_test_name()
+    random_state = 42
+    random.seed(random_state)
+    common_part, pipelines = get_pipelines()
+    cp_nodes = common_part.nodes
+    cp_conns = common_part.connections
+    random.shuffle(cp_nodes)
+    random.shuffle(cp_conns)
+    common_part = BasePipeline(cp_nodes, cp_conns, common_part.inputs, common_part.outputs)
+    for i in range(len(pipelines)):
+        pip = pipelines[i]
+        pip_nodes = pip.nodes
+        pip_conns = pip.connections
+        random.shuffle(pip_nodes)
+        random.shuffle(pip_conns)
+        pipelines[i] = BasePipeline(pip_nodes, pip_conns, pip.inputs, pip.outputs)
     models = [RFCModel(), CatBoostModel()]
     cv_strat = KFold(shuffle=True, n_splits=3)
     comparator = CVComparator(pipelines, common_part, models, cv_strat, random_state=random_state)

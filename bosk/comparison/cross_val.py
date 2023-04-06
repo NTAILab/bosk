@@ -83,10 +83,11 @@ class CVComparator(BaseComparator):
         df_dict['fold #'] += [fold_num] * 2
         df_dict['train/test'] += ['train', 'test']
 
-    def __init__(self, pipelines: List[BasePipeline], common_part: BasePipeline,
-                 foreign_models: List[BaseForeignModel], cv_strat: BaseCrossValidator,
-                 exec_cls: BaseExecutor = TopologicalExecutor, exec_kw=None,
-                 get_blocks_times: bool = False, suppress_exec_warn: bool = True,
+    def __init__(self, pipelines: Optional[BasePipeline | List[BasePipeline]],
+                 common_part: Optional[BasePipeline],
+                 foreign_models: Optional[BaseForeignModel | List[BaseForeignModel]],
+                 cv_strat: BaseCrossValidator, exec_cls: BaseExecutor = TopologicalExecutor,
+                 exec_kw=None, get_blocks_times: bool = False, suppress_exec_warn: bool = True,
                  random_state: Optional[int] = None) -> None:
         super().__init__(pipelines, common_part, foreign_models, random_state)
         cv_strat.random_state = random_state
