@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.random import Generator
 from typing import Optional
-from time import time
+from time import process_time
 
 
 def get_random_generator(seed: Optional[int | Generator]) -> Generator:
@@ -18,10 +18,10 @@ def get_rand_int(generator: Generator) -> int:
 
 
 def timer_wrap(func):
-    """Decorator that returns execution time for a callable object."""
+    """Decorator that returns execution CPU-time for a callable object."""
     def wrapper(*args, **kwargs):
-        time_stamp = time()
+        time_stamp = process_time()
         func_res = func(*args, **kwargs)
-        exec_time = time() - time_stamp
+        exec_time = process_time() - time_stamp
         return func_res, exec_time
     return wrapper

@@ -102,7 +102,7 @@ class BaseComparator(ABC):
 
         self.random_state = random_state
         self.models = [] if foreign_models is None else foreign_models
-        self.common_pipeline = common_part
+        self._common_pipeline = common_part
         if random_state is not None:
             for model in self.models:
                 model.set_random_state(random_state)
@@ -110,9 +110,9 @@ class BaseComparator(ABC):
                 for pipeline in pipelines:
                     pipeline.set_random_state(random_state)
             if common_part is not None:
-                self.common_pipeline.set_random_state(random_state)
+                self._common_pipeline.set_random_state(random_state)
         if common_part is None:
-            self.optim_pipelines = [] if pipelines is None else pipelines
+            self._optim_pipelines = [] if pipelines is None else pipelines
             return
 
         # pipelines' optimization process
@@ -138,13 +138,15 @@ class BaseComparator(ABC):
         conn_map_blocks_cp, conn_map_conns_cp = self._get_aj_lists(common_part)
         begin_blocks_cp = [inp_conn.parent_block for inp_conn in common_part.inputs.values()]
 
+        self._new_blocks_list: List[BaseBlock] = []
+        self._optim_pipelines: List[BasePipeline] = []
+
         conn_maps_blocks = []
         conn_maps_conns = []
         visited = []
         queue_list = []
         block_iso_list = []
         conn_iso_list = []
-        self._new_blocks_list = []
 
         for pipeline in pipelines:
             cur_blocks_al, cur_conns_al = self._get_aj_lists(pipeline)
@@ -199,7 +201,6 @@ class BaseComparator(ABC):
 
         # redefining input pipelines to use calculations
         # from the common part for them
-        self.optim_pipelines: List[BasePipeline] = []
         for i, pipeline in enumerate(pipelines):
             # All common part's inputs, must have isomorphic
             # slots in the pipeline and should NOT be excluded.
@@ -255,7 +256,7 @@ class BaseComparator(ABC):
                 if conn.dst not in conns_to_remove:
                     new_conns.append(conn)
             new_blocks = pipeline.nodes + extra_blocks
-            self.optim_pipelines.append(BasePipeline(new_blocks, new_conns, new_inputs, new_outputs))
+            self._optim_pipelines.append(BasePipeline(new_blocks, new_conns, new_inputs, new_outputs))
             self._conn_iso_list = conn_iso_list
             self._block_iso_list = block_iso_list
             self._new_blocks_list.append(extra_blocks)

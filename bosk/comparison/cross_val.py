@@ -38,7 +38,7 @@ class CVComparator(BaseComparator):
 
     # copy isomorphism is returned only for blocks' time measuring case
     def _get_copy_pipeline(self, pip_num: int) -> Tuple[BasePipeline, Dict[BaseBlock, BaseBlock] | None]:
-        orig_pip = self.optim_pipelines[pip_num]
+        orig_pip = self._optim_pipelines[pip_num]
         pip_copy = deepcopy(orig_pip)
         if not self.measure_blk_time:
             return pip_copy, None
@@ -126,7 +126,7 @@ class CVComparator(BaseComparator):
                 test_data_dict[key] = val.__class__(val.data[test_idx])
 
             # processing the common part
-            if self.common_pipeline is None:
+            if self._common_pipeline is None:
                 common_train_res = dict()
                 common_test_res = common_train_res
                 train_common_part_time = 0
@@ -135,18 +135,18 @@ class CVComparator(BaseComparator):
                 with warnings.catch_warnings():
                     warnings.simplefilter(self.warn_context)
                     hl_dsc = HandlingDescriptor.from_classes(Stage.FIT, self.block_hlr_cls)
-                    train_exec = self.exec_cls(self.common_pipeline, hl_dsc)
+                    train_exec = self.exec_cls(self._common_pipeline, hl_dsc)
                     common_train_res, train_common_part_time = timer_wrap(
                         train_exec)(train_data_dict)
                     if self.measure_blk_time:
                         common_block_train_times = hl_dsc.block_handler.blocks_time
                     hl_dsc = HandlingDescriptor.from_classes(Stage.TRANSFORM, self.block_hlr_cls)
-                    test_exec = self.exec_cls(self.common_pipeline, hl_dsc)
+                    test_exec = self.exec_cls(self._common_pipeline, hl_dsc)
                     common_test_res, test_common_part_time = timer_wrap(test_exec)(test_data_dict)
                     if self.measure_blk_time:
                         common_block_test_times = hl_dsc.block_handler.blocks_time
 
-            for j in range(len(self.optim_pipelines)):
+            for j in range(len(self._optim_pipelines)):
                 pip_name = f'deep forest {j}'
                 self._write_preamble(dataframe_dict, pip_name, i)
 
