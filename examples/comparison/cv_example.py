@@ -97,21 +97,18 @@ def my_acc(y_true, y_pred):
 def my_roc_auc(y_true, y_pred):
     return roc_auc_score(y_true, np.int_(y_pred[:, 1]))
 
-
-logging.basicConfig(level=logging.INFO)
-random_state = 42
-common_part, pipelines = get_pipelines()
-models = [RFCModel(), CatBoostModel()]
-comparator = CVComparator(pipelines, common_part, models,
-                          KFold(shuffle=True, n_splits=3), random_state=random_state)
-x, y = make_moons(noise=0.5, random_state=random_state)
-data = {
-    'X': CPUData(x),
-    'y': CPUData(y),
-}
-metrics = [MetricWrapper(my_acc, name='accuracy'), MetricWrapper(my_roc_auc, name='roc_auc')]
-cv_res = comparator.get_score(data, metrics)
-for model_name, nested_dict in cv_res.items():
-    print(model_name)
-    for key, val in nested_dict.items():
-        print(f'\t{key}: {val}')
+if __name__=='__main__':
+    logging.basicConfig(level=logging.INFO)
+    random_state = 42
+    common_part, pipelines = get_pipelines()
+    models = [RFCModel(), CatBoostModel()]
+    comparator = CVComparator(pipelines, common_part, models,
+                            KFold(shuffle=True, n_splits=3), random_state=random_state)
+    x, y = make_moons(noise=0.5, random_state=random_state)
+    data = {
+        'X': CPUData(x),
+        'y': CPUData(y),
+    }
+    metrics = [MetricWrapper(my_acc, name='accuracy'), MetricWrapper(my_roc_auc, name='roc_auc')]
+    cv_res = comparator.get_score(data, metrics)
+    print(cv_res.to_string())

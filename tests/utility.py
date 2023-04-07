@@ -1,7 +1,6 @@
 """Script containing useful procedures for the `bosk.tests` package."""
 
 from bosk.pipeline.base import BasePipeline, Connection
-from bosk.executor.descriptor import HandlingDescriptor
 from bosk.executor.base import BaseExecutor
 from bosk.stages import Stage
 from bosk.data import Data
@@ -19,7 +18,7 @@ def fit_pipeline(pipeline: BasePipeline, data: Dict[str, Data], exec_cls: Type[B
     """Function that fits the pipeline with the preferred executor. Returns fitted pipeline and the
     pipeline's output. Is needed to avoid the boilerplate code.
     """
-    executor = exec_cls(pipeline, HandlingDescriptor.from_classes(Stage.FIT), inputs, outputs)
+    executor = exec_cls(pipeline, Stage.FIT, inputs, outputs)
     fit_output = executor(data)
     return executor.pipeline, fit_output
 

@@ -2,12 +2,11 @@ from .base import BaseComparator, BaseForeignModel
 from .metric import BaseMetric
 from bosk.data import BaseData
 from bosk.block.base import BaseBlock
-from bosk.executor.base import BaseExecutor
+from bosk.executor.base import BaseExecutor, DefaultBlockExecutor
+from bosk.executor.timer import TimerBlockHandler
 from bosk.pipeline.base import BasePipeline
 from bosk.stages import Stage
 from bosk.executor.topological import TopologicalExecutor
-from bosk.executor.descriptor import HandlingDescriptor
-from bosk.executor.handlers import DefaultBlockHandler, TimerBlockHandler, DefaultSlotHandler
 from bosk.utility import timer_wrap
 from collections import defaultdict
 from copy import deepcopy
@@ -96,13 +95,13 @@ class CVComparator(BaseComparator):
         if exec_kw is None:
             self.exec_kw = dict()
         else:
-            forbidden_exec_args = ['pipeline', 'handl_desc']
+            forbidden_exec_args = ['pipeline', 'stage', 'block_executor']
             if any([key in exec_kw for key in forbidden_exec_args]):
                 raise RuntimeError(
                     f"You mustn't specify following args for executor: {forbidden_exec_args}")
             self.exec_kw = exec_kw
         self.measure_blk_time = get_blocks_times
-        self.block_hlr_cls = TimerBlockHandler if get_blocks_times else DefaultBlockHandler
+        self.block_hlr_cls = TimerBlockHandler if get_blocks_times else DefaultBlockExecutor
         self.warn_context = 'ignore' if suppress_exec_warn else 'default'
 
     # columns: model name | fold # | train/test | time | blocks time | metric name 1 | ... | metric name n
@@ -135,17 +134,16 @@ class CVComparator(BaseComparator):
             else:
                 with warnings.catch_warnings():
                     warnings.simplefilter(self.warn_context)
-                    hl_dsc = HandlingDescriptor.from_classes(Stage.FIT, self.block_hlr_cls)
-                    train_exec = self.exec_cls(self._common_pipeline, hl_dsc)
-                    common_train_res, train_common_part_time = timer_wrap(
-                        train_exec)(train_data_dict)
+                    block_exec = self.block_hlr_cls()
+                    train_exec = self.exec_cls(self._common_pipeline, Stage.FIT, block_executor=block_exec)
+                    common_train_res, train_common_part_time = timer_wrap(train_exec)(train_data_dict)
                     if self.measure_blk_time:
-                        common_block_train_times = hl_dsc.block_handler.blocks_time
-                    hl_dsc = HandlingDescriptor.from_classes(Stage.TRANSFORM, self.block_hlr_cls)
-                    test_exec = self.exec_cls(self._common_pipeline, hl_dsc)
+                        common_block_train_times = block_exec.blocks_time
+                    block_exec = self.block_hlr_cls()
+                    test_exec = self.exec_cls(self._common_pipeline, Stage.TRANSFORM, block_executor=block_exec)
                     common_test_res, test_common_part_time = timer_wrap(test_exec)(test_data_dict)
                     if self.measure_blk_time:
-                        common_block_test_times = hl_dsc.block_handler.blocks_time
+                        common_block_test_times = block_exec.blocks_time
 
             for j in range(len(self._optim_pipelines)):
                 pip_name = f'deep forest {j}'
@@ -157,18 +155,18 @@ class CVComparator(BaseComparator):
                 cur_test_dict = self._get_pers_inp_dict(pipeline, common_test_res, test_data_dict)
                 with warnings.catch_warnings():
                     warnings.simplefilter(self.warn_context)
-                    hl_dsc = HandlingDescriptor.from_classes(Stage.FIT, self.block_hlr_cls)
-                    pip_tr_exec = self.exec_cls(pipeline, hl_dsc)
+                    block_exec = self.block_hlr_cls()
+                    pip_tr_exec = self.exec_cls(pipeline, Stage.FIT, block_executor=block_exec)
                     pip_train_res, train_time = timer_wrap(pip_tr_exec)(cur_train_dict)
                     dataframe_dict['time'].append(train_common_part_time + train_time)
                     if self.measure_blk_time:
-                        pip_block_train_times = hl_dsc.block_handler.blocks_time
-                    hl_dsc = HandlingDescriptor.from_classes(Stage.TRANSFORM, self.block_hlr_cls)
-                    pip_test_exec = self.exec_cls(pipeline, hl_dsc)
+                        pip_block_train_times = block_exec.blocks_time
+                    block_exec = self.block_hlr_cls()
+                    pip_test_exec = self.exec_cls(pipeline, Stage.TRANSFORM, block_executor=block_exec)
                     pip_test_res, test_time = timer_wrap(pip_test_exec)(cur_test_dict)
                     dataframe_dict['time'].append(test_common_part_time + test_time)
                     if self.measure_blk_time:
-                        pip_block_test_times = hl_dsc.block_handler.blocks_time
+                        pip_block_test_times = block_exec.blocks_time
                         orig_pip_train_times = self._get_times_dict(
                             common_block_train_times, pip_block_train_times,
                             self._block_iso_list[j], copy_iso

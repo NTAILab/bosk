@@ -8,9 +8,8 @@ from typing import Deque, Dict, List, Mapping, Sequence, Set, Optional
 from collections import defaultdict, deque
 
 from ..data import Data
-from .base import BaseExecutor
+from .base import BaseBlockExecutor, BaseExecutor, BaseSlotHandler, Stage
 from ..pipeline import BasePipeline
-from .descriptor import HandlingDescriptor
 from ..block.slot import BaseSlot, BlockInputSlot, BlockOutputSlot
 from ..block import BaseBlock
 from .utility import get_connection_map
@@ -20,27 +19,32 @@ import warnings
 
 class TopologicalExecutor(BaseExecutor):
     """Topological executor with the graph painter.
-    The optimization algoritm computes only blocks which are connected with the inputs and needed for 
+    The optimization algoritm computes only blocks which are connected with the inputs and needed for
     the outputs calculation.
 
     Attributes:
-        _conn_dict: Pipeline connections, represented as a hash map, the keys are blocks' input slots, 
-            the values are output ones. Each input slot corresponds no more than one 
+        _conn_dict: Pipeline connections, represented as a hash map, the keys are blocks' input slots,
+            the values are output ones. Each input slot corresponds no more than one
             output slot, so this representation is correct.
 
     Args:
         pipeline: Sets :attr:`.BaseExecutor.__pipeline`.
-        stage_descriptor: Sets :attr:`.BaseExecutor.__stage`,
-            :attr:`.BaseExecutor.__slots_handler` and :attr:`.BaseExecutor.__blocks_handler`.
+        stage: Sets :attr:`.BaseExecutor.__stage`,
         inputs: Sets :attr:`.BaseExecutor.__inputs`.
         outputs: Sets :attr:`.BaseExecutor.__outputs`.
+        slot_handler: Sets :attr:`.BaseExecutor.__slot_handler` with `_prepare_slot_handler` method.
+        block_executor: Sets :attr:`.BaseExecutor.__block_executor` with `_prepare_block_executor` method.
     """
 
     _conn_dict: Mapping[BlockInputSlot, BlockOutputSlot]
 
-    def __init__(self, pipeline: BasePipeline, handl_desc: HandlingDescriptor,
-                 inputs: Optional[Sequence[str]] = None, outputs: Optional[Sequence[str]] = None):
-        super().__init__(pipeline, handl_desc, inputs, outputs)
+    def __init__(self, pipeline: BasePipeline,
+                 stage: Stage,
+                 inputs: Optional[Sequence[str]] = None,
+                 outputs: Optional[Sequence[str]] = None,
+                 slot_handler: Optional[BaseSlotHandler] = None,
+                 block_executor: Optional[BaseBlockExecutor] = None) -> None:
+        super().__init__(pipeline, stage, inputs, outputs, slot_handler, block_executor)
         conn_dict = get_connection_map(self)
         for inp in self.pipeline.inputs.values():
             conn_dict[inp] = inp
@@ -98,12 +102,12 @@ class TopologicalExecutor(BaseExecutor):
         return inner_stack
 
     def _get_backward_aj_list(self, feasible_set: None | Set[BaseBlock] = None) -> Mapping[BaseBlock, Set[BaseBlock]]:
-        """The internal helper method for making backwards adjacency list 
+        """The internal helper method for making backwards adjacency list
         (block to block, from the end to the start) of the pipeline.
 
         Args:
-            feasible_set: The set of the blocks, which will be used in the adjacency list. 
-                Other blocks will not be included. If `None`, all blocks of the pipeline will be used. 
+            feasible_set: The set of the blocks, which will be used in the adjacency list.
+                Other blocks will not be included. If `None`, all blocks of the pipeline will be used.
 
         Returns:
             The backwards adjacency list containing blocks from the ``feasible set``.
@@ -119,8 +123,8 @@ class TopologicalExecutor(BaseExecutor):
         """The internal helper method for making adjacency list (block to block) of the pipeline.
 
         Args:
-            feasible_set: The set of the blocks, which will be used in the adjacency list. 
-                Other blocks will not be included. If `None`, all blocks of the pipeline will be used. 
+            feasible_set: The set of the blocks, which will be used in the adjacency list.
+                Other blocks will not be included. If `None`, all blocks of the pipeline will be used.
 
         Returns:
             The adjacency list containing blocks from the ``feasible set``.
@@ -136,11 +140,11 @@ class TopologicalExecutor(BaseExecutor):
         """The main method for the processing of the computational graph.
 
         Args:
-            input_values: The dictionary, containing the pipeline's inputs names as keys 
+            input_values: The dictionary, containing the pipeline's inputs names as keys
                 and coresponding to them :data:`Data` as values.
 
         Returns:
-            The dictionary, containing the pipeline's outputs names as keys 
+            The dictionary, containing the pipeline's outputs names as keys
             and coresponding to them :data:`Data` as values.
 
         Raises:
@@ -184,17 +188,15 @@ class TopologicalExecutor(BaseExecutor):
                     node_input_data[inp_slot] = inp_data
                 outputs = self._execute_block(node, node_input_data)
                 slots_values.update(outputs)
-        except Exception:
+        except Exception as ex:
             warnings.warn(
                 f'Unable to compute data for the "{name}" input of the "{repr(node)}" block.')
+            raise ex
             warnings.warn('The execution is terminated.')
 
         result: Mapping[str, Data] = dict()
         for output_name, output_slot in self.pipeline.outputs.items():
             if self.outputs is None or output_name in self.outputs:
-                slot_data = slots_values.get(output_slot, None)
-                if slot_data is None:
-                    warnings.warn(f'Unable to compute data for the "{output_name}" output.')
-                    continue
+                slot_data = slots_values.get(output_slot)
                 result[output_name] = slot_data
         return result

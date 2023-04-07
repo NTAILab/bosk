@@ -2,9 +2,8 @@ from collections import defaultdict
 from typing import Callable, Dict, Iterable, Mapping, Set, TypeVar, Union, Sequence, Optional, List
 
 from ...data import Data
-from ..base import BaseExecutor
+from ..base import BaseBlockExecutor, BaseExecutor, BaseSlotHandler, Stage
 from ...pipeline import BasePipeline
-from ..descriptor import HandlingDescriptor
 from ...block.slot import BlockInputSlot, BlockOutputSlot
 from ...block.base import BaseBlock, BlockOutputData
 from ..utility import get_connection_map
@@ -105,20 +104,23 @@ class GreedyParallelExecutor(BaseExecutor):
 
     Args:
         pipeline: Sets :attr:`.BaseExecutor.__pipeline`.
-        stage_descriptor: Sets :attr:`.BaseExecutor.__stage`,
-            :attr:`.BaseExecutor.__slots_handler` and :attr:`.BaseExecutor.__blocks_handler`.
+        stage: Sets :attr:`.BaseExecutor.__stage`,
         inputs: Sets :attr:`.BaseExecutor.__inputs`.
         outputs: Sets :attr:`.BaseExecutor.__outputs`.
+        slot_handler: Sets :attr:`.BaseExecutor.__slot_handler` with `_prepare_slot_handler` method.
+        block_executor: Sets :attr:`.BaseExecutor.__block_executor` with `_prepare_block_executor` method.
     """
 
     _conn_map: Mapping[BlockInputSlot, BlockOutputSlot]
 
     def __init__(self, pipeline: BasePipeline,
-                 handl_desc: HandlingDescriptor,
+                 stage: Stage,
                  inputs: Optional[Sequence[str]] = None,
                  outputs: Optional[Sequence[str]] = None,
+                 slot_handler: Optional[BaseSlotHandler] = None,
+                 block_executor: Optional[BaseBlockExecutor] = None,
                  parallel_engine: ParallelEngine = MultiprocessingParallelEngine()) -> None:
-        super().__init__(pipeline, handl_desc, inputs, outputs)
+        super().__init__(pipeline, stage, inputs, outputs, slot_handler, block_executor)
         self.parallel_engine = parallel_engine
         self._conn_map = get_connection_map(self)
         self._edges = self._prepare_out_to_in_edges()

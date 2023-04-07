@@ -3,9 +3,8 @@ from bosk.comparison.base import BaseForeignModel
 from bosk.comparison.metric import MetricWrapper
 from bosk.pipeline import BasePipeline
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
-from bosk.executor.descriptor import HandlingDescriptor
 from bosk.executor.topological import TopologicalExecutor
-from bosk.executor.handlers import TimerBlockHandler
+from bosk.executor.timer import TimerBlockHandler
 from bosk.stages import Stage
 from bosk.data import CPUData, BaseData
 from bosk.utility import timer_wrap
@@ -278,25 +277,24 @@ def optimization_test():
     }
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
-        common_res = TopologicalExecutor(opt_cmp._common_pipeline, 
-                            HandlingDescriptor.from_classes(Stage.FIT))(data)
+        common_res = TopologicalExecutor(opt_cmp._common_pipeline, Stage.FIT)(data)
     for true_pipeline, unopt_pipeline, opt_pipeline, extra_blocks in zip(
         pipelines,
         unopt_cmp._optim_pipelines,
         opt_cmp._optim_pipelines,
         opt_cmp._new_blocks_list):
-        true_desc = HandlingDescriptor.from_classes(Stage.FIT, TimerBlockHandler)
-        unopt_desc = HandlingDescriptor.from_classes(Stage.FIT, TimerBlockHandler)
-        opt_desc = HandlingDescriptor.from_classes(Stage.FIT, TimerBlockHandler)
+        true_bl_ex = TimerBlockHandler()
+        unopt_bl_ex = TimerBlockHandler()
+        opt_bl_ex = TimerBlockHandler()
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            TopologicalExecutor(true_pipeline, true_desc)(data)
-            TopologicalExecutor(unopt_pipeline, unopt_desc)(data)
+            TopologicalExecutor(true_pipeline, Stage.FIT, block_executor=true_bl_ex)(data)
+            TopologicalExecutor(unopt_pipeline, Stage.FIT, block_executor=unopt_bl_ex)(data)
             opt_input = opt_cmp._get_pers_inp_dict(opt_pipeline, common_res, data)
-            TopologicalExecutor(opt_pipeline, opt_desc)(opt_input)
-            true_proc_num = len(true_desc.block_handler.blocks_time)
-            unopt_proc_num = len(unopt_desc.block_handler.blocks_time)
-            opt_proc_num = len(opt_desc.block_handler.blocks_time)
+            TopologicalExecutor(opt_pipeline, Stage.FIT, block_executor=opt_bl_ex)(opt_input)
+            true_proc_num = len(true_bl_ex.blocks_time)
+            unopt_proc_num = len(unopt_bl_ex.blocks_time)
+            opt_proc_num = len(opt_bl_ex.blocks_time)
             assert true_proc_num == unopt_proc_num, \
                 "Number of proceeded blocks in the original pipeline must " + \
                 "be equal to the ones in the unoptimized pipeline"
@@ -324,14 +322,14 @@ def blocks_times_test():
     metrics = [MetricWrapper(my_acc, name='accuracy'), MetricWrapper(my_roc_auc, name='roc_auc')]
     cv_res = comparator.get_score(data, metrics)
     for i, pipeline in enumerate(pipelines):
-        fit_desc = HandlingDescriptor.from_classes(Stage.FIT, TimerBlockHandler)
-        tf_desc = HandlingDescriptor.from_classes(Stage.TRANSFORM, TimerBlockHandler)
+        fit_bl_ex = TimerBlockHandler()
+        tf_bl_ex = TimerBlockHandler()
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            TopologicalExecutor(pipeline, fit_desc)(data)
-            TopologicalExecutor(pipeline, tf_desc)(data)
-        true_fit_blocks_time = fit_desc.block_handler.blocks_time
-        true_tf_blocks_time = tf_desc.block_handler.blocks_time
+            TopologicalExecutor(pipeline, Stage.FIT, block_executor=fit_bl_ex)(data)
+            TopologicalExecutor(pipeline, Stage.TRANSFORM, block_executor=tf_bl_ex)(data)
+        true_fit_blocks_time = fit_bl_ex.blocks_time
+        true_tf_blocks_time = tf_bl_ex.blocks_time
         sub_df = cv_res.loc[cv_res.loc[:, 'model name'] ==
                             f'deep forest {i}', ['train/test', 'time', 'blocks time']]
         blocks_time_dict_list = sub_df.loc[:, 'blocks time']
