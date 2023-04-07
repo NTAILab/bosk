@@ -1,4 +1,4 @@
-from typing import Literal, Mapping, Union
+from typing import Literal, Mapping, Type, Union
 from ...block import BaseBlock, BaseInputBlock, BaseOutputBlock
 from ...block.functional import FunctionalBlockWrapper
 from ...block.repo import BaseBlockClassRepository, DEFAULT_BLOCK_CLASS_REPOSITORY
@@ -41,8 +41,8 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
         """
         self._nodes.append(block)
 
-    def _make_placeholder_fn(self, block: BaseBlock) -> Callable:
-        def placeholder_fn(*pfn_args, **pfn_kwargs):
+    def _make_placeholder_fn(self, block: BaseBlock) -> Callable[..., FunctionalBlockWrapper]:
+        def placeholder_fn(*pfn_args, **pfn_kwargs) -> FunctionalBlockWrapper:
             """Placeholder function.
 
             Placeholder function operates with functional block wrappers:
@@ -79,7 +79,7 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
 
         return placeholder_fn
 
-    def wrap(self, block: BaseBlock) -> Callable:
+    def wrap(self, block: BaseBlock) -> Callable[..., FunctionalBlockWrapper]:
         """Register the block in the builder and wrap it into a placeholder function.
 
         Args:
@@ -103,7 +103,7 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
         self._register_block(block)
         return self._make_placeholder_fn(block)
 
-    def _get_block_init(self, block_cls: Callable) -> Callable:
+    def _get_block_init(self, block_cls: Type[BaseBlock]) -> Callable[..., Callable[..., FunctionalBlockWrapper]]:
         """Get a new block initialization wrapper.
 
         Args:
@@ -134,7 +134,7 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
 
         return block_init
 
-    def new(self, block_cls: Callable, *args, **kwargs) -> Callable:
+    def new(self, block_cls: Type[BaseBlock], *args, **kwargs) -> Callable[..., FunctionalBlockWrapper]:
         """Make a new block wrapper of given block class.
 
         Constructs block wrapper using given block class constructor
