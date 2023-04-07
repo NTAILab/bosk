@@ -86,10 +86,10 @@ class FunctionalBlockWrapper:
 
         """
         if self.output_name is None:
-            if len(self.block.slots.outputs) == 1:
-                return list(self.block.slots.outputs.values())[0]
+            if self.block.default_output is None:
+                raise RuntimeError('Block has more than one output and the default is not specified')
             else:
-                raise RuntimeError('Block has more than one output')
+                return self.block.slots.outputs[self.block.default_output]
         return self.block.slots.outputs[self.output_name]
 
     def __getitem__(self, output_name: str) -> 'FunctionalBlockWrapper':

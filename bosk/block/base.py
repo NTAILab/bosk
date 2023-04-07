@@ -126,6 +126,20 @@ class BaseBlock(ABC):
         random generator or integer value.
         """
 
+    @property
+    def default_output(self) -> Optional[str]:
+        """Get default output name.
+
+        If the block has a single output, it will be used as a default.
+        Otherwise, the block can override this property to set a specific default output.
+        If the block can't have a single default output (its outputs have equal importance),
+        this method should return `None`.
+        """
+        if len(self.meta.outputs) == 1:
+            return next(iter(self.meta.outputs.keys()))
+        else:
+            return None
+
 
 class BaseInputBlock(BaseBlock, metaclass=ABCMeta):
     """Base input block. It is guaranteed that is has a single input and some name.
