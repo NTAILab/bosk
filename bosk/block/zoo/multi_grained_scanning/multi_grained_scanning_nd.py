@@ -84,8 +84,11 @@ class MultiGrainedScanningNDBlock(BaseBlock):
             xs = self.helper_.pad(self.params, xs)
         pooling_indices = self.__prepare_pooling_indices(xs.shape)
         sliced, n_repeats = self.helper_.slice(xs, pooling_indices)
-        repeated_y = np.repeat(y[:, np.newaxis], repeats=n_repeats, axis=1).reshape((-1, *y.shape[1:]))
-        self.model.fit(sliced, repeated_y)
+        repeated_y = np.tile(y[:, np.newaxis], (1, n_repeats)).reshape((-1, *y.shape[1:]))
+        if isinstance(self.model, BaseBlock):
+            self.model.fit({'X': sliced, 'y': repeated_y})
+        else:
+            self.model.fit(sliced, repeated_y)
         return self
 
     def __prepare_pooling_indices(self, xs_shape):
@@ -96,6 +99,11 @@ class MultiGrainedScanningNDBlock(BaseBlock):
         return self.pooling_indices_
 
     def _model_transform(self, sliced: np.ndarray) -> np.ndarray:
+        if isinstance(self.model, BaseBlock):
+            assert self.model.default_output is not None,\
+                'Cannot use base blocks with more than one output and no default chosen'
+            outputs = self.model.transform({'X': CPUData(sliced)})
+            return outputs[self.model.default_output].data
         if hasattr(self.model, 'predict_proba'):
             return self.model.predict_proba(sliced)
         if hasattr(self.model, 'transform'):
@@ -126,6 +134,5 @@ class MultiGrainedScanningNDBlock(BaseBlock):
         result = np.swapaxes(result, 1, 2)
         # result shape: (n_samples, n_out_channels, n_corners)
         n_out_channels = result.shape[1]
-        print(f'{self.pooling_indices_.pooled_shape=}')
         result = result.reshape((n_samples, n_out_channels, *self.pooling_indices_.pooled_shape))
         return {'output': CPUData(result)}
