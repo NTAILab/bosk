@@ -151,7 +151,7 @@ class MGSRFLayer(Layer):
             #     dilation=1,
             #     aggregation='max',
             # )(X=concat_ms)
-            pooled=concat_ms  # no pooling required, since MultiGrainedScanningND reduced dimensions
+            pooled = concat_ms  # no pooling required, since MultiGrainedScanningND reduced dimensions
             # for the next iteration
             reshaped_ = pooled
             current_spatial_dims = conv_helper.get_pooled_shape(
@@ -160,6 +160,7 @@ class MGSRFLayer(Layer):
                 stride
             )
 
+        pooled = b.GlobalAveragePooling()(X=pooled)
         pooled = b.Flatten()(X=pooled)
         proba = b.ETC(random_state=get_rand_int(rng))(X=pooled, y=y_)
         embedding_output = b.Output('X')(pooled)
