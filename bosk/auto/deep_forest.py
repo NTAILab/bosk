@@ -105,7 +105,7 @@ class BaseAutoDeepForestConstructor(ABC):
                 if not need_continue:
                     break
 
-        pipeline = maker.build({'X_original': 'X'})
+        pipeline = maker.build(dict())
         self.history = maker.history
         return pipeline
 
@@ -161,6 +161,7 @@ class ClassicalDeepForestConstructor(BaseAutoDeepForestConstructor):
                         rng: np.random.RandomState):
         return self.LAYER_CLS(
             make_blocks=lambda: _make_base_df_blocks(self.rf_params, self.layer_width),
+            layer_name=f'{self.LAYER_CLS.__name__}({step=}, {iteration=})',
             executor_cls=self.executor_cls,
             validator=validator,
             random_state=get_rand_int(rng)

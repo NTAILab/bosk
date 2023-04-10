@@ -11,7 +11,7 @@ from .layers import Layer
 
 
 class SequentialPipelineBuilder:
-    target_names = ['y']
+    base_input_names = ['X', 'y']
 
     def __init__(self, executor_cls: Type[BaseExecutor],
                  growing_strategy: Optional[GrowingStrategy] = None,
@@ -38,7 +38,7 @@ class SequentialPipelineBuilder:
         step_inputs.update({
             k: self.inputs[k]
             for k in layer.inputs
-            if k not in step_inputs
+            if k not in step_inputs and k in self.inputs
         })
         pipeline, metrics = layer.fit(step_inputs)
         self.pipelines.append(pipeline)
@@ -93,16 +93,18 @@ class SequentialPipelineBuilder:
             if i != 0:
                 # connect to the previous pipeline outputs
                 prev_pipeline = self.pipelines[i - 1]
+                fulfilled_inputs = set()
                 for out_name, out_slot in prev_pipeline.outputs.items():
                     if out_name in pipeline.inputs:
                         # matching slots by names
                         connections.append(Connection(out_slot, pipeline.inputs[out_name]))
-                # connect the target input slots to the layer
-                for target_name in self.target_names:
-                    if target_name in pipeline.inputs:
-                        target_input_block = self.pipelines[0].inputs[target_name].parent_block
+                        fulfilled_inputs.add(out_name)
+                # connect the base input slots to the layer, if they are not passed
+                for base_inp in self.base_input_names:
+                    if base_inp in pipeline.inputs and base_inp not in fulfilled_inputs:
+                        target_input_block = self.pipelines[0].inputs[base_inp].parent_block
                         target_output_slot = target_input_block.slots.outputs[target_input_block.default_output]
-                        connections.append(Connection(target_output_slot, pipeline.inputs[target_name]))
+                        connections.append(Connection(target_output_slot, pipeline.inputs[base_inp]))
 
         return BasePipeline(
             nodes=nodes,
