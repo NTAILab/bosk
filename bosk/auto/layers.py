@@ -13,10 +13,10 @@ from ..block.base import BaseBlock, BlockOutputData
 from ..block.slot import BlockGroup
 from ..data import BaseData, CPUData
 from ..executor.base import BaseExecutor, DefaultBlockExecutor, InputSlotToDataMapping
+from ..executor.block import FitBlacklistBlockExecutor
 from ..pipeline.base import BasePipeline
 from .validation import CVPipelineModelValidator
 from .metrics import MetricsResults
-
 
 
 class Layer(ABC):
@@ -183,29 +183,6 @@ class ForestsLayer(Layer):
             fitter = self.executor_cls(pipeline, Stage.FIT, outputs=['proba', 'X'])
             fitter(data)
         return pipeline, metric_values
-
-
-class FitBlacklistBlockExecutor(DefaultBlockExecutor):
-    """Block executor that does not call `fit` method for the blocks that are in the black list.
-
-    It is used to be able to manually fit some blocks of the pipeline and avoid overriding of the state
-    when the whole pipeline is fitted.
-    """
-    def __init__(self, blacklist: Sequence[BaseBlock]) -> None:
-        super().__init__()
-        self.blacklist = set(blacklist)
-
-    def execute_block(self, stage: Stage, block: BaseBlock,
-                        block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
-        if block in self.blacklist:
-            # avoid block fitting
-            filtered_block_input_mapping = {
-                slot.meta.name: values
-                for slot, values in block_input_mapping.items()
-                if slot.meta.stages.transform or (stage == Stage.FIT and slot.meta.stages.transform_on_fit)
-            }
-            return block.wrap(block.transform(filtered_block_input_mapping))
-        return super().execute_block(stage, block, block_input_mapping)
 
 
 class StackingLayer(Layer):
