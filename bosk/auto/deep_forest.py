@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional, Callable
 import numpy as np
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold, ParameterSampler
 
 from ..data import CPUData
 from ..pipeline.base import BasePipeline
@@ -161,6 +161,47 @@ class ClassicalDeepForestConstructor(BaseAutoDeepForestConstructor):
                         rng: np.random.RandomState):
         return self.LAYER_CLS(
             make_blocks=lambda: _make_base_df_blocks(self.rf_params, self.layer_width),
+            layer_name=f'{self.LAYER_CLS.__name__}({step=}, {iteration=})',
+            executor_cls=self.executor_cls,
+            validator=validator,
+            random_state=get_rand_int(rng)
+        )
+
+
+class HyperparamSearchDeepForestConstructor(BaseAutoDeepForestConstructor):
+    """Classical Deep Forest that estimates the best parameters at each step.
+
+    Attributes:
+        n_steps: Number of steps. At each step the best parameters are estimated.
+        rf_param_grid: Parameters grid for the tree ensembles (Random Forests, Extra Trees).
+
+    """
+    n_steps = None  # set at initialization
+    LAYER_CLS = NativeStackingLayer
+
+    def __init__(self, executor_cls: BaseExecutor, rf_param_grid: Optional[dict] = None,
+                 layer_width: int = 2,
+                 n_steps: int = 3,
+                 max_iter: int = 10,
+                 cv: Optional[int] = 5,
+                 make_metrics: Optional[Callable[[], MetricsEvaluator]] = None,
+                 growing_strategy: Optional[GrowingStrategy] = None,
+                 random_state: Optional[int] = None):
+        super().__init__(executor_cls, max_iter, cv, make_metrics, growing_strategy, random_state)
+        if rf_param_grid is None:
+            rf_param_grid = dict()
+        self.rf_param_grid = rf_param_grid
+        self.layer_width = layer_width
+        self.n_steps = n_steps
+
+    def make_step_layer(self, step: int, iteration: int,
+                        X: np.ndarray, y: np.ndarray,
+                        validator: BasePipelineModelValidator,
+                        rng: np.random.Generator):
+        sampler = ParameterSampler(self.rf_param_grid, n_iter=1, random_state=get_rand_int(rng))
+        rf_params = next(iter(sampler))
+        return self.LAYER_CLS(
+            make_blocks=lambda: _make_base_df_blocks(rf_params, self.layer_width),
             layer_name=f'{self.LAYER_CLS.__name__}({step=}, {iteration=})',
             executor_cls=self.executor_cls,
             validator=validator,
