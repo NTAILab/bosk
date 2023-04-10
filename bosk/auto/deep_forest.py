@@ -2,7 +2,7 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional, Callable
+from typing import List, Optional, Callable
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
 
@@ -12,6 +12,7 @@ from ..executor.base import BaseExecutor
 from ..executor.recursive import RecursiveExecutor
 from ..utility import get_rand_int, get_random_generator
 from ..block.zoo.models.classification.classification_models import ETCBlock, RFCBlock
+from ..block.base import BaseBlock
 
 from .metrics import MetricsEvaluator
 from .growing_strategies import GrowingStrategy, DefaultGrowingStrategy, EarlyStoppingCV
@@ -109,6 +110,26 @@ class BaseAutoDeepForestConstructor(ABC):
         return pipeline
 
 
+def _make_base_df_blocks(params: dict, layer_width: int) -> List[BaseBlock]:
+    """Make base Deep Forest Blocks for one layer.
+
+    Args:
+        params: One Forest parameters (n_estimators, max_depth, etc.).
+        layer_width: Number of blocks of one type in the layer.
+
+    Returns:
+        List of layer blocks.
+
+    """
+    BLOCK_CLASSES = (RFCBlock, ETCBlock)
+    result = [
+        [block_cls(**params) for _ in range(layer_width)]
+        for block_cls in BLOCK_CLASSES
+    ]
+    # flatten
+    return [b for list_of_blocks in result for b in list_of_blocks]
+
+
 class ClassicalDeepForestConstructor(BaseAutoDeepForestConstructor):
     """Classical Deep Forest iteratively builds layers consisting of different
     Random Forests and Extremely Randomized Trees Classifiers.
@@ -118,9 +139,11 @@ class ClassicalDeepForestConstructor(BaseAutoDeepForestConstructor):
         rf_params: Parameters of tree ensembles (Random Forests, Extra Trees).
 
     """
+    LAYER_CLS = NativeStackingLayer
     n_steps = 1
 
     def __init__(self, executor_cls: BaseExecutor, rf_params: Optional[dict] = None,
+                 layer_width: int = 2,
                  max_iter: int = 10,
                  cv: Optional[int] = 5,
                  make_metrics: Optional[Callable[[], MetricsEvaluator]] = None,
@@ -130,49 +153,14 @@ class ClassicalDeepForestConstructor(BaseAutoDeepForestConstructor):
         if rf_params is None:
             rf_params = dict()
         self.rf_params = rf_params
+        self.layer_width = layer_width
 
     def make_step_layer(self, step: int, iteration: int,
                         X: np.ndarray, y: np.ndarray,
                         validator: BasePipelineModelValidator,
                         rng: np.random.RandomState):
-        p = self.rf_params
-        return StackingLayer(
-            make_blocks=lambda: [RFCBlock(**p), ETCBlock(**p), RFCBlock(**p), ETCBlock(**p)],
-            executor_cls=self.executor_cls,
-            validator=validator,
-            random_state=get_rand_int(rng)
-        )
-
-
-class NativeClassicalDeepForestConstructor(BaseAutoDeepForestConstructor):
-    """Classical Deep Forest iteratively builds layers consisting of different
-    Random Forests and Extremely Randomized Trees Classifiers.
-
-    Attributes:
-        n_steps: Number of steps. The Classical Deep Forest has just one step.
-        rf_params: Parameters of tree ensembles (Random Forests, Extra Trees).
-
-    """
-    n_steps = 1
-
-    def __init__(self, executor_cls: BaseExecutor, rf_params: Optional[dict] = None,
-                 max_iter: int = 10,
-                 cv: Optional[int] = 5,
-                 make_metrics: Optional[Callable[[], MetricsEvaluator]] = None,
-                 growing_strategy: Optional[GrowingStrategy] = None,
-                 random_state: Optional[int] = None):
-        super().__init__(executor_cls, max_iter, cv, make_metrics, growing_strategy, random_state)
-        if rf_params is None:
-            rf_params = dict()
-        self.rf_params = rf_params
-
-    def make_step_layer(self, step: int, iteration: int,
-                        X: np.ndarray, y: np.ndarray,
-                        validator: BasePipelineModelValidator,
-                        rng: np.random.RandomState):
-        p = self.rf_params
-        return NativeStackingLayer(
-            make_blocks=lambda: [RFCBlock(**p), ETCBlock(**p), RFCBlock(**p), ETCBlock(**p)],
+        return self.LAYER_CLS(
+            make_blocks=lambda: _make_base_df_blocks(self.rf_params, self.layer_width),
             executor_cls=self.executor_cls,
             validator=validator,
             random_state=get_rand_int(rng)
