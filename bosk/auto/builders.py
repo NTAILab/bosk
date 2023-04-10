@@ -11,6 +11,8 @@ from .layers import Layer
 
 
 class SequentialPipelineBuilder:
+    target_names = ['y']
+
     def __init__(self, executor_cls: Type[BaseExecutor],
                  growing_strategy: Optional[GrowingStrategy] = None,
                  **inputs: Mapping[str, BaseData]):
@@ -54,9 +56,16 @@ class SequentialPipelineBuilder:
             self.history[k].append(v)
 
     def build(self, map_inputs: Mapping[str, str]):
-        """
+        """Build the pipeline.
+
         Args:
-            map_inputs: Map inputs aliases that are not given to the given ones.
+            map_inputs: Mapping of inputs that are not given at a TRANSFORM stage.
+                        For example, if layers depend on `X` and `X_original`,
+                        the pipeline will have only `X` input, and the mapping should be
+                        `{"X_original": "X"}`.
+
+        Returns:
+            Pipeline.
 
         """
         nodes = []
@@ -77,15 +86,23 @@ class SequentialPipelineBuilder:
                 )
             )
 
+        # iterate over layers
         for i, pipeline in enumerate(self.pipelines):
             nodes.extend(pipeline.nodes)
             connections.extend(pipeline.connections)
             if i != 0:
+                # connect to the previous pipeline outputs
                 prev_pipeline = self.pipelines[i - 1]
                 for out_name, out_slot in prev_pipeline.outputs.items():
                     if out_name in pipeline.inputs:
                         # matching slots by names
                         connections.append(Connection(out_slot, pipeline.inputs[out_name]))
+                # connect the target input slots to the layer
+                for target_name in self.target_names:
+                    if target_name in pipeline.inputs:
+                        target_input_block = self.pipelines[0].inputs[target_name].parent_block
+                        target_output_slot = target_input_block.slots.outputs[target_input_block.default_output]
+                        connections.append(Connection(target_output_slot, pipeline.inputs[target_name]))
 
         return BasePipeline(
             nodes=nodes,
