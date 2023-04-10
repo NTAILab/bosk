@@ -9,6 +9,7 @@ from ..visitor.group import ModifyGroupVisitor
 from ..pipeline.builder.functional import FunctionalPipelineBuilder
 from ..block.zoo.models.classification.classification_models import RFCBlock, ETCBlock
 from ..block.zoo.routing.cv import CVTrainIndicesBlock, SubsetTrainWrapperBlock
+from ..block.zoo.multi_grained_scanning._convolution_helpers import _ConvolutionParams, _ConvolutionHelper
 from ..block.base import BaseBlock, BlockOutputData
 from ..block.slot import BlockGroup
 from ..data import BaseData, CPUData
@@ -88,8 +89,8 @@ class MGSLayer(Layer):
             random_state=get_rand_int(rng),
         )(X=pooled, y=y_)
         embedding_output = b.Output('X')(pooled)
+        b.Output('embedding')(embedding_output)
         proba_output = b.Output('proba')(proba)  # used only for validation
-        b.Output('X_original')(embedding_output)
         pipeline = b.build()
         pipeline.accept(ModifyGroupVisitor('add', BlockGroup(self.layer_name)))
         # evaluate the pipeline
@@ -105,9 +106,23 @@ class MGSLayer(Layer):
 class MGSRFLayer(Layer):
     inputs = ['X', 'y']
 
-    def __init__(self, input_shape: Tuple[int], **kwargs):
+    def __init__(self, input_shape: Tuple[int], rf_params: Optional[dict],
+                 kernel_size: int = 4,
+                 stride: int = 1,
+                 dilation: int = 1,
+                 padding: Optional[int] = None,
+                 **kwargs):
         super().__init__(**kwargs)
         self.input_shape = input_shape
+        if rf_params is None:
+            rf_params = dict()
+        self.rf_params = rf_params
+        self.conv_params = _ConvolutionParams(
+            kernel_size=kernel_size,
+            stride=stride,
+            dilation=dilation,
+            padding=padding
+        )
 
     def fit(self, data: Mapping[str, BaseData]):
         rng = get_random_generator(self.random_state)
@@ -115,19 +130,36 @@ class MGSRFLayer(Layer):
         x_ = b.Input('X')()
         y_ = b.Input('y')()
         reshaped_ = b.Reshape((-1, *self.input_shape))(x_)
-        ms = b.MultiGrainedScanningND(
-            model=ETCBlock(random_state=get_rand_int(rng)),
-            kernel_size=4,
-            stride=2,
-            dilation=1,
-            padding=None
-        )(X=reshaped_, y=y_)
-        pooled = b.Pooling(
-            kernel_size=2,
-            stride=None,
-            dilation=1,
-            aggregation='max',
-        )(X=ms)
+
+        conv_helper = _ConvolutionHelper(self.conv_params)
+        current_spatial_dims = self.input_shape[1:]
+        kernel_size = conv_helper.check_kernel_size(len(current_spatial_dims))
+        stride = conv_helper.check_stride(current_spatial_dims, kernel_size)
+        while all(current_spatial_dims[i] >= kernel_size[i] for i in range(len(current_spatial_dims))):
+            et_ms = b.MultiGrainedScanningND(
+                model=ETCBlock(random_state=get_rand_int(rng), **self.rf_params),
+                **self.conv_params._asdict()
+            )(X=reshaped_, y=y_)
+            rf_ms = b.MultiGrainedScanningND(
+                model=RFCBlock(random_state=get_rand_int(rng), **self.rf_params),
+                **self.conv_params._asdict()
+            )(X=reshaped_, y=y_)
+            concat_ms = b.Concat(['et', 'rf'], axis=1)(et=et_ms, rf=rf_ms)  # concatenate along channel dimension
+            # pooled = b.Pooling(
+            #     kernel_size=kernel_size,
+            #     stride=None,
+            #     dilation=1,
+            #     aggregation='max',
+            # )(X=concat_ms)
+            pooled=concat_ms  # no pooling required, since MultiGrainedScanningND reduced dimensions
+            # for the next iteration
+            reshaped_ = pooled
+            current_spatial_dims = conv_helper.get_pooled_shape(
+                current_spatial_dims,
+                kernel_size,
+                stride
+            )
+
         pooled = b.Flatten()(X=pooled)
         proba = b.ETC(random_state=get_rand_int(rng))(X=pooled, y=y_)
         embedding_output = b.Output('X')(pooled)

@@ -2,7 +2,7 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Callable
+from typing import List, Optional, Callable, Tuple
 import numpy as np
 from sklearn.model_selection import StratifiedKFold, ParameterSampler
 
@@ -17,7 +17,7 @@ from ..block.base import BaseBlock
 from .metrics import MetricsEvaluator
 from .growing_strategies import GrowingStrategy, DefaultGrowingStrategy, EarlyStoppingCV
 from .builders import SequentialPipelineBuilder
-from .layers import Layer, NativeStackingLayer, StackingLayer
+from .layers import Layer, MGSRFLayer, NativeStackingLayer, StackingLayer
 from .validation import (
     BasePipelineModelValidator,
     CVPipelineModelValidator,
@@ -207,3 +207,64 @@ class HyperparamSearchDeepForestConstructor(BaseAutoDeepForestConstructor):
             validator=validator,
             random_state=get_rand_int(rng)
         )
+
+
+class MGSDeepForestConstructor(BaseAutoDeepForestConstructor):
+    """Classical Multi-Grained Scanning Deep Forest.
+
+    It consists of convolutional layers which reduce spatial dimensions (step 1),
+    and classical stacking-based layers (step 2).
+
+    Attributes:
+        n_steps: Number of steps. The Classical Deep Forest has two steps.
+        rf_params: Parameters of tree ensembles (Random Forests, Extra Trees).
+
+    """
+    STACKING_LAYER_CLS = NativeStackingLayer
+    MGS_LAYER_CLS = MGSRFLayer
+    n_steps = 2
+
+    def __init__(self, executor_cls: BaseExecutor,
+                 input_shape: Tuple[int],
+                 rf_params: Optional[dict] = None,
+                 conv_params: Optional[dict] = None,
+                 layer_width: int = 2,
+                 max_iter: int = 10,
+                 cv: Optional[int] = 5,
+                 make_metrics: Optional[Callable[[], MetricsEvaluator]] = None,
+                 growing_strategy: Optional[GrowingStrategy] = None,
+                 random_state: Optional[int] = None):
+        super().__init__(executor_cls, max_iter, cv, make_metrics, growing_strategy, random_state)
+        self.input_shape = input_shape
+        if conv_params is None:
+            conv_params = dict()
+        self.conv_params = conv_params
+        if rf_params is None:
+            rf_params = dict()
+        self.rf_params = rf_params
+        self.layer_width = layer_width
+
+    def make_step_layer(self, step: int, iteration: int,
+                        X: np.ndarray, y: np.ndarray,
+                        validator: BasePipelineModelValidator,
+                        rng: np.random.RandomState):
+        if step == 0:  # MGS layers
+            if iteration > 0:
+                return  # only one MGS layer allowed
+            return self.MGS_LAYER_CLS(
+                input_shape=self.input_shape,
+                rf_params=self.rf_params,
+                layer_name=f'{self.MGS_LAYER_CLS.__name__}({step=}, {iteration=})',
+                executor_cls=self.executor_cls,
+                validator=validator,
+                random_state=get_rand_int(rng),
+                **self.conv_params
+            )
+        else:  # step == 1, stacking layers
+            return self.STACKING_LAYER_CLS(
+                make_blocks=lambda: _make_base_df_blocks(self.rf_params, self.layer_width),
+                layer_name=f'{self.STACKING_LAYER_CLS.__name__}({step=}, {iteration=})',
+                executor_cls=self.executor_cls,
+                validator=validator,
+                random_state=get_rand_int(rng)
+            )
