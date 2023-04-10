@@ -21,6 +21,9 @@ class BaseData:
         """Transfers data to a GPU-based representation."""
         return GPUData(self.data)
 
+    def __repr__(self) -> str:
+        return f'<{self.__class__.__name__} {self.data.shape!r} {self.data.dtype!r}>'
+
 
 class CPUData(BaseData):
     def __init__(self, data: Any):
