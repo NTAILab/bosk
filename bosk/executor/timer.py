@@ -1,5 +1,6 @@
 from .base import BaseBlockExecutor, BaseBlock, InputSlotToDataMapping
 from ..block.base import BlockOutputData
+from ..block.zoo.input_plugs import TargetInputBlock
 from ..stages import Stage
 from ..utility import timer_wrap
 from typing import Dict
@@ -26,7 +27,8 @@ class TimerBlockHandler(BaseBlockExecutor):
             if slot.meta.stages.transform or (stage == Stage.FIT and slot.meta.stages.transform_on_fit)
         }
         tf_res, tf_time = timer_wrap(block.transform)(filtered_block_input_mapping)
-        self._time_dict[block] = fit_time + tf_time
+        if not(stage == Stage.TRANSFORM and isinstance(block, TargetInputBlock)): # temprorary
+            self._time_dict[block] = fit_time + tf_time
         return block.wrap(tf_res)
 
     @property

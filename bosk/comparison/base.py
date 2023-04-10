@@ -3,12 +3,15 @@ from bosk.block.base import BaseBlock
 from bosk.block.slot import BlockInputSlot, BlockOutputSlot
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
 from bosk.pipeline.base import BasePipeline, Connection
+from bosk.block.base import BaseInputBlock
+from bosk.block.slot import BaseSlot
 from bosk.data import BaseData
 from collections import deque, defaultdict
 from .metric import BaseMetric
 import joblib
 from functools import cache
-from typing import List, Set, Dict, Optional, Iterable
+from typing import List, Set, Dict, Optional, Iterable, Deque, Tuple
+from copy import deepcopy
 from pandas import DataFrame
 
 
@@ -33,7 +36,7 @@ class BaseForeignModel(ABC):
 
 
 @cache
-def get_block_hash(block: BaseBlock):
+def get_block_md5_hash(block: BaseBlock):
     """Helper function to obtain blocks' hashes
     and cache them.
     """
@@ -65,43 +68,163 @@ class BaseComparator(ABC):
             conn_map_conns[conn.dst] = conn.src
         return conn_map_blocks, conn_map_conns
 
-    def _compare_blocks(self, block_cp: BaseBlock, block_pip: BaseBlock, aj_list_cp, aj_list_pip, blocks_iso):
-        for inp_name, inp_slot in block_cp.slots.inputs.items():
-            pip_slot = block_pip.slots.inputs[inp_name]
-            cp_corr_out_slot = aj_list_cp.get(inp_slot, None)
-            if cp_corr_out_slot is None:
-                # in common part the slot is not used, but it's used in the pipeline
-                if pip_slot in aj_list_pip:
-                    return False
+    def _compare_blocks_conns(self, block_1: BaseBlock, block_2: BaseBlock,
+                        aj_list_1, aj_list_2, conns_iso_1, conns_iso_2) -> bool:
+        # conns_iso: slot isomorphism from pipeline to
+        # common part. It's needed to ensure that
+        # connections to blocks are headed out of the
+        # same block (in terms of isomorphism)
+        for inp_name, inp_slot_1 in block_1.slots.inputs.items():
+            inp_slot_2 = block_2.slots.inputs[inp_name]
+            corr_out_1 = aj_list_1.get(inp_slot_1, None)
+            corr_out_2 = aj_list_2.get(inp_slot_2, None)
+            is_slot_used = (corr_out_1 is not None, corr_out_2 is not None)
+            # in one pipeline the slot is used, but in the other is not
+            if is_slot_used[0] ^ is_slot_used[1]:
+                return False
             else:
-                pip_corr_out_slot = aj_list_pip.get(pip_slot, None)
-                # in common part the slot is used, but it's not used in the pipeline
-                if pip_corr_out_slot is None:
+                # both slots are not used
+                if not is_slot_used[0] and not is_slot_used[1]:
+                    continue
+                # else check prev blocks
+                # if we don't have prev block
+                # in the common part, then the bfs didn't proceeded prev block yet
+                iso_out_conn_1 = conns_iso_1.get(corr_out_1, None)
+                iso_out_conn_2 = conns_iso_2.get(corr_out_2, None)
+                if iso_out_conn_1 is None or iso_out_conn_2 is None:
                     return False
-                cp_prev_block = cp_corr_out_slot.parent_block
-                pip_prev_block = pip_corr_out_slot.parent_block
-                # check if the corresponding block of the common part
-                # is isomorphic to the corresponding block of the pipeline
-                return blocks_iso[cp_prev_block] == pip_prev_block
+                common_prev_block_1 = iso_out_conn_1.parent_block
+                common_prev_block_2 = iso_out_conn_2.parent_block
+                if common_prev_block_1 != common_prev_block_2:
+                    return False
         return True
-    
+
     def _set_random_state(self, random_state=None):
-        if random_state is not None:
-            for model in self.models:
-                model.set_random_state(random_state)
-            for pipeline in self._optim_pipelines:
-                pipeline.set_random_state(random_state)
-            if self._common_pipeline is not None:
-                self._common_pipeline.set_random_state(random_state)
-    
+        for model in self.models:
+            model.set_random_state(random_state)
+        for pipeline in self._optim_pipelines:
+            pipeline.set_random_state(random_state)
+        if self._common_pipeline is not None:
+            self._common_pipeline.set_random_state(random_state)
+
     def _set_manual_state(self, pipeline, random_state):
         for node in pipeline.nodes:
             node.set_random_state(random_state)
 
+    def _get_common_inputs(self, pipelines: List[BasePipeline]) -> List[str]:
+        input_names = []
+        input_dicts = [pip.inputs for pip in pipelines]
+        test_dict = input_dicts[0]
+        other_dicts = input_dicts[1:]
+        for inp_name in test_dict:
+            f_common = True
+            for d in other_dicts:
+                if inp_name not in d:
+                    f_common = False
+                    break
+            if f_common:
+                input_names.append(inp_name)
+        return input_names
+
+    def _find_next_block(self, cur_block, leading_conn_map,
+                         pipelines, conn_maps_list, queue_list,
+                         leading_slots_iso, slots_iso_list) -> Optional[Tuple[List[BaseBlock], List[int]]]:
+        matched_blocks: List[BaseBlock] = []
+        matched_idx: List[int] = []
+        cur_block_hash = get_block_md5_hash(cur_block)
+        # cur_block is from the leading pipeline
+        # and pipelines exclude the leading one
+        for i in range(len(pipelines)):
+            queue_hashes = [get_block_md5_hash(block) for block in queue_list[i]]
+            # find matching block in queue
+            match_idxes = [i for i, hash in enumerate(queue_hashes) if hash == cur_block_hash]
+            match_block: BaseBlock = None
+            for idx in match_idxes:
+                if self._compare_blocks_conns(cur_block, queue_list[i][idx], leading_conn_map, 
+                                              conn_maps_list[i], leading_slots_iso, slots_iso_list[i]):
+                    match_block = queue_list[i][idx]
+
+                    matched_blocks.append(match_block)
+                    matched_idx.append(idx)
+                    # delete matched block from the queue
+                    # del queue_list[i][idx]
+                    break
+            # if the matching block is not found, it's an error
+            if match_block is None:
+                return None
+        return matched_blocks, matched_idx
+
+    def _add_common_block(self, pipelines_blocks: List[BaseBlock],
+                   conn_map_list, iso_blocks_list,
+                   iso_slots_list, common_blocks,
+                   common_conn_map, added_list) -> None:
+        block_for_copy = pipelines_blocks[0]
+        new_block = deepcopy(block_for_copy)
+        common_blocks.append(new_block)
+        # add proper connections for a new block
+        for inp_name, inp_slot in block_for_copy.slots.inputs.items():
+            corr_output = conn_map_list[0].get(inp_slot, None)
+            if corr_output is not None:
+                iso_output = iso_slots_list[0][corr_output]
+                iso_input = new_block.slots.inputs[inp_name]
+                common_conn_map[iso_input] = iso_output
+        # build isomorphisms
+        # and add blocks to the 'visited' bfs set
+        for i in range(len(pipelines_blocks)):
+            iso_blocks_list[i][new_block] = pipelines_blocks[i]
+            for inp_name, inp_slot in new_block.slots.inputs.items():
+                iso_slots_list[i][pipelines_blocks[i].slots.inputs[inp_name]] = inp_slot
+            for out_name, out_slot in new_block.slots.outputs.items():
+                iso_slots_list[i][pipelines_blocks[i].slots.outputs[out_name]] = out_slot
+            added_list[i].add(pipelines_blocks[i])
+
+    def _continue_bfs(self, continue_blocks, queue_list, conn_maps_blocks, added_blocks_list) -> None:
+        for i in range(len(continue_blocks)):
+            idx_to_del = [idx for idx, block in enumerate(queue_list[i]) if block == continue_blocks[i]]
+            for idx in idx_to_del:
+                del queue_list[i][idx]
+            neig_nodes = conn_maps_blocks[i].get(continue_blocks[i], None)
+            if neig_nodes is None:
+                continue
+            for neig_node in neig_nodes:
+                if neig_node not in added_blocks_list[i] and (not queue_list[i] or neig_node != queue_list[i][-1]):
+                    queue_list[i].append(neig_node)
+
+    def _get_input_plug(self, slot: BaseSlot) -> BaseInputBlock:
+        if slot.meta.stages.transform:
+            return InputBlock()
+        return TargetInputBlock()
+
+    def _splice_pipelines(self, conns_to_append,
+                          conns_to_remove, inp_slot_pip,
+                          common_outputs, out_slot_cp,
+                          extra_inputs, extra_blocks) -> None:
+        conns_to_remove.append(inp_slot_pip)
+        corr_out_block_cp = out_slot_cp.parent_block
+        # assert there're only one output slot in the block
+        output_name = str(hash(corr_out_block_cp))
+        # if we don't have common out for this block
+        if output_name not in common_outputs:
+            # add new common output
+            common_outputs[output_name] = out_slot_cp
+        # if we don't have input plug for this block
+        if output_name not in extra_inputs:
+            input_plug = self._get_input_plug(inp_slot_pip)
+            extra_blocks.append(input_plug)
+            extra_inputs[output_name] = input_plug.get_single_input()
+        input_plug = extra_inputs[output_name].parent_block
+        plug_out_slot = next(iter(input_plug.slots.outputs.values()))
+        conns_to_append.append(Connection(plug_out_slot, inp_slot_pip))
+
+    def _get_common_input_dict(self, common_inp_names, inp_dict_pip, slots_iso) -> Dict[str, BlockInputSlot]:
+        inp_dict = dict()
+        for name in common_inp_names:
+            inp_dict[name] = slots_iso[inp_dict_pip[name]]
+        return inp_dict
+
     def __init__(self, pipelines: Optional[BasePipeline | List[BasePipeline]],
-                 common_part: Optional[BasePipeline],
                  foreign_models: Optional[BaseForeignModel | List[BaseForeignModel]],
-                 random_state: Optional[int] = None) -> None:
+                 f_optimize_pipelines: bool = True, random_state: Optional[int] = None) -> None:
 
         # boundary cases
         if pipelines is None and foreign_models is None:
@@ -110,20 +233,17 @@ class BaseComparator(ABC):
             pipelines = [pipelines]
         if foreign_models is not None and not isinstance(foreign_models, Iterable):
             foreign_models = [foreign_models]
-        if (pipelines is None or len(pipelines) == 1) and common_part is not None:
-            raise RuntimeError("You must select multiple pipelines to use common part optimization")
 
         self.random_state = random_state
         self.models = [] if foreign_models is None else foreign_models
-        self._common_pipeline = common_part
 
-        if common_part is None:
+        if not f_optimize_pipelines or pipelines is None:
+            self._common_pipeline = None
             self._optim_pipelines = [] if pipelines is None else pipelines
             self._set_random_state(self.random_state)
             return
 
-        pre_ran_state = 0 # fixed random state for proper joblib hash generation
-        self._set_manual_state(common_part, pre_ran_state)
+        pre_ran_state = 0  # fixed random state for proper joblib hash generation
         for pipeline in pipelines:
             self._set_manual_state(pipeline, pre_ran_state)
 
@@ -147,140 +267,175 @@ class BaseComparator(ABC):
         # slot as new input of the pipeline (we will pass data from the common's part to
         # this input).
 
-        conn_map_blocks_cp, conn_map_conns_cp = self._get_aj_lists(common_part)
-        begin_blocks_cp = [inp_conn.parent_block for inp_conn in common_part.inputs.values()]
-
-        self._new_blocks_list: List[BaseBlock] = []
-        self._optim_pipelines: List[BasePipeline] = []
+        # conn_map_blocks_cp, conn_map_conns_cp = self._get_aj_lists(common_part)
+        # begin_blocks_cp = [inp_conn.parent_block for inp_conn in common_part.inputs.values()]
 
         conn_maps_blocks = []
         conn_maps_conns = []
-        visited = []
         queue_list = []
         block_iso_list = []
-        conn_iso_list = []
+        slot_iso_list = []
+        added_blocks_list = []
+
+        common_inputs_names = self._get_common_inputs(pipelines)
+        common_blocks = []
+        common_conn_map: Dict[BlockInputSlot, BlockOutputSlot] = dict()
 
         for pipeline in pipelines:
             cur_blocks_al, cur_conns_al = self._get_aj_lists(pipeline)
             conn_maps_blocks.append(cur_blocks_al)
             conn_maps_conns.append(cur_conns_al)
-            cur_begin_blocks = [inp_conn.parent_block for inp_conn in pipeline.inputs.values()]
-            visited.append(set(cur_begin_blocks))
+            cur_begin_blocks = [pipeline.inputs[name].parent_block for name in common_inputs_names]
+            added_blocks_list.append(set())
             queue_list.append(deque(cur_begin_blocks))
             block_iso_list.append(dict())  # map from common part's blocks to model's
-            conn_iso_list.append(dict())  # map from common part's conns to model's
+            slot_iso_list.append(dict())  # map from the original pipeline to the common one
+
+        lead_queue: Deque[BaseBlock] = queue_list[0]
+        other_queues = queue_list[1:]
+        # lead_pipeline = pipelines[0]
+        other_pipelines = pipelines[1:]
+        lead_conn_map_conns = conn_maps_conns[0]
+        other_conn_map_conns = conn_maps_conns[1:]
+        lead_slot_iso = slot_iso_list[0]
+        other_slot_iso_list = slot_iso_list[1:]
 
         # bfs
-        visited_cp = set(begin_blocks_cp)
-        queue_cp = deque(begin_blocks_cp)
-        while queue_cp:
-            cur_block = queue_cp.popleft()
-            cur_block_hash = get_block_hash(cur_block)
-            for i in range(len(pipelines)):
-                queue_hashes = [get_block_hash(block) for block in queue_list[i]]
-                # find matching block in queue
-                match_idxes = [i for i, hash in enumerate(queue_hashes) if hash == cur_block_hash]
-                match_block: BaseBlock = None
-                for idx in match_idxes:
-                    if self._compare_blocks(cur_block, queue_list[i][idx],
-                                            conn_map_conns_cp, conn_maps_conns[i], block_iso_list[i]):
-                        match_block = queue_list[i][idx]
-                        # delete matched block from the queue
-                        del queue_list[i][idx]
-                        break
-                # if the matching block is not found, it's an error
-                if match_block is None:
-                    raise RuntimeError(f'Unable to find block {repr(cur_block)} in pipeline {i}')
+        # there is a opportunity for an
+        # optimization: do the pipelines modification
+        # within the bfs, when we didn't find any
+        # matching blocks
+        # IMPORTANT: the order of the block traversal in terms of
+        # graph's depth is not defined: graph A -> B, A -> C, B -> C
+        # leads to the traversals (A, B, C), (A, C, B)
+        # the second traversal must be fixed.
+        # We can do it either doing dfs for the leading pipeline
+        # or replace the `visited` set in bfs with the added to
+        # the common pipeline blocks. Also, once appended
+        # in the common pipeline block must be excluded
+        # from all bfs queues.
+        while lead_queue:
+            cur_block = lead_queue.popleft()
+            matched_blocks = self._find_next_block(
+                cur_block, lead_conn_map_conns, other_pipelines,
+                other_conn_map_conns, other_queues, 
+                lead_slot_iso, other_slot_iso_list
+            )
 
-                # building isomorphism
-                block_iso_list[i][cur_block] = match_block
-                for inp_name, inp_slot in cur_block.slots.inputs.items():
-                    conn_iso_list[i][inp_slot] = match_block.slots.inputs[inp_name]
-                for out_name, out_slot in cur_block.slots.outputs.items():
-                    conn_iso_list[i][out_slot] = match_block.slots.outputs[out_name]
+            if matched_blocks is None:
+                # no isomorphic blocks for current block
+                # just skip it
+                continue
+            
+            matched_idx = matched_blocks[1]
+            matched_blocks = matched_blocks[0]
 
-                # add neigbour nodes to the queue
-                for neig_node in conn_maps_blocks[i][match_block]:
-                    if neig_node not in visited[i]:
-                        visited[i].add(neig_node)
-                        queue_list[i].append(neig_node)
+            # found matching blocks
+            # need to extract them from queues,
+            for i, queue_idx in enumerate(matched_idx):
+                del other_queues[i][queue_idx]
 
-            # continue bfs for the common part
-            for neig_node in conn_map_blocks_cp[cur_block]:
-                if neig_node not in visited_cp:
-                    visited_cp.add(neig_node)
-                    queue_cp.append(neig_node)
+            # add a block in the common pipeline
+            # and build the isomorhism
+            pipelines_blocks = [cur_block] + matched_blocks
+            self._add_common_block(pipelines_blocks, conn_maps_conns, block_iso_list,
+                            slot_iso_list, common_blocks, common_conn_map, added_blocks_list)
+
+            # add neigbour nodes to the queues
+            self._continue_bfs(pipelines_blocks, queue_list, conn_maps_blocks, added_blocks_list)
 
         # redefining input pipelines to use calculations
-        # from the common part for them
-        for i, pipeline in enumerate(pipelines):
-            # All common part's inputs, must have isomorphic
-            # slots in the pipeline and should NOT be excluded.
-            new_inputs = pipeline.inputs.copy()
-            for inp_name, inp_slot in common_part.inputs.items():
-                iso_slot = conn_iso_list[i].get(inp_slot, None)
-                assert iso_slot is not None, \
-                    "Each input in the common part must have corresponding input in the pipeline"
-                assert iso_slot == pipeline.inputs[inp_name], \
-                    "Inputs in common part and pipeline must have the same name"
-                # we shouldn't delete input, because it can be used in other parts but the common one
-                # del new_inputs[inp_name]
-            # The common part's output slot must have isomorphic
-            # slot in the pipeline, for which we should make additional input.
-            # Need to account that we may have common output
-            # We also need to delete the original connection
-            output_slots: Dict[BlockOutputSlot, str] = dict()
+        # finding blocks in the common part
+        # which can be used as the outputs
+        common_outputs = dict()
+        extra_blocks_list = [[] for _ in range(len(pipelines))]
+        extra_inputs_list = [dict() for _ in range(len(pipelines))]
+        extra_outputs_list = [dict() for _ in range(len(pipelines))]
+        conns_to_remove_list = [[] for _ in range(len(pipelines))]
+        conns_to_append_list = [[] for _ in range(len(pipelines))]
+        pip_out_slots_list = []
+        for pipeline in pipelines:
+            output_slots = dict()
             for name, slot in pipeline.outputs.items():
                 output_slots[slot] = name
-            new_outputs = pipeline.outputs.copy()
-            # unable to make output slot directly as input,
-            # so we need to add input blocks
-            extra_blocks: List[BaseBlock] = []
-            extra_conns: List[Connection] = []
-            conns_to_remove: Set[BlockInputSlot] = set()
-            for out_name, out_slot in common_part.outputs.items():
-                iso_slot = conn_iso_list[i].get(out_slot, None)
-                assert iso_slot is not None, \
-                    "Each output in the common part must have corresponding slot in the pipeline"
-                assert out_name not in new_inputs, \
-                    "Names of the common part's outputs must not intersect with the pipeline's inputs"
-                # we should add input block for each common part's output
-                # to make easier connection of multiple blocks to one output
-                if iso_slot.meta.stages.transform:
-                    input_plug = InputBlock()
-                else:
-                    input_plug = TargetInputBlock()
-                extra_blocks.append(input_plug)
-                new_inputs[out_name] = next(iter(input_plug.slots.inputs.values()))
-                plug_out_slot = next(iter(input_plug.slots.outputs.values()))
-                # case when pipeline's output corresponds to common part's output
-                if iso_slot in output_slots:
-                    new_outputs[output_slots[iso_slot]] = plug_out_slot
+            pip_out_slots_list.append(output_slots)
+
+        for i in range(len(pipelines)):
+            proceeded_blocks = set()
+            for common_block in common_blocks:
+                iso_block = block_iso_list[i][common_block]
+                forward_blocks = conn_maps_blocks[i][iso_block]
+
+                # seems like common part and
+                # the pipeline are match
+                if len(forward_blocks) == 0:
+                    out_slot = next(iter(iso_block.slots.outputs.values()))
+                    # need to add input plug and refresh
+                    # output dictionary
+                    if out_slot in pip_out_slots_list[i]:
+                        input_plug = self._get_input_plug(out_slot)
+                        extra_blocks_list[i].append(input_plug)
+                        output_name = str(hash(common_block))
+                        extra_inputs_list[i][output_name] = input_plug.get_single_input()
+                        if output_name not in common_outputs:
+                            common_outputs[output_name] = next(
+                                iter(common_block.slots.outputs.values()))
+                        extra_outputs_list[i][pip_out_slots_list[i][out_slot]] =\
+                              next(iter(input_plug.slots.outputs.values()))
                     continue
-                # case when corresponding slot is in the middle of the pipeline
-                # finding corresponding input slots
-                for in_slot, corr_out_slot in conn_maps_conns[i].items():
-                    if corr_out_slot == iso_slot:
-                        extra_conns.append(Connection(plug_out_slot, in_slot))
-                        conns_to_remove.add(in_slot)
-            new_conns = extra_conns
+
+                blocks_to_connect: List[BaseBlock] = []  # block from the orig pipeline
+                for block in forward_blocks:
+                    # if block is not presented in common part
+                    if any([slot not in slot_iso_list[i] for slot in block.slots.inputs.values()]):
+                        blocks_to_connect.append(block)
+
+                # output is from common pipeline
+                # input is from target
+                for block in blocks_to_connect:
+                    if block in proceeded_blocks:
+                        continue
+                    for inp_slot in block.slots.inputs.values():
+                        corr_out = conn_maps_conns[i].get(inp_slot, None)
+                        if corr_out is None:
+                            continue
+                        corr_out_cp = slot_iso_list[i].get(corr_out, None)
+                        # found corresponding out slot in the common pipeline
+                        # for the block (it's not necessary `common_block`)
+                        if corr_out_cp is not None:
+                            self._splice_pipelines(conns_to_append_list[i],
+                                                   conns_to_remove_list[i],
+                                                   inp_slot, common_outputs,
+                                                   corr_out_cp, extra_inputs_list[i],
+                                                   extra_blocks_list[i])
+                    proceeded_blocks.add(block)
+
+        self._optim_pipelines = []
+        for i, pipeline in enumerate(pipelines):
+            new_blocks = pipeline.nodes + extra_blocks_list[i]
+            new_conns = []
             for conn in pipeline.connections:
-                if conn.dst not in conns_to_remove:
+                if conn.dst not in conns_to_remove_list[i]:
                     new_conns.append(conn)
-            new_blocks = pipeline.nodes + extra_blocks
-            self._optim_pipelines.append(BasePipeline(new_blocks, new_conns, new_inputs, new_outputs))
-            self._conn_iso_list = conn_iso_list
-            self._block_iso_list = block_iso_list
-            self._new_blocks_list.append(extra_blocks)
+            new_conns += conns_to_append_list[i]
+            new_inputs = pipeline.inputs.copy()
+            new_inputs.update(extra_inputs_list[i])
+            new_outputs = pipeline.outputs.copy()
+            new_outputs.update(extra_outputs_list[i])
+            self._optim_pipelines.append(BasePipeline(new_blocks, new_conns,
+                                            new_inputs, new_outputs))
+        self._block_iso_list = block_iso_list
+        self._new_blocks_list = extra_blocks_list
+        common_inputs = self._get_common_input_dict(common_inputs_names, 
+                                                    pipelines[0].inputs, slot_iso_list[0])
+        common_conns = []
+        for inp_slot, out_slot in common_conn_map.items():
+            common_conns.append(Connection(out_slot, inp_slot))
+        self._common_pipeline = BasePipeline(
+            common_blocks, common_conns, common_inputs, common_outputs)
         self._set_random_state(self.random_state)
 
     @abstractmethod
     def get_score(self, data: Dict[str, BaseData], metrics: List[BaseMetric]) -> DataFrame:
         """Function to obtain results of different metrics for the models.
-        Returns:
-            Dictionary with keys as models' names (`pipeline_i` for i-th pipeline and 
-            `model_i` for i-th foreign model) and values as dictionaries. These dictionaries
-            contain metrics' names as keys (metric name for the named metrics and `metric_i`
-            for the unnamed ones) and scores as values. List length of n corresponds to n
-            iterations or folds.
         """

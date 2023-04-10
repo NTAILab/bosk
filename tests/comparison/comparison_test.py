@@ -54,7 +54,7 @@ class CatBoostModel(BaseForeignModel):
 
 
 def get_pipeline_1(n_trees):
-    # simple pipeline, same as the common part
+    # simple pipeline
     b = FunctionalPipelineBuilder()
     X, y = b.Input()(), b.TargetInput()()
     rf_1 = b.RFC(n_estimators=n_trees)(X=X, y=y)
@@ -78,8 +78,7 @@ def get_pipeline_2(n_trees):
 
 
 def get_pipeline_3(n_trees):
-    # little bit wrong definition of the common part,
-    # but it must work
+    # little bit harder
     b = FunctionalPipelineBuilder()
     X, y = b.Input()(), b.TargetInput()()
     rf_1 = b.RFC(n_estimators=n_trees)(X=X, y=y)
@@ -106,10 +105,9 @@ def get_pipeline_4(n_trees):
 
 def get_pipelines(n_trees=10):
     pip_1 = get_pipeline_1(n_trees)
-    common_part = get_pipeline_1(n_trees)
     pip_2 = get_pipeline_2(n_trees)
     pip_3 = get_pipeline_3(n_trees)
-    return common_part, [pip_1, pip_2, pip_3]
+    return [pip_1, pip_2, pip_3]
 
 
 def my_acc(y_true, y_pred):
@@ -123,10 +121,10 @@ def my_roc_auc(y_true, y_pred):
 def comparison_cv_basic_test():
     log_test_name()
     random_state = 42
-    common_part, pipelines = get_pipelines()
+    pipelines = get_pipelines()
     models = [RFCModel(), CatBoostModel()]
     cv_strat = KFold(shuffle=True, n_splits=3)
-    comparator = CVComparator(pipelines, common_part, models, cv_strat, random_state=random_state)
+    comparator = CVComparator(pipelines, models, cv_strat, random_state=random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
         'X': CPUData(x),
@@ -147,12 +145,7 @@ def shuffle_test():
     log_test_name()
     random_state = 42
     random.seed(random_state)
-    common_part, pipelines = get_pipelines()
-    cp_nodes = common_part.nodes
-    cp_conns = common_part.connections
-    random.shuffle(cp_nodes)
-    random.shuffle(cp_conns)
-    common_part = BasePipeline(cp_nodes, cp_conns, common_part.inputs, common_part.outputs)
+    pipelines = get_pipelines()
     for i in range(len(pipelines)):
         pip = pipelines[i]
         pip_nodes = pip.nodes
@@ -162,7 +155,7 @@ def shuffle_test():
         pipelines[i] = BasePipeline(pip_nodes, pip_conns, pip.inputs, pip.outputs)
     models = [RFCModel(), CatBoostModel()]
     cv_strat = KFold(shuffle=True, n_splits=3)
-    comparator = CVComparator(pipelines, common_part, models, cv_strat, random_state=random_state)
+    comparator = CVComparator(pipelines, models, cv_strat, random_state=random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
         'X': CPUData(x),
@@ -182,7 +175,7 @@ def no_pipelines_test():
     random_state = 42
     models = [RFCModel(), CatBoostModel()]
     cv_strat = KFold(shuffle=True, n_splits=3)
-    comparator = CVComparator(None, None, models, cv_strat, random_state=random_state)
+    comparator = CVComparator(None, models, cv_strat, random_state=random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
         'X': CPUData(x),
@@ -200,9 +193,9 @@ def no_pipelines_test():
 def no_foreign_models_test():
     log_test_name()
     random_state = 42
-    common_part, pipelines = get_pipelines()
+    pipelines = get_pipelines()
     cv_strat = KFold(shuffle=True, n_splits=3)
-    comparator = CVComparator(pipelines, common_part, None, cv_strat, random_state=random_state)
+    comparator = CVComparator(pipelines, None, cv_strat, random_state=random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
         'X': CPUData(x),
@@ -221,37 +214,43 @@ def get_optim_test_pipelines(n_trees=13):
     pip_1 = get_pipeline_1(n_trees)
     pip_2 = get_pipeline_2(n_trees)
     pip_3 = get_pipeline_4(n_trees)
-    common_part = get_pipeline_1(n_trees)
-    return common_part, [pip_1, pip_2, pip_3]
+    return [pip_1, pip_2, pip_3]
 
 
 @timer_wrap
 def get_unoptim_res(random_state):
-    _, pipelines = get_optim_test_pipelines()
+    pipelines = get_optim_test_pipelines()
     cv_strat = KFold(shuffle=True, n_splits=5)
-    comparator = CVComparator(pipelines, None, None, cv_strat, random_state=random_state)
+    comparator = CVComparator(pipelines, None, cv_strat, f_optimize_pipelines=False, random_state=random_state)
+    # for setting the same seeds for optim and unoptim pipelines
+    for opt_pip in comparator._optim_pipelines:
+        comparator._set_manual_state(opt_pip, random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
         'X': CPUData(x),
         'y': CPUData(y),
     }
     metrics = [MetricWrapper(my_acc, name='accuracy'), MetricWrapper(my_roc_auc, name='roc_auc')]
-    cv_res = comparator.get_score(data, metrics)
+    cv_res = comparator.get_score(data, metrics, 'unopt')
     return cv_res, comparator
 
 
 @timer_wrap
 def get_optim_res(random_state):
-    common_part, pipelines = get_optim_test_pipelines()
+    pipelines = get_optim_test_pipelines()
     cv_strat = KFold(shuffle=True, n_splits=5)
-    comparator = CVComparator(pipelines, common_part, None, cv_strat, random_state=random_state)
+    comparator = CVComparator(pipelines, None, cv_strat, random_state=random_state)
+    # for setting the same seeds for optim and unoptim pipelines
+    comparator._set_manual_state(comparator._common_pipeline, random_state)
+    for opt_pip in comparator._optim_pipelines:
+        comparator._set_manual_state(opt_pip, random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
         'X': CPUData(x),
         'y': CPUData(y),
     }
     metrics = [MetricWrapper(my_acc, name='accuracy'), MetricWrapper(my_roc_auc, name='roc_auc')]
-    cv_res = comparator.get_score(data, metrics)
+    cv_res = comparator.get_score(data, metrics, 'opt')
     return cv_res, comparator
 
 
@@ -264,12 +263,13 @@ def optimization_test():
     diff = unoptim_res.compare(optim_res, 0)
     if len(diff.columns) > 1 or 'time' not in diff.columns:
         numerical_diff = diff.select_dtypes(include=np.number)
-        assert numerical_diff.columns == diff.columns,\
+        assert all(numerical_diff.columns == diff.columns),\
             "Different results for non-numerical data were retrieved"
-        reason_diff = diff.loc[::2, diff.columns != 'time'].to_numpy()\
-            - diff.loc[1::2, diff.columns != 'time'].to_numpy()
+        reason_diff = diff.loc[(slice(None), 'self'), diff.columns != 'time'].to_numpy()\
+            - diff.loc[(slice(None), 'other'), diff.columns != 'time'].to_numpy()
+        reason_diff[np.isnan(reason_diff)] = 0
         assert np.sum(reason_diff) < tol, "Different results were retrieved"
-    _, pipelines = get_optim_test_pipelines()
+    pipelines = get_optim_test_pipelines()
     x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
         'X': CPUData(x),
@@ -309,10 +309,10 @@ def optimization_test():
 def blocks_times_test():
     log_test_name()
     random_state = 42
-    common_part, pipelines = get_pipelines()
+    pipelines = get_pipelines()
     models = [RFCModel(), CatBoostModel()]
     cv_strat = KFold(shuffle=True, n_splits=3)
-    comparator = CVComparator(pipelines, common_part, models, cv_strat,
+    comparator = CVComparator(pipelines, models, cv_strat,
                               get_blocks_times=True, random_state=random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
@@ -333,11 +333,13 @@ def blocks_times_test():
         sub_df = cv_res.loc[cv_res.loc[:, 'model name'] ==
                             f'deep forest {i}', ['train/test', 'time', 'blocks time']]
         blocks_time_dict_list = sub_df.loc[:, 'blocks time']
+        pip_fit_blocks = set(true_fit_blocks_time.keys())
+        pip_tf_blocks = set(true_tf_blocks_time.keys())
         for idx, time_dict in blocks_time_dict_list.items():
             if sub_df.loc[idx, 'train/test'] == 'train':
-                pip_blocks = set(true_fit_blocks_time.keys())
+                pip_blocks = pip_fit_blocks
             else:
-                pip_blocks = set(true_tf_blocks_time.keys())
+                pip_blocks = pip_tf_blocks
             assert set(time_dict.keys()) == pip_blocks, \
                 "Blocks, presented in the profiling result, do not match with the ones in the pipeline"
             assert sum(time_dict.values()) < sub_df.loc[idx, 'time'], \

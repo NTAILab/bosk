@@ -7,6 +7,7 @@ from bosk.executor.timer import TimerBlockHandler
 from bosk.pipeline.base import BasePipeline
 from bosk.stages import Stage
 from bosk.executor.topological import TopologicalExecutor
+from bosk.painter.topological import TopologicalPainter
 from bosk.utility import timer_wrap
 from collections import defaultdict
 from copy import deepcopy
@@ -83,12 +84,11 @@ class CVComparator(BaseComparator):
         df_dict['train/test'] += ['train', 'test']
 
     def __init__(self, pipelines: Optional[BasePipeline | List[BasePipeline]],
-                 common_part: Optional[BasePipeline],
                  foreign_models: Optional[BaseForeignModel | List[BaseForeignModel]],
                  cv_strat: BaseCrossValidator, exec_cls: BaseExecutor = TopologicalExecutor,
                  exec_kw=None, get_blocks_times: bool = False, suppress_exec_warn: bool = True,
-                 random_state: Optional[int] = None) -> None:
-        super().__init__(pipelines, common_part, foreign_models, random_state)
+                 f_optimize_pipelines: bool = True, random_state: Optional[int] = None) -> None:
+        super().__init__(pipelines, foreign_models, f_optimize_pipelines, random_state)
         cv_strat.random_state = random_state
         self.cv_strat = cv_strat
         self.exec_cls = exec_cls
@@ -105,7 +105,7 @@ class CVComparator(BaseComparator):
         self.warn_context = 'ignore' if suppress_exec_warn else 'default'
 
     # columns: model name | fold # | train/test | time | blocks time | metric name 1 | ... | metric name n
-    def get_score(self, data: Dict[str, BaseData], metrics: List[BaseMetric]) -> DataFrame:
+    def get_score(self, data: Dict[str, BaseData], metrics: List[BaseMetric], draw_suf = None) -> DataFrame:
         n = None
         for value in data.values():
             if n is None:
@@ -116,6 +116,11 @@ class CVComparator(BaseComparator):
         self._metrics_names = self._get_metrics_names(metrics)
         idx = np.arange(n)
         dataframe_dict = defaultdict(list)
+        
+        if draw_suf and self._common_pipeline:
+            TopologicalPainter().from_executor(TopologicalExecutor(self._common_pipeline, Stage.TRANSFORM)).render(f'common_pipeline_tf_{draw_suf}.png')
+            TopologicalPainter().from_executor(TopologicalExecutor(self._common_pipeline, Stage.FIT)).render(f'common_pipeline_fit_{draw_suf}.png')
+
         for i, (train_idx, test_idx) in enumerate(self.cv_strat.split(idx)):
             logging.info('Processing fold #%i', i)
 
@@ -135,12 +140,12 @@ class CVComparator(BaseComparator):
                 with warnings.catch_warnings():
                     warnings.simplefilter(self.warn_context)
                     block_exec = self.block_hlr_cls()
-                    train_exec = self.exec_cls(self._common_pipeline, Stage.FIT, block_executor=block_exec)
+                    train_exec = self.exec_cls(self._common_pipeline, Stage.FIT, block_executor=block_exec, **self.exec_kw)
                     common_train_res, train_common_part_time = timer_wrap(train_exec)(train_data_dict)
                     if self.measure_blk_time:
                         common_block_train_times = block_exec.blocks_time
                     block_exec = self.block_hlr_cls()
-                    test_exec = self.exec_cls(self._common_pipeline, Stage.TRANSFORM, block_executor=block_exec)
+                    test_exec = self.exec_cls(self._common_pipeline, Stage.TRANSFORM, block_executor=block_exec, **self.exec_kw)
                     common_test_res, test_common_part_time = timer_wrap(test_exec)(test_data_dict)
                     if self.measure_blk_time:
                         common_block_test_times = block_exec.blocks_time
@@ -156,13 +161,13 @@ class CVComparator(BaseComparator):
                 with warnings.catch_warnings():
                     warnings.simplefilter(self.warn_context)
                     block_exec = self.block_hlr_cls()
-                    pip_tr_exec = self.exec_cls(pipeline, Stage.FIT, block_executor=block_exec)
+                    pip_tr_exec = self.exec_cls(pipeline, Stage.FIT, block_executor=block_exec, **self.exec_kw)
                     pip_train_res, train_time = timer_wrap(pip_tr_exec)(cur_train_dict)
                     dataframe_dict['time'].append(train_common_part_time + train_time)
                     if self.measure_blk_time:
                         pip_block_train_times = block_exec.blocks_time
                     block_exec = self.block_hlr_cls()
-                    pip_test_exec = self.exec_cls(pipeline, Stage.TRANSFORM, block_executor=block_exec)
+                    pip_test_exec = self.exec_cls(pipeline, Stage.TRANSFORM, block_executor=block_exec, **self.exec_kw)
                     pip_test_res, test_time = timer_wrap(pip_test_exec)(cur_test_dict)
                     dataframe_dict['time'].append(test_common_part_time + test_time)
                     if self.measure_blk_time:
@@ -181,6 +186,10 @@ class CVComparator(BaseComparator):
                 self._write_metrics_info_to_dict(dataframe_dict, metrics,
                                                  train_data_dict, pip_train_res,
                                                  test_data_dict, pip_test_res)
+                
+                if i == 0 and draw_suf:
+                    TopologicalPainter().from_executor(pip_tr_exec).render(f'optim_pipeline_{j}_fit_{draw_suf}.png')
+                    TopologicalPainter().from_executor(pip_test_exec).render(f'optim_pipeline_{j}_tf_{draw_suf}.png')
 
             for j, cur_model in enumerate(self.models):
                 model_name = f'model {j}'

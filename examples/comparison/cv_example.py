@@ -102,7 +102,7 @@ if __name__=='__main__':
     random_state = 42
     common_part, pipelines = get_pipelines()
     models = [RFCModel(), CatBoostModel()]
-    comparator = CVComparator(pipelines, common_part, models,
+    comparator = CVComparator(pipelines, models,
                             KFold(shuffle=True, n_splits=3), random_state=random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
