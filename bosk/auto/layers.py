@@ -8,6 +8,7 @@ from ..utility import get_rand_int, get_random_generator
 from ..visitor.group import ModifyGroupVisitor
 from ..pipeline.builder.functional import FunctionalPipelineBuilder
 from ..block.zoo.models.classification.classification_models import RFCBlock, ETCBlock
+from ..block.zoo.routing.cv import CVTrainIndicesBlock, SubsetTrainWrapperBlock
 from ..block.base import BaseBlock, BlockOutputData
 from ..block.slot import BlockGroup
 from ..data import BaseData, CPUData
@@ -284,5 +285,83 @@ class StackingLayer(Layer):
         # fit on the whole given data set
         if self.validator.need_refit:
             fitter = self._make_fitter(pipeline, blocks, rng)
+            fitter(data)
+        return pipeline, metric_values
+
+
+class NativeStackingLayer(Layer):
+    """Native Stacking Layer implements stacking (training different models on subsets of data)
+    using native BOSK blocks, instead of direct fitting.
+
+    The pipeline made by this layer can be retrained.
+    It gives reproducible results, i.e. it is guaranteed
+    that the results will not be changed after retraining on the same data.
+
+    """
+
+    inputs = ['X', 'X_original', 'y']
+
+    def __init__(self, make_blocks: Callable[[], Sequence[BaseBlock]],
+                 executor_cls: Type[BaseExecutor],
+                 validator: CVPipelineModelValidator,
+                 layer_name: str = 'stacking_layer',
+                 random_state: Optional[int] = None):
+        super().__init__(
+            executor_cls=executor_cls,
+            validator=validator,
+            layer_name=layer_name,
+            random_state=random_state,
+        )
+        self.make_blocks = make_blocks
+
+    def fit(self, data: Mapping[str, BaseData]):
+        rng = get_random_generator(self.random_state)
+        # forests layer leverages CPU algorithms
+        data = {
+            k: v.to_cpu()
+            for k, v in data.items()
+        }
+
+        # build a fixed pipeline
+        b = FunctionalPipelineBuilder()
+        x_ = b.Input('X')()
+        x_original_ = b.Input('X_original')()
+        y_ = b.TargetInput('y')()
+
+        blocks = [
+            SubsetTrainWrapperBlock(b)
+            for b in self.make_blocks()
+        ]
+        train_indices_ = b.new(
+            CVTrainIndicesBlock,
+            size=len(blocks),
+            random_state=get_rand_int(rng)
+        )(X=x_, y=y_)
+        block_wrappers = [
+            b.wrap(block)(X=x_, y=y_, training_indices=train_indices_[str(i)])
+            for i, block in enumerate(blocks)
+        ]
+        # set random states
+        for bw in block_wrappers:
+            bw.block.set_random_state(get_rand_int(rng))
+        block_names = [f'block_{i}' for i in range(len(block_wrappers))]
+        named_block_wrappers = dict(zip(block_names, block_wrappers))
+        # concatenate embeddings with original feature vector
+        embedding_ = b.Concat(['X_original', *block_names], axis=1)(X_original=x_original_, **named_block_wrappers)
+        proba_ = b.Average(axis=-1)(b.Stack(block_names, axis=-1)(**named_block_wrappers))
+
+        # specify outputs
+        b.Output('X')(embedding_)
+        b.Output('X_original')(x_original_)
+        b.Output('proba')(proba_)
+
+        pipeline = b.build()
+        pipeline.accept(ModifyGroupVisitor('add', BlockGroup(self.layer_name)))
+        # evaluate the pipeline
+        metric_values = self.calc_metrics(data, pipeline, 'proba', ['X'])
+
+        # fit on the whole given data set
+        if self.validator.need_refit:
+            fitter = self.executor_cls(pipeline, Stage.FIT, outputs=['proba', 'X'])
             fitter(data)
         return pipeline, metric_values

@@ -16,7 +16,7 @@ from ..block.zoo.models.classification.classification_models import ETCBlock, RF
 from .metrics import MetricsEvaluator
 from .growing_strategies import GrowingStrategy, DefaultGrowingStrategy, EarlyStoppingCV
 from .builders import SequentialPipelineBuilder
-from .layers import Layer, StackingLayer
+from .layers import Layer, NativeStackingLayer, StackingLayer
 from .validation import (
     BasePipelineModelValidator,
     CVPipelineModelValidator,
@@ -137,6 +137,41 @@ class ClassicalDeepForestConstructor(BaseAutoDeepForestConstructor):
                         rng: np.random.RandomState):
         p = self.rf_params
         return StackingLayer(
+            make_blocks=lambda: [RFCBlock(**p), ETCBlock(**p), RFCBlock(**p), ETCBlock(**p)],
+            executor_cls=self.executor_cls,
+            validator=validator,
+            random_state=get_rand_int(rng)
+        )
+
+
+class NativeClassicalDeepForestConstructor(BaseAutoDeepForestConstructor):
+    """Classical Deep Forest iteratively builds layers consisting of different
+    Random Forests and Extremely Randomized Trees Classifiers.
+
+    Attributes:
+        n_steps: Number of steps. The Classical Deep Forest has just one step.
+        rf_params: Parameters of tree ensembles (Random Forests, Extra Trees).
+
+    """
+    n_steps = 1
+
+    def __init__(self, executor_cls: BaseExecutor, rf_params: Optional[dict] = None,
+                 max_iter: int = 10,
+                 cv: Optional[int] = 5,
+                 make_metrics: Optional[Callable[[], MetricsEvaluator]] = None,
+                 growing_strategy: Optional[GrowingStrategy] = None,
+                 random_state: Optional[int] = None):
+        super().__init__(executor_cls, max_iter, cv, make_metrics, growing_strategy, random_state)
+        if rf_params is None:
+            rf_params = dict()
+        self.rf_params = rf_params
+
+    def make_step_layer(self, step: int, iteration: int,
+                        X: np.ndarray, y: np.ndarray,
+                        validator: BasePipelineModelValidator,
+                        rng: np.random.RandomState):
+        p = self.rf_params
+        return NativeStackingLayer(
             make_blocks=lambda: [RFCBlock(**p), ETCBlock(**p), RFCBlock(**p), ETCBlock(**p)],
             executor_cls=self.executor_cls,
             validator=validator,
