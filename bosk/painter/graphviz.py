@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import Optional, Sequence
 from ..block.base import BaseBlock
 from ..pipeline.connection import Connection
@@ -23,10 +24,12 @@ class GraphvizPainter(BasePainter):
         figure_rankdir: Sets :attr:`rankdir`.
     """
 
-    def __init__(self, graph_levels_sep: float = 1.0, figure_dpi: int = 150, figure_rankdir: str = 'LR'):
+    def __init__(self, graph_levels_sep: float = 1.0, figure_dpi: int = 150, figure_rankdir: str = 'LR',
+                 render_groups: bool = True):
         self._levels_sep = graph_levels_sep
         self._dpi = figure_dpi
         self._rankdir = figure_rankdir
+        self._render_groups = render_groups
         self._graph = gv.Digraph('DeepForestGraph', renderer='cairo',
                                  formatter='cairo', node_attr={'shape': 'record'})
         self._f_used = False
@@ -71,6 +74,19 @@ class GraphvizPainter(BasePainter):
         assert not self._f_used, "You've already built the graph"
         for block in pipeline.nodes:
             self._add_node(block)
+        if self._render_groups:
+            groups = defaultdict(list)
+            for block in pipeline.nodes:
+                for g in block.slots.groups:
+                    groups[g].append(block)
+            for i, (group, group_nodes) in enumerate(groups.items()):
+                with self._graph.subgraph(name=f'cluster_{i}') as c:
+                    c.attr(style='filled', color='lightgrey')
+                    c.node_attr.update(style='filled', color='white')
+                    c.attr(label=repr(group))
+                    for block in group_nodes:
+                        c.node(f'block{id(block)}')
+
         for conn in pipeline.connections:
             self._add_edge(conn)
         for inp_name, inp_slot in pipeline.inputs.items():
