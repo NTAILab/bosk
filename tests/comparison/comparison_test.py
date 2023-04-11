@@ -91,18 +91,6 @@ def get_pipeline_3(n_trees):
     return b.build({'X': X, 'y': y}, {'output': et_3})
 
 
-def get_pipeline_4(n_trees):
-    b = FunctionalPipelineBuilder()
-    X, y = b.Input()(), b.TargetInput()()
-    rf_1 = b.RFC(n_estimators=n_trees)(X=X, y=y)
-    et_1 = b.ETC(n_estimators=n_trees)(X=X, y=y)
-    concat_1 = b.Concat(['X', 'rf_1', 'et_1'])(X=X, rf_1=rf_1, et_1=et_1)
-    rf_2 = b.RFC(n_estimators=n_trees)(X=concat_1, y=y)
-    concat_2 = b.Concat(['rf_2', 'X'])(X=X, rf_2=rf_2, )
-    et_3 = b.ETC(n_estimators=n_trees)(X=concat_2, y=y)
-    return b.build({'X': X, 'y': y}, {'output': et_3})
-
-
 def get_pipelines(n_trees=10):
     pip_1 = get_pipeline_1(n_trees)
     pip_2 = get_pipeline_2(n_trees)
@@ -170,6 +158,39 @@ def shuffle_test():
         "Not all the folds were proceeded"
 
 
+def no_intersect_pipelines_test():
+    # test with the pipelines that have no intersections
+    log_test_name()
+    n_trees = 17
+    random_state = 42
+    tol = 1e-8
+    b_1 = FunctionalPipelineBuilder()
+    X, y = b_1.Input()(), b_1.TargetInput()()
+    rf_1 = b_1.RFC(n_estimators=n_trees)(X=X, y=y)
+    pip_1 = b_1.build({'X': X, 'y': y}, {'output': rf_1})
+    b_2 = FunctionalPipelineBuilder()
+    rf_2 = b_2.RFC(n_estimators=n_trees)()
+    pip_2 = b_2.build({'X': rf_2.get_input_slot(
+        'X'), 'y': rf_2.get_input_slot('y')}, {'output': rf_2})
+    x, y = make_moons(noise=0.5, random_state=random_state)
+    data = {
+        'X': CPUData(x),
+        'y': CPUData(y),
+    }
+    cv_strat = KFold(shuffle=True, n_splits=3)
+    comparator = CVComparator([pip_1, pip_2], None, cv_strat, random_state=random_state)
+    # for setting the same seeds for pipelines
+    for opt_pip in comparator._optim_pipelines:
+        comparator._set_manual_state(opt_pip, random_state)
+    metrics = [MetricWrapper(my_acc, name='accuracy'), MetricWrapper(my_roc_auc, name='roc_auc')]
+    cv_res = comparator.get_score(data, metrics)
+    assert comparator._common_pipeline is None, "Pipelines didn't contain common subpipeline"
+    cv_pip_1 = cv_res.loc[cv_res.loc[:, 'model name'] == 'deep forest 0', ('accuracy', 'roc_auc')]
+    cv_pip_2 = cv_res.loc[cv_res.loc[:, 'model name'] == 'deep forest 1', ('accuracy', 'roc_auc')]
+    assert np.sum(np.abs(cv_pip_1.to_numpy() - cv_pip_2.to_numpy())) < tol, \
+        "Different results were retreived for the same forests"
+
+
 def no_pipelines_test():
     log_test_name()
     random_state = 42
@@ -210,19 +231,13 @@ def no_foreign_models_test():
         "Not all the folds were proceeded"
 
 
-def get_optim_test_pipelines(n_trees=13):
-    pip_1 = get_pipeline_1(n_trees)
-    pip_2 = get_pipeline_2(n_trees)
-    pip_3 = get_pipeline_4(n_trees)
-    return [pip_1, pip_2, pip_3]
-
-
 @timer_wrap
 def get_unoptim_res(random_state):
-    pipelines = get_optim_test_pipelines()
+    pipelines = get_pipelines()
     cv_strat = KFold(shuffle=True, n_splits=5)
-    comparator = CVComparator(pipelines, None, cv_strat, f_optimize_pipelines=False, random_state=random_state)
-    # for setting the same seeds for optim and unoptim pipelines
+    comparator = CVComparator(pipelines, None, cv_strat,
+                              f_optimize_pipelines=False, random_state=random_state)
+    # for setting the same seeds for pipelines
     for opt_pip in comparator._optim_pipelines:
         comparator._set_manual_state(opt_pip, random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
@@ -231,13 +246,13 @@ def get_unoptim_res(random_state):
         'y': CPUData(y),
     }
     metrics = [MetricWrapper(my_acc, name='accuracy'), MetricWrapper(my_roc_auc, name='roc_auc')]
-    cv_res = comparator.get_score(data, metrics, 'unopt')
+    cv_res = comparator.get_score(data, metrics)
     return cv_res, comparator
 
 
 @timer_wrap
 def get_optim_res(random_state):
-    pipelines = get_optim_test_pipelines()
+    pipelines = get_pipelines()
     cv_strat = KFold(shuffle=True, n_splits=5)
     comparator = CVComparator(pipelines, None, cv_strat, random_state=random_state)
     # for setting the same seeds for optim and unoptim pipelines
@@ -250,7 +265,7 @@ def get_optim_res(random_state):
         'y': CPUData(y),
     }
     metrics = [MetricWrapper(my_acc, name='accuracy'), MetricWrapper(my_roc_auc, name='roc_auc')]
-    cv_res = comparator.get_score(data, metrics, 'opt')
+    cv_res = comparator.get_score(data, metrics)
     return cv_res, comparator
 
 
@@ -269,7 +284,7 @@ def optimization_test():
             - diff.loc[(slice(None), 'other'), diff.columns != 'time'].to_numpy()
         reason_diff[np.isnan(reason_diff)] = 0
         assert np.sum(reason_diff) < tol, "Different results were retrieved"
-    pipelines = get_optim_test_pipelines()
+    pipelines = get_pipelines()
     x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
         'X': CPUData(x),
@@ -279,10 +294,10 @@ def optimization_test():
         warnings.simplefilter('ignore')
         common_res = TopologicalExecutor(opt_cmp._common_pipeline, Stage.FIT)(data)
     for true_pipeline, unopt_pipeline, opt_pipeline, extra_blocks in zip(
-        pipelines,
-        unopt_cmp._optim_pipelines,
-        opt_cmp._optim_pipelines,
-        opt_cmp._new_blocks_list):
+            pipelines,
+            unopt_cmp._optim_pipelines,
+            opt_cmp._optim_pipelines,
+            opt_cmp._new_blocks_list):
         true_bl_ex = TimerBlockHandler()
         unopt_bl_ex = TimerBlockHandler()
         opt_bl_ex = TimerBlockHandler()

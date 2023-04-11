@@ -27,8 +27,7 @@ class TimerBlockHandler(BaseBlockExecutor):
             if slot.meta.stages.transform or (stage == Stage.FIT and slot.meta.stages.transform_on_fit)
         }
         tf_res, tf_time = timer_wrap(block.transform)(filtered_block_input_mapping)
-        if not(stage == Stage.TRANSFORM and isinstance(block, TargetInputBlock)): # temprorary
-            self._time_dict[block] = fit_time + tf_time
+        self._time_dict[block] = fit_time + tf_time
         return block.wrap(tf_res)
 
     @property
