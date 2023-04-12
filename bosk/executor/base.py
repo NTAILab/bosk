@@ -1,18 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Mapping, FrozenSet, Optional, Sequence
+import warnings
 
 from ..data import Data
 from ..stages import Stage
 from ..block.base import BaseBlock, BlockOutputData
 from ..block.slot import BlockInputSlot, BaseSlot
 from ..pipeline import BasePipeline
-import warnings
-
-InputSlotToDataMapping = Mapping[BlockInputSlot, Data]
-"""Block input slot data mapping.
-
-It is indexed by input slots.
-"""
+from .block import InputSlotToDataMapping, BaseBlockExecutor, DefaultBlockExecutor
 
 
 class BaseSlotHandler(ABC):
@@ -32,47 +27,13 @@ class BaseSlotHandler(ABC):
 
 class DefaultSlotHandler(BaseSlotHandler):
     def is_slot_required(self, stage: Stage, slot: BaseSlot) -> bool:
-        assert isinstance(slot, BlockInputSlot), "InputSlotStrategy proceeds only input slots"
+        assert isinstance(
+            slot, BlockInputSlot), "InputSlotStrategy proceeds only input slots"
         if stage == Stage.FIT:
             return slot.meta.stages.fit \
                 or slot.meta.stages.transform \
                 or slot.meta.stages.transform_on_fit
         return slot.meta.stages.transform
-
-
-class BaseBlockExecutor(ABC):
-    """Determines a block execution.
-
-    """
-
-    @abstractmethod
-    def execute_block(self, stage: Stage, block: BaseBlock,
-                      block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
-        """Method that executes the block.
-
-        Args:
-            stage: The execution stage.
-            block: The computational block to execute.
-            block_input_mapping: The data for the block execution.
-        """
-
-
-class DefaultBlockExecutor(BaseBlockExecutor):
-    def execute_block(self, stage: Stage,
-                      block: BaseBlock,
-                      block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
-        if stage == Stage.FIT:
-            block.fit({
-                slot.meta.name: values
-                for slot, values in block_input_mapping.items()
-                if slot.meta.stages.fit
-            })
-        filtered_block_input_mapping = {
-            slot.meta.name: values
-            for slot, values in block_input_mapping.items()
-            if slot.meta.stages.transform or (stage == Stage.FIT and slot.meta.stages.transform_on_fit)
-        }
-        return block.wrap(block.transform(filtered_block_input_mapping))
 
 
 class BaseExecutor(ABC):
@@ -247,4 +208,3 @@ class BaseExecutor(ABC):
     def stage(self) -> Stage:
         """Getter for the executor's computational stage."""
         return self.__stage
-

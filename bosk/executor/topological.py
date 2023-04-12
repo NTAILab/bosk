@@ -169,30 +169,30 @@ class TopologicalExecutor(BaseExecutor):
             slots_values[input_slot] = input_data
             if input_slot.parent_block not in backward_pass:
                 warnings.warn(
-                    f'Input slot "{input_name}" is disconnected from the outputs, it won\'t be calculated')
+                    f'Input slot {input_name!r} of {input_slot.parent_block!r} '
+                    "is disconnected from the outputs, it won't be calculated")
             else:
                 input_blocks_set.add(input_slot.parent_block)
         topological_order = self._topological_sort(
             self._get_forward_aj_list(backward_pass), input_blocks_set)
 
-        try:
-            for node in topological_order:
-                node_input_data = dict()
-                for name, inp_slot in node.slots.inputs.items():
-                    if inp_slot not in self._conn_dict:
-                        # input slot was not used
-                        continue
-                    corresponding_output = self._conn_dict[inp_slot]
-                    # how about skipping, for example, in concatBlock?
-                    inp_data = slots_values[corresponding_output]
-                    node_input_data[inp_slot] = inp_data
-                outputs = self._execute_block(node, node_input_data)
-                slots_values.update(outputs)
-        except Exception as ex:
-            warnings.warn(
-                f'Unable to compute data for the "{name}" input of the "{repr(node)}" block.')
-            raise ex
-            warnings.warn('The execution is terminated.')
+        for node in topological_order:
+            node_input_data = dict()
+            for name, inp_slot in node.slots.inputs.items():
+                if inp_slot not in self._conn_dict:
+                    # input slot was not used
+                    continue
+                corresponding_output = self._conn_dict[inp_slot]
+                # how about skipping, for example, in concatBlock?
+                if corresponding_output not in slots_values:
+                    raise RuntimeError(
+                        f'The output {corresponding_output} has not been computed, '
+                        f'it is needed for the block {node!r}'
+                    )
+                inp_data = slots_values[corresponding_output]
+                node_input_data[inp_slot] = inp_data
+            outputs = self._execute_block(node, node_input_data)
+            slots_values.update(outputs)
 
         result: Mapping[str, Data] = dict()
         for output_name, output_slot in self.pipeline.outputs.items():

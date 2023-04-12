@@ -231,3 +231,35 @@ class PoolingBlock(BaseBlock):
         else:
             raise NotImplementedError(f'Not implemented for type {type(inputs["X"])!r}')
 
+
+class GlobalAveragePoolingBlock(BaseBlock):
+    """Global Average Pooling averages across all dimensions except sample and channels.
+
+    For example, given an input of shape `(n_samples, n_channels, n_1, ..., n_d)`,
+    the output will be of shape `(n_samples, n_channels)`.
+    """
+    meta = make_simple_meta(['X'], ['output'], execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True))
+
+    def __init__(self, axis: int = -1):
+        super().__init__()
+        self.axis = axis
+
+    def _check_dims(self, inputs):
+        assert 'X' in inputs
+        assert inputs['X'].data.ndim > 2, 'Global Average Pooling supports only data with at least one spatial dimension'
+
+    def fit(self, inputs: BlockInputData) -> 'GlobalAveragePoolingBlock':
+        self._check_dims(inputs)
+        return self
+
+    def transform(self, inputs: BlockInputData) -> TransformOutputData:
+        self._check_dims(inputs)
+        input_type = type(inputs['X'])
+        if input_type not in [CPUData, GPUData]:
+            raise TypeError("All inputs must be of type: CPUData or GPUData.")
+        spatial_axes = tuple(range(2, inputs['X'].data.ndim))
+        averaged = inputs['X'].data.mean(axis=spatial_axes)
+        if input_type == CPUData:
+            return {'output': CPUData(averaged)}
+        else:
+            return {'output': GPUData(averaged)}
