@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Mapping, FrozenSet, Optional, Sequence
 
-from ..data import Data
+from ..data import Data, BaseData, CPUData, GPUData
 from ..stages import Stage
 from ..block.base import BaseBlock, BlockOutputData
 from ..block.slot import BlockGroup, BlockInputSlot, BaseSlot
 from ..pipeline import BasePipeline
 import warnings
-
 
 InputSlotToDataMapping = Mapping[BlockInputSlot, Data]
 """Block input slot data mapping.
@@ -51,12 +50,108 @@ class DefaultBlockExecutor(BaseBlockExecutor):
         return block.wrap(block.transform(filtered_block_input_mapping))
 
 
+class GPUBlockExecutor(BaseBlockExecutor):
+    def execute_block(self, stage: Stage,
+                      block: BaseBlock,
+                      block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
+        if stage == Stage.FIT:
+            filtered_block_input_mapping_fit = dict()
+            for slot, values in block_input_mapping.items():
+                if slot.meta.stages.fit:
+                    if slot.parent_block.meta.execution_props.gpu:
+                        if isinstance(values, BaseData) or isinstance(values, CPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values.to_gpu()
+                        elif isinstance(values, GPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values
+                        else:
+                            filtered_block_input_mapping_fit[slot.meta.name] = GPUData(values)
+                    else:
+                        if isinstance(values, BaseData) or isinstance(values, GPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values.to_cpu()
+                        elif isinstance(values, CPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values
+                        else:
+                            filtered_block_input_mapping_fit[slot.meta.name] = CPUData(values)
+            block.fit(filtered_block_input_mapping_fit)
+
+        filtered_block_input_mapping = dict()
+        for slot, values in block_input_mapping.items():
+            if slot.meta.stages.transform or (stage == Stage.FIT and slot.meta.stages.transform_on_fit):
+                if slot.parent_block.meta.execution_props.gpu:
+                    if isinstance(values, BaseData) or isinstance(values, CPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values.to_gpu()
+                    elif isinstance(values, GPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values
+                    else:
+                        filtered_block_input_mapping[slot.meta.name] = GPUData(values)
+                else:
+                    if isinstance(values, BaseData) or isinstance(values, GPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values.to_cpu()
+                    elif isinstance(values, CPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values
+                    else:
+                        filtered_block_input_mapping[slot.meta.name] = CPUData(values)
+
+        output = block.transform(filtered_block_input_mapping)
+
+        if isinstance(output, GPUData):
+            output = output.to_cpu()
+
+        return block.wrap(output)
+
+
+class CPUBlockExecutor(BaseBlockExecutor):
+    def execute_block(self, stage: Stage,
+                      block: BaseBlock,
+                      block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
+        if stage == Stage.FIT:
+            filtered_block_input_mapping_fit = dict()
+            for slot, values in block_input_mapping.items():
+                if slot.meta.stages.fit:
+                    if slot.parent_block.meta.execution_props.cpu:
+                        if isinstance(values, BaseData) or isinstance(values, GPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values.to_cpu()
+                        elif isinstance(values, CPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values
+                        else:
+                            filtered_block_input_mapping_fit[slot.meta.name] = CPUData(values)
+                    else:
+                        if isinstance(values, BaseData) or isinstance(values, CPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values.to_gpu()
+                        elif isinstance(values, GPUData):
+                            filtered_block_input_mapping_fit[slot.meta.name] = values
+                        else:
+                            filtered_block_input_mapping_fit[slot.meta.name] = GPUData(values)
+            block.fit(filtered_block_input_mapping_fit)
+
+        filtered_block_input_mapping = dict()
+        for slot, values in block_input_mapping.items():
+            if slot.meta.stages.transform or (stage == Stage.FIT and slot.meta.stages.transform_on_fit):
+                if slot.parent_block.meta.execution_props.cpu:
+                    if isinstance(values, BaseData) or isinstance(values, GPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values.to_cpu()
+                    elif isinstance(values, CPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values
+                    else:
+                        filtered_block_input_mapping[slot.meta.name] = CPUData(values)
+                else:
+                    if isinstance(values, BaseData) or isinstance(values, CPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values.to_gpu()
+                    elif isinstance(values, GPUData):
+                        filtered_block_input_mapping[slot.meta.name] = values
+                    else:
+                        filtered_block_input_mapping[slot.meta.name] = GPUData(values)
+
+        return block.wrap(block.transform(filtered_block_input_mapping))
+
+
 class FitBlacklistBlockExecutor(DefaultBlockExecutor):
     """Block executor that does not call `fit` method for the blocks that are in the black list.
 
     It is used to be able to manually fit some blocks of the pipeline and avoid overriding of the state
     when the whole pipeline is fitted.
     """
+
     def __init__(self, ignore_blocks: Optional[Sequence[BaseBlock]] = None,
                  ignore_groups: Optional[Sequence[BlockGroup]] = None) -> None:
         """Initialize the block executor.
@@ -73,7 +168,7 @@ class FitBlacklistBlockExecutor(DefaultBlockExecutor):
         self.ignore_groups = set(ignore_groups or [])
 
     def execute_block(self, stage: Stage, block: BaseBlock,
-                        block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
+                      block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
         need_ignore_fit = (block in self.ignore_blocks) or (not block.slots.groups.isdisjoint(self.ignore_groups))
         if need_ignore_fit:
             # avoid block fitting, just apply transform
