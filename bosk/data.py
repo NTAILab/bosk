@@ -1,7 +1,5 @@
 from typing import Any, Union
-
 import jax.numpy as jnp
-
 import numpy as np
 
 Data = Any
@@ -20,6 +18,9 @@ class BaseData:
     def to_gpu(self) -> 'GPUData':
         """Transfers data to a GPU-based representation."""
         return GPUData(self.data)
+
+    def __repr__(self) -> str:
+        return f'<{self.__class__.__name__} {self.data.shape!r} {self.data.dtype!r}>'
 
 
 class CPUData(BaseData):

@@ -5,7 +5,6 @@ from typing import Dict, Optional, Sequence, Tuple
 from bosk.pipeline.base import BasePipeline
 from bosk.data import Data
 from bosk.executor.recursive import RecursiveExecutor
-from bosk.executor.descriptor import HandlingDescriptor
 from bosk.stages import Stage
 from ..utility import fit_pipeline, log_test_name
 import logging
@@ -31,8 +30,7 @@ class BasePipelineTest(ABC):
         fitted_pipeline, _ = fit_pipeline(
             self.get_pipeline(), self.get_fit_data(), RecursiveExecutor, *self.get_fit_in_out())
         data = self.get_transform_data()
-        executor = RecursiveExecutor(fitted_pipeline, HandlingDescriptor.from_classes(Stage.TRANSFORM),
-                                     *self.get_transform_in_out())
+        executor = RecursiveExecutor(fitted_pipeline, Stage.TRANSFORM, *self.get_transform_in_out())
         tf_output = executor(data)
         logging.info('Test "%s" provided following outputs throung the transform procedure: %r',
                      self.__class__.__name__, list(tf_output.keys()))

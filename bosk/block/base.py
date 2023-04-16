@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from numpy.random import Generator
 from typing import Mapping, TypeVar, Optional
 
@@ -125,3 +125,79 @@ class BaseBlock(ABC):
         """Set random seed for the block using numpy
         random generator or integer value.
         """
+
+    @property
+    def default_output(self) -> Optional[str]:
+        """Get default output name.
+
+        If the block has a single output, it will be used as a default.
+        Otherwise, the block can override this property to set a specific default output.
+        If the block can't have a single default output (its outputs have equal importance),
+        this method should return `None`.
+        """
+        if len(self.meta.outputs) == 1:
+            return next(iter(self.meta.outputs.keys()))
+        else:
+            return None
+
+
+class BaseInputBlock(BaseBlock, metaclass=ABCMeta):
+    """Base input block. It is guaranteed that is has a single input and some name.
+
+    An input block can help to automatically determine pipeline inputs.
+    The name can be None, in this case the block is not considered as one of pipeline inputs.
+    """
+    def _make_slots(self):
+        """Make slots"""
+        result = super()._make_slots()
+        assert len(result.inputs) == 1, f'The input block {self!r} must have exactly one input'
+        return result
+
+    @property
+    @abstractmethod
+    def name(self) -> Optional[str]:
+        """Get the input name.
+
+        Returns:
+            The block instance name.
+        """
+
+    def get_single_input(self) -> BlockInputSlot:
+        """Get the single block input slot.
+
+        Returns:
+            The block input slot.
+        """
+        assert len(self.slots.inputs) == 1
+        return next(iter(self.slots.inputs.values()))
+
+
+class BaseOutputBlock(BaseBlock, metaclass=ABCMeta):
+    """Base output block. It is guaranteed that is has a single output and some name.
+
+    An output block can help to automatically determine pipeline outputs.
+    The name can be None, in this case the block is not considered as one of pipeline outputs.
+    """
+    def _make_slots(self):
+        """Make slots"""
+        result = super()._make_slots()
+        assert len(result.outputs) == 1, f'The output block {self!r} must have exactly one output'
+        return result
+
+    @property
+    @abstractmethod
+    def name(self) -> Optional[str]:
+        """Get the input name.
+
+        Returns:
+            The block instance name or None if the block does not have name.
+        """
+
+    def get_single_output(self) -> BlockOutputSlot:
+        """Get the single block output slot.
+
+        Returns:
+            The block output slot.
+        """
+        assert len(self.slots.outputs) == 1
+        return next(iter(self.slots.outputs.values()))

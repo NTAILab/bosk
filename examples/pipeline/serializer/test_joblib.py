@@ -10,7 +10,6 @@ from sklearn.model_selection import train_test_split
 from bosk.executor.recursive import RecursiveExecutor
 
 from sklearn.metrics import roc_auc_score
-from bosk.executor.descriptor import HandlingDescriptor
 from bosk.pipeline.serializer.joblib import JoblibSerializer
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.stages import Stage
@@ -41,7 +40,7 @@ def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        HandlingDescriptor.from_classes(Stage.FIT),
+        stage=Stage.FIT,
         inputs=['X', 'y'],
         outputs=['probas', 'rf_1_roc-auc', 'roc-auc'],
         # outputs=['probas'],
@@ -52,7 +51,7 @@ def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'labels': argmax_3}
         ),
-        HandlingDescriptor.from_classes(Stage.TRANSFORM),
+        stage=Stage.TRANSFORM,
         inputs=['X'],
         outputs=['probas', 'labels'],
         **ex_kw
@@ -75,7 +74,7 @@ def main():
     transform_pipeline = serializer.load(transform_pipeline_file)
     transform_executor = RecursiveExecutor(
         transform_pipeline,
-        HandlingDescriptor.from_classes(Stage.TRANSFORM),
+        stage=Stage.TRANSFORM,
         inputs=['X'],
         outputs=['probas', 'labels'],
     )

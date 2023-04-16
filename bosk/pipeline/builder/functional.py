@@ -1,5 +1,5 @@
-from typing import Mapping, Union
-from ...block import BaseBlock
+from typing import Literal, Mapping, Type, Union
+from ...block import BaseBlock, BaseInputBlock, BaseOutputBlock
 from ...block.functional import FunctionalBlockWrapper
 from ...block.repo import BaseBlockClassRepository, DEFAULT_BLOCK_CLASS_REPOSITORY
 from ...block.slot import BlockInputSlot, BlockOutputSlot
@@ -7,6 +7,9 @@ from ..connection import Connection
 from ..base import BasePipeline
 from .base import BasePipelineBuilder
 from typing import List, Optional, Callable
+
+
+SlotOrBlockWrapper = Union[BlockInputSlot, FunctionalBlockWrapper]
 
 
 class FunctionalPipelineBuilder(BasePipelineBuilder):
@@ -38,8 +41,8 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
         """
         self._nodes.append(block)
 
-    def _make_placeholder_fn(self, block: BaseBlock) -> Callable:
-        def placeholder_fn(*pfn_args, **pfn_kwargs):
+    def _make_placeholder_fn(self, block: BaseBlock) -> Callable[..., FunctionalBlockWrapper]:
+        def placeholder_fn(*pfn_args, **pfn_kwargs) -> FunctionalBlockWrapper:
             """Placeholder function.
 
             Placeholder function operates with functional block wrappers:
@@ -53,19 +56,30 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
                 *pfn_args: Not supported.
                 *pfn_kwargs: Inputs functional wrappers.
             """
-            assert len(pfn_args) == 0, "Only kwargs are supported"
-            for input_name, input_block_wrapper in pfn_kwargs.items():
+            if len(pfn_args) != 0:
+                assert len(pfn_kwargs) == 0, "All arguments should be either named or unnamed"
+                assert len(block.slots.inputs), "Please, specify argument names: `block(arg1=value1, ..)`"
+                input_block_wrapper = pfn_args[0]
+                single_input = next(iter(block.slots.inputs.values()))
                 self._connections.append(
                     Connection(
                         src=input_block_wrapper.get_output_slot(),
-                        dst=block.slots.inputs[input_name],
+                        dst=single_input,
                     )
                 )
+            else:  # no unnamed arguments
+                for input_name, input_block_wrapper in pfn_kwargs.items():
+                    self._connections.append(
+                        Connection(
+                            src=input_block_wrapper.get_output_slot(),
+                            dst=block.slots.inputs[input_name],
+                        )
+                    )
             return FunctionalBlockWrapper(block)
 
         return placeholder_fn
 
-    def wrap(self, block: BaseBlock) -> Callable:
+    def wrap(self, block: BaseBlock) -> Callable[..., FunctionalBlockWrapper]:
         """Register the block in the builder and wrap it into a placeholder function.
 
         Args:
@@ -89,7 +103,7 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
         self._register_block(block)
         return self._make_placeholder_fn(block)
 
-    def _get_block_init(self, block_cls: Callable) -> Callable:
+    def _get_block_init(self, block_cls: Type[BaseBlock]) -> Callable[..., Callable[..., FunctionalBlockWrapper]]:
         """Get a new block initialization wrapper.
 
         Args:
@@ -120,7 +134,7 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
 
         return block_init
 
-    def new(self, block_cls: Callable, *args, **kwargs) -> Callable:
+    def new(self, block_cls: Type[BaseBlock], *args, **kwargs) -> Callable[..., FunctionalBlockWrapper]:
         """Make a new block wrapper of given block class.
 
         Constructs block wrapper using given block class constructor
@@ -139,8 +153,8 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
         """
         return self._get_block_init(block_cls)(*args, **kwargs)
 
-    def build(self, inputs: Mapping[str, Union[BlockInputSlot, FunctionalBlockWrapper]],
-                        outputs: Mapping[str, Union[BlockOutputSlot, FunctionalBlockWrapper]]) -> BasePipeline:
+    def build(self, inputs: Mapping[str, SlotOrBlockWrapper] | Literal['auto'] = 'auto',
+              outputs: Mapping[str, SlotOrBlockWrapper] | Literal['auto'] = 'auto') -> BasePipeline:
         """Build and get pipeline.
 
         Args:
@@ -152,21 +166,38 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
 
         """
         inp_dict = dict()
-        for inp_name, inp_obj in inputs.items():
-            if isinstance(inp_obj, FunctionalBlockWrapper):
-                inp_dict[inp_name] = inp_obj.get_input_slot()
-            elif isinstance(inp_obj, BlockInputSlot):
-                inp_dict[inp_name] = inp_obj
-            else:
-                raise RuntimeError(f'Input object {inp_name} has wrong type. \
-                    FunctionalBlockWrapper and BlockInputSlot are only supported')
+        if inputs == 'auto':
+            for node in self._nodes:
+                if isinstance(node, BaseInputBlock):
+                    inp_name = node.name
+                    if inp_name is None:
+                        continue
+                    inp_dict[inp_name] = node.get_single_input()
+        else:  # inputs is a mapping from name to block wrapper or input slot
+            for inp_name, inp_obj in inputs.items():
+                if isinstance(inp_obj, FunctionalBlockWrapper):
+                    inp_dict[inp_name] = inp_obj.get_input_slot()
+                elif isinstance(inp_obj, BlockInputSlot):
+                    inp_dict[inp_name] = inp_obj
+                else:
+                    raise RuntimeError(f'Input object {inp_name} has wrong type. \
+                        FunctionalBlockWrapper and BlockInputSlot are only supported')
+
         out_dict = dict()
-        for out_name, out_obj in outputs.items():
-            if isinstance(out_obj, FunctionalBlockWrapper):
-                out_dict[out_name] = out_obj.get_output_slot()
-            elif isinstance(out_obj, BlockOutputSlot):
-                out_dict[out_name] = out_obj
-            else:
-                raise RuntimeError(f'Output object {out_name} has wrong type. \
-                    FunctionalBlockWrapper and BlockOutputSlot are only supported')
+        if outputs == 'auto':
+            for node in self._nodes:
+                if isinstance(node, BaseOutputBlock):
+                    out_name = node.name
+                    if out_name is None:
+                        continue
+                    out_dict[out_name] = node.get_single_output()
+        else:  # outputs is a mapping from name to block wrapper or output slot
+            for out_name, out_obj in outputs.items():
+                if isinstance(out_obj, FunctionalBlockWrapper):
+                    out_dict[out_name] = out_obj.get_output_slot()
+                elif isinstance(out_obj, BlockOutputSlot):
+                    out_dict[out_name] = out_obj
+                else:
+                    raise RuntimeError(f'Output object {out_name} has wrong type. \
+                        FunctionalBlockWrapper and BlockOutputSlot are only supported')
         return BasePipeline(nodes=self._nodes, connections=self._connections, inputs=inp_dict, outputs=out_dict)

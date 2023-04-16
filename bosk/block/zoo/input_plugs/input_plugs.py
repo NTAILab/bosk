@@ -1,14 +1,24 @@
-from ...base import BaseBlock, BlockInputData, TransformOutputData
+from typing import Optional
+from ...base import BaseInputBlock, BlockInputData, TransformOutputData
 from ....stages import Stages
-from ...slot import InputSlotMeta, OutputSlotMeta
+from ...slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
 from ...meta import BlockMeta, BlockExecutionProperties, make_simple_meta
 
 
-class InputBlock(BaseBlock):
-    meta = make_simple_meta(['X'], ['X'], execution_props=BlockExecutionProperties(plain=True))
+class InputBlock(BaseInputBlock):
+    DEFAULT_INPUT_NAME = 'X'
+    name = None
+    meta = None
 
-    def __init__(self):
+    def __init__(self, name: Optional[str] = None):
+        slot_name = name if name is not None else self.DEFAULT_INPUT_NAME
+        self.meta = make_simple_meta(
+            [slot_name],
+            [slot_name],
+            execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True)
+        )
         super().__init__()
+        self.name = name
 
     def fit(self, _inputs: BlockInputData) -> 'InputBlock':
         return self
@@ -17,26 +27,20 @@ class InputBlock(BaseBlock):
         return inputs
 
 
-class TargetInputBlock(BaseBlock):
-    TARGET_NAME = 'y'
+class TargetInputBlock(BaseInputBlock):
+    DEFAULT_TARGET_NAME = 'y'
+    name = None
+    meta = None
 
-    meta = BlockMeta(
-        inputs=[
-            InputSlotMeta(
-                name=TARGET_NAME,
-                stages=Stages(transform=False, transform_on_fit=True),
-            )
-        ],
-        outputs=[
-            OutputSlotMeta(
-                name=TARGET_NAME,
-            )
-        ],
-        execution_props=BlockExecutionProperties(plain=True),
-    )
-
-    def __init__(self):
+    def __init__(self, name: Optional[str] = None):
+        slot_name = name if name is not None else self.DEFAULT_TARGET_NAME
+        self.meta = make_simple_meta(
+            [slot_name],
+            [slot_name],
+            execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True)
+        )
         super().__init__()
+        self.name = name
 
     def fit(self, _inputs: BlockInputData) -> 'TargetInputBlock':
         return self

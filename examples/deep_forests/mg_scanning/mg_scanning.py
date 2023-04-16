@@ -11,9 +11,10 @@ from sklearn.ensemble import (
 
 from bosk.executor.recursive import RecursiveExecutor
 from bosk.stages import Stage
-from bosk.executor.descriptor import HandlingDescriptor
-from bosk.block.zoo.multi_grained_scanning import \
-    (MultiGrainedScanning1DBlock, MultiGrainedScanning2DBlock)
+from bosk.block.zoo.multi_grained_scanning import (
+    MultiGrainedScanning1DBlock,
+    MultiGrainedScanning2DBlock
+)
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.data import CPUData
 
@@ -45,7 +46,7 @@ def make_deep_forest_functional_multi_grained_scanning_1d(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        HandlingDescriptor.from_classes(Stage.FIT),
+        stage=Stage.FIT,
         inputs={
             'X': X.get_input_slot(),
             'y': y.get_input_slot(),
@@ -62,7 +63,7 @@ def make_deep_forest_functional_multi_grained_scanning_1d(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'labels': argmax_3}
         ),
-        HandlingDescriptor.from_classes(Stage.TRANSFORM),
+        stage=Stage.TRANSFORM,
         inputs={
             'X': X.get_input_slot()
         },
@@ -102,7 +103,7 @@ def make_deep_forest_functional_multi_grained_scanning_2d(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        HandlingDescriptor.from_classes(Stage.FIT),
+        stage=Stage.FIT,
         inputs={
             'X': X.get_input_slot(),
             'y': y.get_input_slot(),
@@ -119,7 +120,7 @@ def make_deep_forest_functional_multi_grained_scanning_2d(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': average_3, 'labels': argmax_3}
         ),
-        HandlingDescriptor.from_classes(Stage.TRANSFORM),
+        stage=Stage.TRANSFORM,
         inputs={
             'X': X.get_input_slot()
         },

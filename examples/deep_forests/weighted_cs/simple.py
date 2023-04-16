@@ -8,7 +8,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
 from bosk.stages import Stage
-from bosk.executor.descriptor import HandlingDescriptor
 from bosk.block.zoo.data_weighting import WeightsBlock
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.executor.recursive import RecursiveExecutor
@@ -65,7 +64,7 @@ def make_deep_forest_weighted_confidence_screening(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': joined_3, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
         ),
-        HandlingDescriptor.from_classes(Stage.FIT),
+        stage=Stage.FIT,
         inputs={
             'X': X.get_input_slot(),
             'y': y.get_input_slot(),
@@ -82,7 +81,7 @@ def make_deep_forest_weighted_confidence_screening(executor, **ex_kw):
             {'X': X, 'y': y},
             {'probas': joined_3, 'labels': argmax_3}
         ),
-        HandlingDescriptor.from_classes(Stage.TRANSFORM),
+        stage=Stage.TRANSFORM,
         inputs={
             'X': X.get_input_slot()
         },

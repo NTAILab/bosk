@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import List, Mapping, TypeVar
+from dataclasses import dataclass, field
+from typing import List, Mapping, Set, TypeVar
 from ..stages import Stages
 
 
@@ -51,7 +51,7 @@ class BaseSlot:
 
     def __hash__(self) -> int:
         return id(self)
-    
+
     def __repr__(self) -> str:
         return self.meta.name
 
@@ -113,7 +113,34 @@ def list_of_slots_meta_to_mapping(slots_meta_list: List[SlotMetaT]) -> Mapping[s
     }
 
 
+@dataclass(frozen=True)
+class BlockGroup:
+    name: str
+
+    def add(self, block: BaseBlock):
+        """Add the block to the group.
+
+        Args:
+            block: Block to add.
+
+        """
+        block.slots.groups.add(self)
+
+    def remove(self, block: BaseBlock):
+        """Remove the block from the group.
+
+        Args:
+            block: Block to remove.
+
+        """
+        block.slots.groups.remove(self)
+
+    def __repr__(self) -> str:
+        return self.name
+
+
 @dataclass
 class BlockSlots:
     inputs: Mapping[str, BlockInputSlot]
     outputs: Mapping[str, BlockOutputSlot]
+    groups: Set[BlockGroup] = field(default_factory=lambda: set())
