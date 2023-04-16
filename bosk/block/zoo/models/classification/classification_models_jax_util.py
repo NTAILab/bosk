@@ -1,22 +1,13 @@
 from __future__ import annotations
 
 from collections import defaultdict
-
 from functools import partial
 from typing import Callable, Tuple, Dict, List
 
+import jax
 import jax.numpy as jnp
-import numpy as np
 from jax import jit, lax, vmap
 from jax.tree_util import register_pytree_node_class
-
-
-from ....base import BaseBlock, TransformOutputData, BlockInputData
-from ....meta import BlockMeta, BlockExecutionProperties
-from ....slot import InputSlotMeta, OutputSlotMeta
-from .....stages import Stages
-from .....data import GPUData
-from .....utility import get_random_generator, get_rand_int
 
 
 @partial(vmap, in_axes=(1, None), out_axes=1)
@@ -25,7 +16,7 @@ def row_to_nan(X: jnp.ndarray, mask: jnp.ndarray) -> jnp.ndarray:
     return jnp.where(mask > 0, X, jnp.nan)
 
 
-# @partial(jit, static_argnames="max_splits")
+@partial(jit, static_argnames="max_splits")
 def split_points(
     X: jnp.ndarray, mask: jnp.ndarray, max_splits: int
 ) -> jnp.ndarray:
@@ -53,7 +44,6 @@ def compute_score_generic(
     split_value: float,
     score_fn: Callable,
 ) -> float:
-    """Compute the scores of data splits."""
     left_mask, right_mask = split_mask(split_value, X_col, mask)
 
     left_score = score_fn(y, left_mask)
@@ -85,6 +75,25 @@ def make_scoring_function(score_fn: Callable) -> Callable:
     return compute_all_scores
 
 
+def split_node_generic_random(
+    X: jnp.ndarray,
+    y: jnp.ndarray,
+    mask: jnp.ndarray,
+    max_splits: int,
+    compute_all_scores: Callable,
+) -> Tuple[jnp.ndarray, jnp.ndarray, float, int]:
+    points = split_points(X, mask, max_splits)
+    scores = compute_all_scores(X, y, mask, points)
+
+    split_row = jax.random.randint(jax.random.PRNGKey(0), shape=(), maxval=scores.shape[0], minval=0)
+    split_col = jax.random.randint(jax.random.PRNGKey(0), shape=(), maxval=scores.shape[1], minval=0)
+
+    split_value = points[split_row, split_col]
+    left_mask, right_mask = split_mask(split_value, X[:, split_col], mask)
+
+    return left_mask, right_mask, split_value, split_col
+
+
 def split_node_generic(
     X: jnp.ndarray,
     y: jnp.ndarray,
@@ -92,12 +101,6 @@ def split_node_generic(
     max_splits: int,
     compute_all_scores: Callable,
 ) -> Tuple[jnp.ndarray, jnp.ndarray, float, int]:
-    """The algorithm does the following:
-    1. Generate split points candidates (N_SPLITS, N_COLS) matrix
-    2. For each split point, compute the split score -> (N_SPLITS, N_COLS)
-    3. Select the point with the lowest score
-    4. Generate two new masks for left and right children nodes
-    """
     points = split_points(X, mask, max_splits)
     scores = compute_all_scores(X, y, mask, points)
 
@@ -110,25 +113,21 @@ def split_node_generic(
     return left_mask, right_mask, split_value, split_col
 
 
-def make_split_node_function(score_fn: Callable) -> Callable:
+def make_split_node_function(score_fn: Callable, random: bool = False) -> Callable:
     compute_all_scores = make_scoring_function(score_fn)
-    split_node_specialized = partial(
-        split_node_generic, compute_all_scores=compute_all_scores
-    )
+    if random:
+        split_node_specialized = partial(
+            split_node_generic_random, compute_all_scores=compute_all_scores
+        )
+    else:
+        split_node_specialized = partial(
+            split_node_generic, compute_all_scores=compute_all_scores
+        )
     return split_node_specialized
 
 
 @register_pytree_node_class
 class TreeNode:
-    """Class representing a node in the tree.
-    For jitting to be polyvalent, the same node structure should be used to
-    represent nodes, leaves and phantom nodes.
-    The boolean `is_leaf` indicates if the node is a leaf and should be used to
-    make a prediction.
-    If the `mask` only contains zeros, then the node is actually a phantom node,
-    that is, positionned below a leaf node and is not used.
-    """
-
     def __init__(
         self,
         mask: jnp.ndarray,
@@ -137,7 +136,6 @@ class TreeNode:
         is_leaf: bool = True,
         leaf_value: float = jnp.nan,
         score: float = jnp.nan,
-        class_probabilities: jnp.ndarray = None,
     ):
         self.mask = mask
         self.split_value = split_value
@@ -145,7 +143,6 @@ class TreeNode:
         self.is_leaf = is_leaf
         self.leaf_value = leaf_value
         self.score = score
-        self.class_probabilities = class_probabilities
 
     def tree_flatten(self):
         children = (
@@ -162,15 +159,6 @@ class TreeNode:
     @classmethod
     def tree_unflatten(cls, aux_data, children) -> TreeNode:
         return cls(*children)
-
-    def show(self, rank: int) -> str:
-        text = f"n={int(jnp.sum(self.mask[rank]))}\n"
-        text += f"loss={self.score[rank]:.2f}\n"
-        if self.is_leaf[rank]:
-            text += f"value {self.leaf_value[rank]}"
-        else:
-            text += f"feature {self.split_col[rank]} >= {self.split_value[rank]:.2f}"
-        return text
 
 
 @register_pytree_node_class
@@ -206,24 +194,20 @@ class DecisionTree:
             "value_fn": self.value_fn,
             "loss_fn": self.loss_fn,
         }
-        return (children, aux_data)
+        return children, aux_data
 
     @classmethod
     def tree_unflatten(cls, aux_data, children):
         (nodes,) = children
         return cls(**aux_data, nodes=nodes)
 
-    # @jit
+    @jit
     def fit(
         self,
         X: jnp.ndarray,
         y: jnp.ndarray,
         mask: jnp.ndarray = None,
-    ) -> TreeNode:
-        """Fit the model to the data.
-        Since this function is functionally pure, the fitted model is returned
-        as a result.
-        """
+    ) -> DecisionTree:
         n_samples = X.shape[0]
         if mask is None:
             mask = jnp.ones((n_samples,))
@@ -234,7 +218,6 @@ class DecisionTree:
         def split_node(carry, x):
             depth, mask = x
             score = self.loss_fn(y, mask)
-            proba = predict_proba(y, mask, self.n_classes)
             value = self.value_fn(y, mask)
             (
                 left_mask,
@@ -259,7 +242,6 @@ class DecisionTree:
                 is_leaf=is_leaf,
                 leaf_value=value,
                 score=score,
-                class_probabilities=proba
             )
             children_mask = jnp.stack([left_mask, right_mask], axis=0)
             return carry, (children_mask, node)
@@ -303,7 +285,6 @@ class DecisionTree:
             bool_mask = jnp.repeat(cond.reshape(-1, 1), 2, axis=1)
 
             predictions = jnp.where(bool_mask, node.leaf_value, nan_array)
-            # proba = jnp.where(mask * node.is_leaf, node.class_probabilities, nan_array.nan)
 
             child_mask = jnp.stack([left_mask, right_mask], axis=0)
             return child_mask, predictions
@@ -319,9 +300,13 @@ class DecisionTree:
 
         return jnp.nansum(jnp.stack(predictions, axis=0), axis=0)
 
-    def score(self, X: jnp.DeviceArray, y: jnp.DeviceArray) -> float:
-        preds = self.predict(X)
-        return self.score_fn(preds, y)
+
+@register_pytree_node_class
+class ExtraTree(DecisionTree):
+    def __init__(self, n_classes: int, min_samples: int, max_depth: int, max_splits: int, loss_fn: Callable,
+                 value_fn: Callable, score_fn: Callable, nodes: Dict[int, List[TreeNode]] = None):
+        super().__init__(n_classes, min_samples, max_depth, max_splits, loss_fn, value_fn, score_fn, nodes)
+        self.split_node = make_split_node_function(self.loss_fn, random=True)
 
 
 @register_pytree_node_class
@@ -355,25 +340,53 @@ class DecisionTreeClassifier(DecisionTree):
             "max_splits": self.max_splits,
             "n_classes": self.n_classes,
         }
-        return (children, aux_data)
+        return children, aux_data
 
 
-# @partial(jit, static_argnames=["n_classes"])
+@register_pytree_node_class
+class ExtraTreeClassifier(ExtraTree):
+    def __init__(
+        self,
+        n_classes: int,
+        min_samples: int = 2,
+        max_depth: int = 4,
+        max_splits: int = 25,
+        nodes: Dict[int, List[TreeNode]] = None,
+    ):
+        self.n_classes = n_classes
+
+        super().__init__(
+            n_classes=n_classes,
+            min_samples=min_samples,
+            max_depth=max_depth,
+            max_splits=max_splits,
+            loss_fn=partial(entropy, n_classes=n_classes),
+            value_fn=partial(predict_proba, n_classes=n_classes),
+            score_fn=accuracy,
+            nodes=nodes,
+        )
+
+    def tree_flatten(self):
+        children = [self.nodes]
+        aux_data = {
+            "min_samples": self.min_samples,
+            "max_depth": self.max_depth,
+            "max_splits": self.max_splits,
+            "n_classes": self.n_classes,
+        }
+        return children, aux_data
+
+
+@partial(jit, static_argnames=["n_classes"])
 def predict_proba(y: jnp.ndarray, mask: jnp.ndarray, n_classes: int):
-    """Shannon entropy in bits.
-    Returns NaN if no samples.
-    """
     n_samples = jnp.sum(mask)
     counts = jnp.bincount(y.astype(jnp.int8), weights=mask, length=n_classes)
     probs = counts / n_samples
     return probs
 
 
-# @partial(jit, static_argnames=["n_classes"])
+@partial(jit, static_argnames=["n_classes"])
 def entropy(y: jnp.ndarray, mask: jnp.ndarray, n_classes: int) -> float:
-    """Shannon entropy in bits.
-    Returns NaN if no samples.
-    """
     n_samples = jnp.sum(mask)
     counts = jnp.bincount(y, weights=mask, length=n_classes)
     probs = counts / n_samples
@@ -381,7 +394,7 @@ def entropy(y: jnp.ndarray, mask: jnp.ndarray, n_classes: int) -> float:
     return -jnp.sum(jnp.where(probs <= 0.0, 0.0, log_probs))
 
 
-# @partial(jit, static_argnames=["n_classes"])
+@partial(jit, static_argnames=["n_classes"])
 def most_frequent(y: jnp.ndarray, mask: jnp.ndarray, n_classes: int) -> int:
     counts = jnp.bincount(y.astype(jnp.int8), weights=mask, length=n_classes)
     res = jnp.nanargmax(counts)
@@ -390,4 +403,3 @@ def most_frequent(y: jnp.ndarray, mask: jnp.ndarray, n_classes: int) -> int:
 
 def accuracy(y_hat: jnp.array, y: jnp.array) -> jnp.array:
     return jnp.mean(y_hat == y)
-
