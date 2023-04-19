@@ -1,6 +1,11 @@
 from .base import BasePipeline
 
 
-all = [
+__all__ = [
+    # modules
+    "builder",
+    "converter",
+    "serializer",
+    # objects
     "BasePipeline"
 ]

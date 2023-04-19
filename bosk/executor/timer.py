@@ -6,7 +6,7 @@ from ..utility import timer_wrap
 from typing import Dict
 
 
-class TimerBlockHandler(BaseBlockExecutor):
+class TimerBlockExecutor(BaseBlockExecutor):
     def __init__(self) -> None:
         super().__init__()
         self._time_dict: Dict[BaseBlock, float] = dict()

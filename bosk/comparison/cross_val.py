@@ -3,7 +3,7 @@ from .metric import BaseMetric
 from bosk.data import BaseData
 from bosk.block.base import BaseBlock
 from bosk.executor.base import BaseExecutor, DefaultBlockExecutor
-from bosk.executor.timer import TimerBlockHandler
+from bosk.executor.timer import TimerBlockExecutor
 from bosk.pipeline.base import BasePipeline
 from bosk.stages import Stage
 from bosk.executor.topological import TopologicalExecutor
@@ -101,7 +101,7 @@ class CVComparator(BaseComparator):
                     f"You mustn't specify following args for executor: {forbidden_exec_args}")
             self.exec_kw = exec_kw
         self.measure_blk_time = get_blocks_times
-        self.block_hlr_cls = TimerBlockHandler if get_blocks_times else DefaultBlockExecutor
+        self.block_hlr_cls = TimerBlockExecutor if get_blocks_times else DefaultBlockExecutor
         self.warn_context = 'ignore' if suppress_exec_warn else 'default'
 
     # columns: model name | fold # | train/test | time | blocks time | metric name 1 | ... | metric name n

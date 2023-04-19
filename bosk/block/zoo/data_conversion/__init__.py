@@ -6,3 +6,12 @@ from .data_conversion import (
     ReshapeBlock,
     FlattenBlock
 )
+
+__all__ = [
+    "ConcatBlock",
+    "ArgmaxBlock",
+    "AverageBlock",
+    "StackBlock",
+    "ReshapeBlock",
+    "FlattenBlock"
+]

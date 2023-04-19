@@ -1,4 +1,4 @@
-from .meta import BlockMeta, InputSlotMeta, OutputSlotMeta
+from .auto import auto_block
 from .base import (
     BaseBlock,
     BlockInputData,
@@ -7,10 +7,14 @@ from .base import (
     BaseInputBlock,
     BaseOutputBlock,
 )
-from .auto import auto_block
-
+from .meta import BlockMeta, InputSlotMeta, OutputSlotMeta
+from .slot import BaseSlot, BlockInputSlot, BlockOutputSlot, SlotT, BaseSlotMeta, BlockGroup
 
 __all__ = [
+    # packages
+    "zoo",
+    # objects
+    "auto_block",
     "BlockMeta",
     "InputSlotMeta",
     "OutputSlotMeta",
@@ -20,5 +24,10 @@ __all__ = [
     "BaseBlock",
     "BaseInputBlock",
     "BaseOutputBlock",
-    "auto_block",
+    "BaseSlot",
+    "BlockInputSlot",
+    "BlockOutputSlot",
+    "SlotT",
+    "BlockGroup",
+    "BaseSlotMeta",
 ]

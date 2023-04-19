@@ -112,4 +112,3 @@ class SequentialPipelineBuilder:
             inputs=inputs,
             outputs=outputs,
         )
-
