@@ -4,8 +4,7 @@ from typing import Callable, Dict, Iterable, Mapping, Set, TypeVar, Union, Seque
 from ...data import Data
 from ..base import BaseBlockExecutor, BaseExecutor, BaseSlotHandler, Stage
 from ...pipeline import BasePipeline
-from ...block.slot import BlockInputSlot, BlockOutputSlot
-from ...block.base import BaseBlock, BlockOutputData
+from ...block.base import BaseBlock, BlockOutputData, BlockInputSlot, BlockOutputSlot
 from ..utility import get_connection_map
 from joblib import Parallel as JoblibParallel, delayed as joblib_delayed
 from multiprocessing.pool import ThreadPool as MultiprocessingThreadPool

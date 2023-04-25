@@ -1,8 +1,7 @@
 from collections import defaultdict
 from typing import Optional, Sequence
-from ..block.base import BaseBlock
+from ..block.base import BaseBlock, BlockInputSlot
 from ..pipeline.connection import Connection
-from ..block.slot import BlockInputSlot
 from .base import BasePainter
 from ..pipeline.base import BasePipeline
 from ..executor.base import BaseExecutor

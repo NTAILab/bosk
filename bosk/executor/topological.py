@@ -10,7 +10,7 @@ from collections import defaultdict, deque
 from ..data import Data
 from .base import BaseBlockExecutor, BaseExecutor, BaseSlotHandler, Stage
 from ..pipeline import BasePipeline
-from ..block.slot import BaseSlot, BlockInputSlot, BlockOutputSlot
+from ..block.base import BaseSlot, BlockInputSlot, BlockOutputSlot
 from ..block import BaseBlock
 from .utility import get_connection_map
 

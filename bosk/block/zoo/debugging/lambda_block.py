@@ -1,6 +1,5 @@
 from typing import Callable, Sequence
-from ...meta import BlockExecutionProperties
-from ...slot import InputSlotMeta, OutputSlotMeta
+from ...meta import BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
 from ....stages import Stages
 from ...base import BaseBlock, BlockInputData, BlockMeta, TransformOutputData
 

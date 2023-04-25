@@ -5,7 +5,7 @@ from ..data import Data
 from .base import BaseBlockExecutor, BaseExecutor, BaseSlotHandler
 from .base import Stage
 from ..pipeline import BasePipeline
-from ..block.slot import BlockInputSlot, BlockOutputSlot
+from ..block.base import BlockInputSlot, BlockOutputSlot
 from .utility import get_connection_map
 
 

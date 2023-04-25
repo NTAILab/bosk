@@ -1,10 +1,9 @@
-from ...slot import InputSlotMeta, OutputSlotMeta
 from ....stages import Stages
 import numpy as np
 from typing import List, Optional, Tuple, Union, NamedTuple
 from functools import partial
 from ...base import BaseBlock, BlockInputData, TransformOutputData
-from ...meta import BlockMeta, make_simple_meta, BlockExecutionProperties
+from ...meta import BlockMeta, make_simple_meta, BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
 from ....data import CPUData, GPUData
 from ._convolution_helpers import (
     _PoolingIndices,

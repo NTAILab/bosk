@@ -1,5 +1,4 @@
-from .base import BaseBlock
-from .slot import BlockInputSlot, BlockOutputSlot
+from .base import BaseBlock, BlockInputSlot, BlockOutputSlot
 from typing import Optional
 
 

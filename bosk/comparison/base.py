@@ -1,10 +1,8 @@
 from abc import ABC, abstractmethod
-from bosk.block.base import BaseBlock
-from bosk.block.slot import BlockInputSlot, BlockOutputSlot
+from bosk.block.base import BaseBlock, BlockInputSlot, BlockOutputSlot, BaseSlot
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.block.base import BaseInputBlock
-from bosk.block.slot import BaseSlot
 from bosk.data import BaseData
 from collections import deque, defaultdict
 from .metric import BaseMetric
@@ -18,7 +16,7 @@ from pandas import DataFrame
 class BaseForeignModel(ABC):
     """Adapter class for all models, defined outside
     of the `bosk` framework. It is needed to make sure
-    that the model handles bosk's style of the data transmission. 
+    that the model handles bosk's style of the data transmission.
     """
 
     @abstractmethod
@@ -27,7 +25,7 @@ class BaseForeignModel(ABC):
 
     @abstractmethod
     def predict(self, data: Dict[str, BaseData]) -> Dict[str, BaseData]:
-        """Method for using the fitted model and obtain transformed 
+        """Method for using the fitted model and obtain transformed
         data dictionary."""
 
     @abstractmethod
@@ -47,7 +45,7 @@ class BaseComparator(ABC):
     """Class that performes comparison of different models.
     The models, defined via `bosk` framework, marked as `pipelines`
     and may have a common part in them to optimize calculations
-    (common part pipeline will be executed once and retreived 
+    (common part pipeline will be executed once and retreived
     data will be used in other pipelines). The common part must be
     a common begining of all pipelines.
 

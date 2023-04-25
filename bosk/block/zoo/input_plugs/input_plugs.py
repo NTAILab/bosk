@@ -1,7 +1,6 @@
 from typing import Optional
 from ...base import BaseInputBlock, BlockInputData, TransformOutputData
 from ....stages import Stages
-from ...slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
 from ...meta import BlockMeta, BlockExecutionProperties, make_simple_meta
 
 

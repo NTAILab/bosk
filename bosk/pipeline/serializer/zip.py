@@ -1,8 +1,7 @@
 """Universal Pipeline Serializer parametrized by Block Serializer.
 """
 from typing import Dict
-from ...block.base import BaseBlock
-from ...block.slot import BaseSlot, BlockInputSlot
+from ...block.base import BaseBlock, BaseSlot, BlockInputSlot
 from .base import BaseBlockSerializer, BasePipelineSerializer
 from ..base import BasePipeline
 from ..connection import Connection

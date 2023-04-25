@@ -1,10 +1,10 @@
 from abc import ABC, ABCMeta, abstractmethod
+from dataclasses import dataclass, field
 from numpy.random import Generator
-from typing import Mapping, TypeVar, Optional
+from typing import Mapping, Set, TypeVar, Optional
 
-from .meta import BlockMeta
+from .meta import BaseSlotMeta, BlockMeta
 from ..data import Data
-from .slot import BlockInputSlot, BlockOutputSlot, BlockSlots
 from ..visitor.base import BaseVisitor
 
 
@@ -13,6 +13,87 @@ BlockT = TypeVar('BlockT', bound='BaseBlock')
 
 Required to constrain a block to return itself in `fit(...)`.
 """
+
+SlotT = TypeVar('SlotT', bound='BaseSlot')
+"""Slot generic typevar.
+"""
+
+SlotMetaT = TypeVar('SlotMetaT', bound='BaseSlotMeta')
+"""Slot Meta generic typevar.
+"""
+
+
+@dataclass(eq=False, frozen=False)
+class BaseSlot:
+    """Base slot.
+
+    Slot is a named placeholder for data.
+
+    Attributes:
+        name: Slot name.
+        stages: At which stages slot value is needed.
+        debug_info: Debugging info.
+
+    """
+    meta: BaseSlotMeta
+    parent_block: BlockT
+    debug_info: str = ""
+
+    def __hash__(self) -> int:
+        return id(self)
+
+    def __repr__(self) -> str:
+        return self.meta.name
+
+
+@dataclass(eq=False, frozen=False)
+class BlockInputSlot(BaseSlot):
+    """Block input slot.
+
+    Contains the information required for the input data processing, and input-output matching.
+    """
+
+
+@dataclass(eq=False, frozen=False)
+class BlockOutputSlot(BaseSlot):
+    """Block output slot.
+
+    Contains the information about the output data for input-output matching.
+    """
+
+
+@dataclass(frozen=True)
+class BlockGroup:
+    name: str
+
+    def add(self, block: BlockT):
+        """Add the block to the group.
+
+        Args:
+            block: Block to add.
+
+        """
+        block.slots.groups.add(self)
+
+    def remove(self, block: BlockT):
+        """Remove the block from the group.
+
+        Args:
+            block: Block to remove.
+
+        """
+        block.slots.groups.remove(self)
+
+    def __repr__(self) -> str:
+        return self.name
+
+
+@dataclass
+class BlockSlots:
+    inputs: Mapping[str, BlockInputSlot]
+    outputs: Mapping[str, BlockOutputSlot]
+    groups: Set[BlockGroup] = field(default_factory=lambda: set())
+
 
 BlockInputData = Mapping[str, Data]
 """Block input values container data type.

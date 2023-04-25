@@ -4,8 +4,7 @@ import warnings
 
 from ..data import Data
 from ..stages import Stage
-from ..block.base import BaseBlock, BlockOutputData
-from ..block.slot import BlockInputSlot, BaseSlot
+from ..block.base import BaseBlock, BlockOutputData, BlockInputSlot, BaseSlot
 from ..pipeline import BasePipeline
 from .block import InputSlotToDataMapping, BaseBlockExecutor, DefaultBlockExecutor
 

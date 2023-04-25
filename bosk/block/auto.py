@@ -1,8 +1,7 @@
 from numpy.random import Generator
 from typing import Optional, Type, Mapping
 from .base import BaseBlock, BlockInputData, TransformOutputData
-from .meta import BlockMeta, BlockExecutionProperties
-from .slot import InputSlotMeta, OutputSlotMeta
+from .meta import BlockMeta, BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
 from ..data import Data
 from ..stages import Stages
 from ..utility import get_random_generator, get_rand_int
@@ -22,7 +21,7 @@ def auto_block(_implicit_cls=None,
                        brackets is used. Otherwise it should be `None`.
         execution_props: Custom block execution properties.
         random_state_field: Field name in the class that corresponds to object's random seed.
-            Pass `None` if the class doesn't have any. If the class already has 
+            Pass `None` if the class doesn't have any. If the class already has
             the `set_random_state` method, it won't be redefined.
         auto_state: Automatically implement `__getstate__` and `__setstate__` methods.
                     These methods are required for serialization.
