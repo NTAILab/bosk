@@ -1,5 +1,5 @@
 from typing import Callable, Sequence
-from ...meta import BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
+from ...meta import BlockExecutionProperties, DynamicBlockMetaStub, InputSlotMeta, OutputSlotMeta
 from ....stages import Stages
 from ...base import BaseBlock, BlockInputData, BlockMeta, TransformOutputData
 
@@ -9,7 +9,7 @@ class FitLambdaBlock(BaseBlock):
     and bypasses input ad the transform stage.
     """
 
-    meta = None
+    meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, function: Callable, inputs: Sequence[str]):
         self.meta = BlockMeta(
@@ -44,7 +44,7 @@ class TransformLambdaBlock(BaseBlock):
     and bypasses input ad the transform stage.
     """
 
-    meta = None
+    meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, function: Callable, inputs: Sequence[str]):
         self.meta = BlockMeta(
@@ -66,7 +66,7 @@ class TransformLambdaBlock(BaseBlock):
         self.function = function
         super().__init__()
 
-    def fit(self, _inputs: BlockInputData) -> 'FitLambdaBlock':
+    def fit(self, _inputs: BlockInputData) -> 'TransformLambdaBlock':
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:

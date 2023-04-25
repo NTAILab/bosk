@@ -36,7 +36,7 @@ class BaseSlot:
 
     """
     meta: BaseSlotMeta
-    parent_block: BlockT
+    parent_block: 'BaseBlock'
     debug_info: str = ""
 
     def __hash__(self) -> int:

@@ -2,7 +2,7 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Callable, Tuple
+from typing import List, Optional, Callable, Tuple, Type
 import numpy as np
 from sklearn.model_selection import StratifiedKFold, ParameterSampler
 
@@ -41,13 +41,14 @@ class BaseAutoDeepForestConstructor(ABC):
         - At different *iterations* the algorithm generates layers of the same structure.
 
     """
-    def __init__(self, executor_cls: BaseExecutor,
+    def __init__(self, executor_cls: Type[BaseExecutor],
                  max_iter: int = 10,
                  cv: Optional[int] = 5,
                  make_metrics: Optional[Callable[[], MetricsEvaluator]] = None,
                  growing_strategy: Optional[GrowingStrategy] = None,
                  random_state: Optional[int] = None):
         self.executor_cls = executor_cls or DEFAULT_EXECUTOR_CLS
+        assert issubclass(self.executor_cls, BaseExecutor)
         self.max_iter = max_iter
         self.cv = cv
         self.make_metrics = make_metrics or DEFAULT_MAKE_METRICS
@@ -61,7 +62,7 @@ class BaseAutoDeepForestConstructor(ABC):
 
     @property
     @abstractmethod
-    def n_steps(self) -> int:
+    def n_steps(self) -> Optional[int]:
         """Number of implemented steps.
 
         The steps with number < `n_steps` will be passed to `make_step_layer`.
@@ -71,14 +72,16 @@ class BaseAutoDeepForestConstructor(ABC):
     def make_step_layer(self, step: int, iteration: int,
                         X: np.ndarray, y: np.ndarray,
                         validator: BasePipelineModelValidator,
-                        rng: np.random.RandomState) -> Optional[Layer]:
+                        rng: np.random.Generator) -> Optional[Layer]:
         ...
 
-    def construct(self, X: np.ndarray, y: np.ndarray) -> BasePipeline:
+    def construct(self, X_: np.ndarray, y_: np.ndarray) -> BasePipeline:
+        assert type(self.n_steps) == int
         rng = get_random_generator(self.random_state)
-        X = CPUData(X)
-        y = CPUData(y)
+        X = CPUData(X_)
+        y = CPUData(y_)
         # prepare the validator
+        validator: BasePipelineModelValidator
         if self.cv is None:
             validator = DumbPipelineModelValidator(None, self.make_metrics)
         elif self.cv == 1:
@@ -98,7 +101,7 @@ class BaseAutoDeepForestConstructor(ABC):
         )
         for step in range(self.n_steps):
             for i in range(self.max_iter):
-                next_layer = self.make_step_layer(step, i, X.data, y.data, validator, rng)
+                next_layer = self.make_step_layer(step, i, X_, y_, validator, rng)
                 if next_layer is None:
                     break
                 need_continue = maker.append(next_layer)
@@ -127,7 +130,7 @@ def _make_base_df_blocks(params: dict, layer_width: int) -> List[BaseBlock]:
         for block_cls in BLOCK_CLASSES
     ]
     # flatten
-    return [b for list_of_blocks in result for b in list_of_blocks]
+    return [b for list_of_blocks in result for b in list_of_blocks]  # type: ignore
 
 
 class ClassicalDeepForestConstructor(BaseAutoDeepForestConstructor):
@@ -142,7 +145,8 @@ class ClassicalDeepForestConstructor(BaseAutoDeepForestConstructor):
     LAYER_CLS = NativeStackingLayer
     n_steps = 1
 
-    def __init__(self, executor_cls: BaseExecutor, rf_params: Optional[dict] = None,
+    def __init__(self, executor_cls: Type[BaseExecutor],
+                 rf_params: Optional[dict] = None,
                  layer_width: int = 2,
                  max_iter: int = 10,
                  cv: Optional[int] = 5,
@@ -158,7 +162,7 @@ class ClassicalDeepForestConstructor(BaseAutoDeepForestConstructor):
     def make_step_layer(self, step: int, iteration: int,
                         X: np.ndarray, y: np.ndarray,
                         validator: BasePipelineModelValidator,
-                        rng: np.random.RandomState):
+                        rng: np.random.Generator):
         return self.LAYER_CLS(
             make_blocks=lambda: _make_base_df_blocks(self.rf_params, self.layer_width),
             layer_name=f'{self.LAYER_CLS.__name__}({step=}, {iteration=})',
@@ -179,7 +183,8 @@ class HyperparamSearchDeepForestConstructor(BaseAutoDeepForestConstructor):
     n_steps = None  # set at initialization
     LAYER_CLS = NativeStackingLayer
 
-    def __init__(self, executor_cls: BaseExecutor, rf_param_grid: Optional[dict] = None,
+    def __init__(self, executor_cls: Type[BaseExecutor],
+                 rf_param_grid: Optional[dict] = None,
                  layer_width: int = 2,
                  n_steps: int = 3,
                  max_iter: int = 10,
@@ -224,7 +229,7 @@ class MGSDeepForestConstructor(BaseAutoDeepForestConstructor):
     MGS_LAYER_CLS = MGSRFLayer
     n_steps = 2
 
-    def __init__(self, executor_cls: BaseExecutor,
+    def __init__(self, executor_cls: Type[BaseExecutor],
                  input_shape: Tuple[int],
                  rf_params: Optional[dict] = None,
                  conv_params: Optional[dict] = None,
@@ -247,7 +252,7 @@ class MGSDeepForestConstructor(BaseAutoDeepForestConstructor):
     def make_step_layer(self, step: int, iteration: int,
                         X: np.ndarray, y: np.ndarray,
                         validator: BasePipelineModelValidator,
-                        rng: np.random.RandomState):
+                        rng: np.random.Generator):
         if step == 0:  # MGS layers
             if iteration > 0:
                 return  # only one MGS layer allowed

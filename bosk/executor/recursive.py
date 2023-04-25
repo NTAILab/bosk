@@ -1,7 +1,7 @@
 from typing import Dict, Mapping, Union, Sequence, Optional
 
 
-from ..data import Data
+from ..data import BaseData, Data
 from .base import BaseBlockExecutor, BaseExecutor, BaseSlotHandler
 from .base import Stage
 from ..pipeline import BasePipeline
@@ -39,10 +39,11 @@ class RecursiveExecutor(BaseExecutor):
         super().__init__(pipeline, stage, inputs, outputs, slot_handler, block_executor)
         self._conn_map = get_connection_map(self)
 
-    def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:
+    def __call__(self, input_values: Mapping[str, Data]) -> Dict[str, BaseData]:
         self._check_input_values(input_values)
         slots_values: Dict[Union[BlockInputSlot, BlockOutputSlot], Data] = dict()
-        slots_values.update(self._map_input_names_to_slots(input_values))
+        # here typing is ignored, because keys in result of `_map_input_names_to_slots` are obviously of subtype of Union[...]
+        slots_values.update(self._map_input_names_to_slots(input_values))  # type: ignore
 
         # recursively compute outputs
         def _compute_output(out_slot: BlockOutputSlot):
@@ -68,7 +69,7 @@ class RecursiveExecutor(BaseExecutor):
                 node_input_mapping[_input] = conn_value
 
             outputs = self._execute_block(node, node_input_mapping)
-            slots_values.update(outputs)
+            slots_values.update(outputs)  # type: ignore
             return slots_values[out_slot]
 
         result = dict()

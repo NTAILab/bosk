@@ -54,7 +54,7 @@ class BaseComparator(ABC):
     adapter to handle the `bosk` data transmission style.
     """
 
-    random_state: int
+    random_state: Optional[int]
 
     def _get_aj_lists(self, pipeline: BasePipeline):
         # output->input, forward pass
@@ -135,7 +135,6 @@ class BaseComparator(ABC):
             queue_hashes = [get_block_md5_hash(block) for block in queue_list[i]]
             # find matching block in queue
             match_idxes = [i for i, hash in enumerate(queue_hashes) if hash == cur_block_hash]
-            match_block: BaseBlock = None
             # we will choose the first suitable, that's not fully correct
             # but otherwise the algorithm will be much larger
             for idx in match_idxes:
@@ -144,7 +143,7 @@ class BaseComparator(ABC):
                     match_block = queue_list[i][idx]
                     matched_blocks.append(match_block)
                     break
-            if match_block is None:
+            else:
                 return None
         return matched_blocks
 

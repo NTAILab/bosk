@@ -1,7 +1,7 @@
 """Universal Pipeline Serializer parametrized by Block Serializer.
 """
 from typing import Dict
-from ...block.base import BaseBlock, BaseSlot, BlockInputSlot
+from ...block.base import BaseBlock, BaseSlot, BlockInputSlot, BlockOutputSlot
 from .base import BaseBlockSerializer, BasePipelineSerializer
 from ..base import BasePipeline
 from ..connection import Connection
@@ -33,6 +33,16 @@ class SlotSerializer:
                     return slot
         raise ValueError(f'Cannon find the mentioned slot: {dictionary!r}')
 
+    def input_from_dict(self, dictionary: dict) -> BlockInputSlot:
+        input_slot = self.from_dict(dictionary)
+        assert isinstance(input_slot, BlockInputSlot)
+        return input_slot
+
+    def output_from_dict(self, dictionary: dict) -> BlockOutputSlot:
+        output_slot = self.from_dict(dictionary)
+        assert isinstance(output_slot, BlockOutputSlot)
+        return output_slot
+
     def to_dict(self, slot: BaseSlot) -> dict:
         return dict(
             block_id=self.ids_by_block[slot.parent_block],
@@ -46,9 +56,11 @@ class ConnectionSerializer:
         self.slot_serializer = slot_serializer
 
     def from_dict(self, dictionary: dict) -> Connection:
+        src = self.slot_serializer.output_from_dict(dictionary['src'])
+        dst = self.slot_serializer.input_from_dict(dictionary['dst'])
         return Connection(
-            src=self.slot_serializer.from_dict(dictionary['src']),
-            dst=self.slot_serializer.from_dict(dictionary['dst']),
+            src=src,
+            dst=dst,
         )
 
     def to_dict(self, connection: Connection) -> dict:
@@ -123,12 +135,12 @@ class ZipPipelineSerializer(BasePipelineSerializer):
             slot_serializer = SlotSerializer(blocks_by_id=blocks_by_id)
             connection_serializer = ConnectionSerializer(slot_serializer)
             connections = list(map(connection_serializer.from_dict, structure['connections']))
-            inputs = {
-                name: slot_serializer.from_dict(value)
+            inputs: Dict[str, BlockInputSlot] = {
+                name: slot_serializer.input_from_dict(value)
                 for name, value in structure['inputs'].items()
             }
-            outputs = {
-                name: slot_serializer.from_dict(value)
+            outputs: Dict[str, BlockOutputSlot] = {
+                name: slot_serializer.output_from_dict(value)
                 for name, value in structure['outputs'].items()
             }
         pipeline = BasePipeline(nodes, connections, inputs, outputs)

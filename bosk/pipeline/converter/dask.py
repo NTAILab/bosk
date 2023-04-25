@@ -12,19 +12,19 @@ import dask
 
 
 class DaskOperatorSet(ABC):
-    @property
+    @staticmethod
     @abstractmethod
-    def bypass(self) -> Callable:
+    def bypass(value: Data) -> Data:
         ...
 
-    @property
+    @staticmethod
     @abstractmethod
-    def extract(self) -> Callable:
+    def extract(block_output: Dict[str, Data], _output_key: Optional[str] = None):
         ...
 
-    @property
+    @staticmethod
     @abstractmethod
-    def extract(self) -> Callable:
+    def compute(*inputs, _block: Optional[BaseBlock] = None, _input_keys: Optional[List[str]] = None):
         ...
 
 
@@ -35,13 +35,15 @@ class TransformDaskOperatorSet(DaskOperatorSet):
         return value
 
     @staticmethod
-    def extract(block_output: Dict[str, Data], _output_key: str = None):
+    def extract(block_output: Dict[str, Data], _output_key: Optional[str] = None):
+        assert _output_key is not None
         return block_output[_output_key]
 
     @staticmethod
     def compute(*inputs, _block: Optional[BaseBlock] = None,
                 _input_keys: Optional[List[str]] = None):
         assert _block is not None
+        assert _input_keys is not None
         input_mapping = dict(zip(_input_keys, inputs))
         return _block.transform({
             k: v
@@ -56,13 +58,15 @@ class FitDaskOperatorSet(DaskOperatorSet):
         return value
 
     @staticmethod
-    def extract(block_output: Dict[str, Data], _output_key: str = None):
+    def extract(block_output: Dict[str, Data], _output_key: Optional[str] = None):
+        assert _output_key is not None
         return block_output[_output_key]
 
     @staticmethod
     def compute(*inputs, _block: Optional[BaseBlock] = None,
                 _input_keys: Optional[List[str]] = None):
         assert _block is not None
+        assert _input_keys is not None
         input_mapping = dict(zip(_input_keys, inputs))
         fit_args = {
             k: v
@@ -173,8 +177,8 @@ class DaskConverter:
     def __init__(self, stage: Stage, operator_set: DaskOperatorSet = TransformDaskOperatorSet()):
         self.stage = stage
         self.operator_set = operator_set
-        self.dsk = dict()
-        self.block_ids = dict()
+        self.dsk: Dict[str, Data] = dict()
+        self.block_ids: Dict[BaseBlock, int] = dict()
         self.visitor = self.Visitor(self)
 
     def _mangle_block(self, block: BaseBlock) -> str:

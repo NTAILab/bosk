@@ -1,6 +1,6 @@
 from collections import defaultdict
 from typing import Optional, Sequence
-from ..block.base import BaseBlock, BlockInputSlot
+from ..block.base import BaseBlock, BlockInputSlot, BlockOutputSlot
 from ..pipeline.connection import Connection
 from .base import BasePainter
 from ..pipeline.base import BasePipeline
@@ -58,7 +58,7 @@ class GraphvizPainter(BasePainter):
         self._graph.edge(f'inp_{inp_hash}:I_{inp_hash}', f'block{id(input_slot.parent_block)}:i{hash(input_slot)}',
                          style=style, color=color)
 
-    def _add_output(self, name: str, output_slot: BlockInputSlot, style: str = 'solid', color: str = 'red') -> None:
+    def _add_output(self, name: str, output_slot: BlockOutputSlot, style: str = 'solid', color: str = 'red') -> None:
         """Method that adds pipeline's output to the graph.
         """
         out_hash = hash(name)

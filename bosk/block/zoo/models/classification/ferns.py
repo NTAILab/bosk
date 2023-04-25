@@ -5,7 +5,7 @@ from jax import random
 from functools import partial
 from sklearn.utils.multiclass import check_classification_targets
 from joblib import Parallel, delayed
-from typing import Optional
+from typing import List, Optional, Union
 
 
 from ....base import BaseBlock, TransformOutputData, BlockInputData
@@ -16,7 +16,7 @@ from .....utility import get_random_generator, get_rand_int
 
 
 @partial(jax.jit, static_argnames=('n_ferns', 'fern_size'))
-def make_unary_ferns(xs: jnp.ndarray, n_ferns: int, fern_size: int, key: random.PRNGKey):
+def make_unary_ferns(xs: jnp.ndarray, n_ferns: int, fern_size: int, key: random.KeyArray):
     """Generate indices and threshold values for unary fern.
     An unary fern represents a function that maps x to an integer number:
         x -> [ x[i[0]] >= t[0], ..., x[i[k]] >= t[k] ].
@@ -69,7 +69,7 @@ def apply_unary_ferns(xs: jnp.ndarray, feature_indices, feature_thresholds):
 
 
 @partial(jax.jit, static_argnames=('n_ferns', 'fern_size'))
-def make_binary_ferns(xs: jnp.ndarray, n_ferns: int, fern_size: int, key: random.PRNGKey):
+def make_binary_ferns(xs: jnp.ndarray, n_ferns: int, fern_size: int, key: random.KeyArray):
     """Generate indices and threshold values for unary fern.
     An unary fern represents a function that maps x to an integer number:
         x -> [ x[i[0]] >= x[j[0]], ..., x[i[k]] >= x[j[k]] ].
@@ -328,6 +328,7 @@ class RandomFernsBlock(BaseBlock):
         ferns = self._make_ferns(X, ferns_key)
         bucket_indices = self._apply_ferns(X, ferns)
 
+        group_data_indices: Union[List[jnp.ndarray], List[slice]]
         if not self.bootstrap:
             group_data_indices = [slice(None, None) for _ in range(self.n_groups)]
         else:

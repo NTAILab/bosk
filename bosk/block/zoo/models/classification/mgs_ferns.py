@@ -5,7 +5,7 @@ import jax
 import jax.numpy as jnp
 from jax import random
 from sklearn.utils.multiclass import check_classification_targets
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 from functools import partial, reduce
 
 from ....base import BaseBlock, TransformOutputData, BlockInputData
@@ -23,7 +23,7 @@ def make_window_unary_ferns(xs: jnp.ndarray,
                             window_size: int,
                             n_ferns: int,
                             fern_size: int,
-                            key: random.PRNGKey):
+                            key: random.KeyArray):
     """Generate indices and threshold values for unary fern that is applied to a sliding window.
     The sliding window captures all channels simultaneously.
 
@@ -98,7 +98,7 @@ def make_window_binary_ferns(n_channels: int,
                              window_size: int,
                              n_ferns: int,
                              fern_size: int,
-                             key: random.PRNGKey):
+                             key: random.KeyArray):
     """Generate pair indices for binary fern which is applied to a sliding window.
     The sliding window captures all channels simultaneously.
 
@@ -383,6 +383,7 @@ class MGSRandomFernsBlock(BaseBlock):
         spatial_size = reduce(mul, bucket_indices.shape[1:-1], 1)
         flattened_y = jnp.tile(y[:, np.newaxis], (1, spatial_size)).reshape((-1,))
 
+        group_data_indices: List[jnp.ndarray] | List[slice]
         if not self.bootstrap:
             group_data_indices = [slice(None, None) for _ in range(self.n_groups)]
         else:

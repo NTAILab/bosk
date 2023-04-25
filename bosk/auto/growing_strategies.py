@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Callable, List, Literal, Mapping, Sequence, Type
 
+import numpy as np
+
 from ..pipeline.base import BasePipeline
 from ..data import BaseData
 from ..stages import Stage
@@ -13,13 +15,13 @@ class GrowingStrategy(ABC):
     def need_grow(self, pipeline, metrics, executor_cls, growing_state: dict) -> bool:
         ...
 
-    def trim(self, pipelines: Sequence[BasePipeline], growing_state: dict):
+    def trim(self, pipelines: List[BasePipeline], growing_state: dict):
         return pipelines
 
 
 class DefaultGrowingStrategy(GrowingStrategy):
     def need_grow(self, pipeline, metrics, executor_cls, growing_state: dict) -> bool:
-        True
+        return True
 
 
 class EarlyStoppingCV(GrowingStrategy):
@@ -67,7 +69,7 @@ class EarlyStoppingCV(GrowingStrategy):
 
 class EarlyStoppingVal(EarlyStoppingCV):
     def __init__(self, data: Mapping[str, BaseData], make_metrics_eval: Callable[[], MetricsEvaluator],
-                 **early_stopping_params: dict):
+                 **early_stopping_params):
         super().__init__(**early_stopping_params)
         self.initial_data = {k: v for k, v in data.items() if k != 'y'}
         self.y = data['y']
@@ -85,6 +87,7 @@ class EarlyStoppingVal(EarlyStoppingCV):
         predictions = transformer(current_input)
         growing_state['current_data'] = predictions
         metrics_eval = self.make_metrics_eval()
+        assert isinstance(self.y.data, np.ndarray)
         metrics_eval.append_eval(self.y.data, predictions['proba'].data)
         val_metrics = metrics_eval.average()
         return super().need_grow(pipeline, val_metrics, executor_cls, growing_state)

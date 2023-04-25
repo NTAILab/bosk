@@ -1,5 +1,7 @@
 from collections import defaultdict
-from typing import Mapping, Optional, Type
+from typing import Any, Dict, List, Mapping, Optional, Type
+
+from bosk.block.base import BlockInputData
 
 from ..executor.base import BaseExecutor
 from ..pipeline.base import BasePipeline
@@ -12,17 +14,19 @@ from .layers import Layer
 
 class SequentialPipelineBuilder:
     base_input_names = ['X', 'y']
+    pipelines: List[BasePipeline]
+    history: Mapping[str, List[float]]
 
     def __init__(self, executor_cls: Type[BaseExecutor],
-                 growing_strategy: Optional[GrowingStrategy] = None,
-                 **inputs: Mapping[str, BaseData]):
+                 growing_strategy: GrowingStrategy,
+                 **inputs: BaseData):
         super().__init__()
         self.executor_cls = executor_cls
         self.inputs = inputs
-        self.prev_step_inputs = None
+        self.prev_step_inputs: Optional[BlockInputData] = None
         self.pipelines = []
         self.growing_strategy = growing_strategy
-        self.__growing_state = dict()
+        self.__growing_state: Dict[str, Any] = dict()
         self.history = defaultdict(list)
 
     def append(self, layer: Layer) -> bool:

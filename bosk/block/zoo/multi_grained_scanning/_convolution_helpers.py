@@ -11,16 +11,16 @@ class _PoolingIndices(NamedTuple):
         n_kernel_points: Number of points inside kernel.
         pooled_shape: Pooling result shape (excluding the n_sample dimension).
     """
-    xs_shape: Tuple[int]
-    full_index_tuple: Tuple[np.ndarray]
+    xs_shape: Tuple[int, ...]
+    full_index_tuple: Tuple[np.ndarray, ...]
     n_corners: int
     n_kernel_points: int
-    pooled_shape: Tuple[int]
+    pooled_shape: Tuple[int, ...]
 
 
 class _ConvolutionParams(NamedTuple):
-    kernel_size: Union[int, Tuple[int]] = 3
-    stride: Union[None, int, Tuple[int]] = None
+    kernel_size: Union[int, Tuple[int, ...]] = 3
+    stride: Union[None, int, Tuple[int, ...]] = None
     dilation: int = 1
     padding: Optional[int] = None
     chunk_size: int = -1
@@ -30,7 +30,7 @@ class _ConvolutionHelper:
     def __init__(self, params: _ConvolutionParams):
         self.params = params
 
-    def check_stride(self, spatial_dims: Tuple[int], kernel_size: Tuple[int]):
+    def check_stride(self, spatial_dims: Tuple[int, ...], kernel_size: Tuple[int, ...]) -> Tuple[int, ...]:
         """Check the stride and return a correct stride tuple.
 
         Args:
@@ -50,7 +50,7 @@ class _ConvolutionHelper:
             stride = (self.params.stride,) * n_spatial_dims
         return stride
 
-    def get_pooled_shape(self, spatial_dims: Tuple[int], kernel_size: Tuple[int], stride: Tuple[int]):
+    def get_pooled_shape(self, spatial_dims: Tuple[int, ...], kernel_size: Tuple[int, ...], stride: Tuple[int, ...]) -> Tuple[int, ...]:
         pooled_shape = tuple([
             (
                 (spatial_dims[i] // s) if s >= kernel_size[i]
@@ -60,7 +60,7 @@ class _ConvolutionHelper:
         ])
         return pooled_shape
 
-    def prepare_corner(self, spatial_dims: Tuple[int], kernel_size: Tuple[int]):
+    def prepare_corner(self, spatial_dims: Tuple[int, ...], kernel_size: Tuple[int, ...]):
         """Prepare sliding window corner ids.
 
         Args:
@@ -133,7 +133,9 @@ class _ConvolutionHelper:
             Padded input.
 
         """
+        assert self.params.padding is not None
         n_spatial_dims = xs.ndim - 2
+        padding_size: Tuple[Tuple[int, int], ...]
         if isinstance(self.params.padding, tuple):
             padding_size = self.params.padding
         else:
@@ -144,7 +146,7 @@ class _ConvolutionHelper:
             mode='edge',
         )
 
-    def prepare_pooling_indices(self, xs_shape: Tuple[int]):
+    def prepare_pooling_indices(self, xs_shape: Tuple[int, ...]):
         """Prepare pooling indices using convolution parameters and the input shape.
 
         Args:
@@ -157,7 +159,7 @@ class _ConvolutionHelper:
         _, n_channels, *spatial_dims = xs_shape
         n_spatial_dims = len(spatial_dims)
         kernel_size, kernel_ids = self.prepare_kernel(n_spatial_dims)
-        corner_ids = self.prepare_corner(spatial_dims, kernel_size)
+        corner_ids = self.prepare_corner(tuple(spatial_dims), kernel_size)
         pooled_shape = corner_ids.shape[1:]
         corner_ids = corner_ids.reshape((corner_ids.shape[0], -1))
         # corner_ids shape: (n_spatial_dims, s_1 * ... * s_nsd)
@@ -179,7 +181,7 @@ class _ConvolutionHelper:
         )
         return pooling_indices
 
-    def slice(self, xs: np.ndarray, pooling_indices: _PoolingIndices) -> np.ndarray:
+    def slice(self, xs: np.ndarray, pooling_indices: _PoolingIndices) -> Tuple[np.ndarray, int]:
         """Cut or slice the data into pieces.
 
         Args:

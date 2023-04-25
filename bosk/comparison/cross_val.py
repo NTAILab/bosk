@@ -11,7 +11,7 @@ from bosk.utility import timer_wrap
 from collections import defaultdict
 from copy import deepcopy
 import numpy as np
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Literal, Optional, Tuple, Type
 from sklearn.model_selection import BaseCrossValidator
 from pandas import DataFrame
 import logging
@@ -85,7 +85,7 @@ class CVComparator(BaseComparator):
 
     def __init__(self, pipelines: Optional[BasePipeline | List[BasePipeline]],
                  foreign_models: Optional[BaseForeignModel | List[BaseForeignModel]],
-                 cv_strat: BaseCrossValidator, exec_cls: BaseExecutor = TopologicalExecutor,
+                 cv_strat: BaseCrossValidator, exec_cls: Type[BaseExecutor] = TopologicalExecutor,
                  exec_kw=None, get_blocks_times: bool = False, suppress_exec_warn: bool = True,
                  f_optimize_pipelines: bool = True, random_state: Optional[int] = None) -> None:
         super().__init__(pipelines, foreign_models, f_optimize_pipelines, random_state)
@@ -102,7 +102,7 @@ class CVComparator(BaseComparator):
             self.exec_kw = exec_kw
         self.measure_blk_time = get_blocks_times
         self.block_hlr_cls = TimerBlockHandler if get_blocks_times else DefaultBlockExecutor
-        self.warn_context = 'ignore' if suppress_exec_warn else 'default'
+        self.warn_context: Literal['ignore'] | Literal['default'] = 'ignore' if suppress_exec_warn else 'default'
 
     # columns: model name | fold # | train/test | time | blocks time | metric name 1 | ... | metric name n
     def get_score(self, data: Dict[str, BaseData], metrics: List[BaseMetric]) -> DataFrame:
@@ -112,6 +112,7 @@ class CVComparator(BaseComparator):
                 n = value.data.shape[0]
             else:
                 assert value.data.shape[0] == n, "All inputs must have the same number of samples"
+        assert n is not None
 
         metrics_names = self._get_metrics_names(metrics)
         idx = np.arange(n)
@@ -141,12 +142,14 @@ class CVComparator(BaseComparator):
                     common_train_res, train_common_part_time = timer_wrap(
                         train_exec)(train_data_dict)
                     if self.measure_blk_time:
+                        assert isinstance(block_exec, TimerBlockHandler)
                         common_block_train_times = block_exec.blocks_time
                     block_exec = self.block_hlr_cls()
                     test_exec = self.exec_cls(
                         self._common_pipeline, Stage.TRANSFORM, block_executor=block_exec, **self.exec_kw)
                     common_test_res, test_common_part_time = timer_wrap(test_exec)(test_data_dict)
                     if self.measure_blk_time:
+                        assert isinstance(block_exec, TimerBlockHandler)
                         common_block_test_times = block_exec.blocks_time
 
             for j in range(len(self._optim_pipelines)):

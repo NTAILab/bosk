@@ -87,6 +87,17 @@ class BlockMeta:
         }
 
 
+class DynamicBlockMetaStub(BlockMeta):
+    """Meta stub for blocks with dynamic meta.
+
+    Usually blocks define static meta, but sometimes meta can be defined at
+    block initialization time.
+
+    In this case, the stub can be used to express that the meta is dynamic.
+    """
+
+    def __init__(self, *, inputs=None, outputs=None, execution_props=None):
+        ...
 
 
 def make_simple_meta(input_names: List[str], output_names: List[str], **additional_params) -> BlockMeta:

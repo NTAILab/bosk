@@ -45,7 +45,7 @@ def auto_block(_implicit_cls=None,
 
         @wraps(cls, updated=())
         class AutoBlock(BaseBlock):
-            meta: Optional[BlockMeta] = BlockMeta(
+            meta: BlockMeta = BlockMeta(
                 inputs=[
                     InputSlotMeta(
                         name=name,
@@ -142,8 +142,7 @@ def auto_block(_implicit_cls=None,
                     gen = get_random_generator(seed)
                     setattr(self.__instance, random_state_field, get_rand_int(gen))
                 else:
-                    warnings.warn("%s doesn't have random_state_field '%s'", cls.__name__,
-                                    random_state_field)
+                    warnings.warn("%s doesn't have random_state_field '%s'" % (cls.__name__, random_state_field))
 
         return AutoBlock
 

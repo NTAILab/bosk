@@ -2,7 +2,7 @@ from operator import mul
 import numpy as np
 from jax import numpy as jnp
 from jax import lax
-from typing import Optional, Sequence, Tuple, Union, NamedTuple
+from typing import Literal, Optional, Sequence, Tuple, Union, NamedTuple
 from functools import partial, reduce
 from ...base import BaseBlock, BlockInputData, TransformOutputData
 from ...meta import make_simple_meta, BlockExecutionProperties
@@ -115,16 +115,15 @@ class PoolingBlock(BaseBlock):
             aggregated = self.__aggregate(grouped_data)
             aggregated = aggregated.reshape((n_channels, *pooling_indices.pooled_shape))
             result.append(aggregated)
-        result = np.stack(result, axis=0)
-        return result
+        return np.stack(result, axis=0)
 
     def __njit_based_chunk_pooling(self, xs: np.ndarray) -> np.ndarray:
         if self.params.padding is not None:
             xs = self.helper_.pad(xs)
         n_samples, n_channels, *spatial_dims = xs.shape
         kernel_size = self.helper_.check_kernel_size(len(spatial_dims))
-        stride = self.helper_.check_stride(spatial_dims, kernel_size)
-        pooled_shape = self.helper_.get_pooled_shape(spatial_dims, kernel_size, stride)
+        stride = self.helper_.check_stride(tuple(spatial_dims), kernel_size)
+        pooled_shape = self.helper_.get_pooled_shape(tuple(spatial_dims), kernel_size, stride)
         result = np.zeros((n_samples, n_channels, *pooled_shape), dtype=xs.dtype)
         if len(spatial_dims) == 2:
             if self.aggregation == 'max':
@@ -160,9 +159,10 @@ class PoolingBlock(BaseBlock):
         # prepare conv parameters
         kernel_size = self.helper_.check_kernel_size(len(spatial_dims))
         window_dimensions = (1, 1, *kernel_size)  # (N, C, n_1, ..., n_d)
-        strides = self.helper_.check_stride(spatial_dims, kernel_size)
+        strides = self.helper_.check_stride(tuple(spatial_dims), kernel_size)
         window_strides = (1, 1, *strides)
         # prepare padding
+        padding: str | Tuple[Tuple[int, int], ...]
         if self.params.padding is None:
             padding = 'valid'
         elif isinstance(self.params.padding, str):
@@ -215,8 +215,8 @@ class PoolingBlock(BaseBlock):
         # shape: (n_samples, n_channels, n_features_1, ..., n_features_k)
         if isinstance(inputs['X'], GPUData) or self.impl_type == 'jax':
             # can process even CPU data, since JAX natively works with NumPy arrays
-            result = self.__jax_based_pooling(xs)
-            return {'output': GPUData(result)}
+            gpu_result = self.__jax_based_pooling(xs)
+            return {'output': GPUData(gpu_result)}
         elif isinstance(inputs['X'], CPUData):
             if self.chunk_size <= 0:
                 result = self.__chunk_pooling(xs)

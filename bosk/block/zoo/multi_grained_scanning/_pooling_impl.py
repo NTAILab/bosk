@@ -47,7 +47,8 @@ def _njit_mean_pooling_1d(xs: np.ndarray, result: np.ndarray, kernel_size: Tuple
 
 
 @njit
-def _njit_max_pooling_2d(xs: np.ndarray, result: np.ndarray, kernel_size: Tuple[int], stride: Tuple[int], dilation: int):
+def _njit_max_pooling_2d(xs: np.ndarray, result: np.ndarray, kernel_size: Tuple[int, int],
+                         stride: Tuple[int, int], dilation: int):
     n_samples = xs.shape[0]
     n_channels = xs.shape[1]
     res_height, res_width = result.shape[2], result.shape[3]
@@ -71,7 +72,8 @@ def _njit_max_pooling_2d(xs: np.ndarray, result: np.ndarray, kernel_size: Tuple[
 
 
 @njit
-def _njit_mean_pooling_2d(xs: np.ndarray, result: np.ndarray, kernel_size: Tuple[int], stride: Tuple[int], dilation: int):
+def _njit_mean_pooling_2d(xs: np.ndarray, result: np.ndarray, kernel_size: Tuple[int, int],
+                          stride: Tuple[int, int], dilation: int):
     n_samples = xs.shape[0]
     n_channels = xs.shape[1]
     res_height, res_width = result.shape[2], result.shape[3]
