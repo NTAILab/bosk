@@ -4,10 +4,10 @@ This file contains the optimizing executor, which also can draw the computationa
 
 """
 
-from typing import Deque, Dict, List, Mapping, Sequence, Set, Optional
+from typing import Deque, Dict, Iterable, List, Mapping, Sequence, Set, Optional, Union
 from collections import defaultdict, deque
 
-from ..data import Data
+from ..data import BaseData, Data
 from .base import BaseBlockExecutor, BaseExecutor, BaseSlotHandler, Stage
 from ..pipeline import BasePipeline
 from ..block.base import BaseSlot, BlockInputSlot, BlockOutputSlot
@@ -25,7 +25,8 @@ class TopologicalExecutor(BaseExecutor):
     Attributes:
         _conn_dict: Pipeline connections, represented as a hash map, the keys are blocks' input slots,
             the values are output ones. Each input slot corresponds no more than one
-            output slot, so this representation is correct.
+            output slot, so this representation is correct. Also, the values can be input slots,
+            just to connect input blocks to their inputs.
 
     Args:
         pipeline: Sets :attr:`.BaseExecutor.__pipeline`.
@@ -36,7 +37,7 @@ class TopologicalExecutor(BaseExecutor):
         block_executor: Sets :attr:`.BaseExecutor.__block_executor` with `_prepare_block_executor` method.
     """
 
-    _conn_dict: Mapping[BlockInputSlot, BlockOutputSlot]
+    _conn_dict: Dict[BlockInputSlot, Union[BlockInputSlot, BlockOutputSlot]]
 
     def __init__(self, pipeline: BasePipeline,
                  stage: Stage,
@@ -45,7 +46,7 @@ class TopologicalExecutor(BaseExecutor):
                  slot_handler: Optional[BaseSlotHandler] = None,
                  block_executor: Optional[BaseBlockExecutor] = None) -> None:
         super().__init__(pipeline, stage, inputs, outputs, slot_handler, block_executor)
-        conn_dict = get_connection_map(self)
+        conn_dict: Dict[BlockInputSlot, Union[BlockInputSlot, BlockOutputSlot]] = dict(get_connection_map(self))
         for inp in self.pipeline.inputs.values():
             conn_dict[inp] = inp
         self._conn_dict = conn_dict
@@ -72,7 +73,7 @@ class TopologicalExecutor(BaseExecutor):
                     stack.append(neig_node)
         return visited
 
-    def _topological_sort(self, aj_list: Mapping[BaseBlock, Set[BaseBlock]], begin_nodes: Sequence[BaseBlock]) -> List[BaseBlock]:
+    def _topological_sort(self, aj_list: Mapping[BaseBlock, Set[BaseBlock]], begin_nodes: Iterable[BaseBlock]) -> List[BaseBlock]:
         """Method that performs the topological sort of the computational graph.
         The algorithm begins its work from the nodes `begin_nodes`. The algorithm is written using recursive scheme.
 
@@ -136,7 +137,7 @@ class TopologicalExecutor(BaseExecutor):
                 forward_aj_list[out_slot.parent_block].add(inp_slot.parent_block)
         return forward_aj_list
 
-    def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:
+    def __call__(self, input_values: Mapping[str, Data]) -> Dict[str, BaseData]:
         """The main method for the processing of the computational graph.
 
         Args:
@@ -156,11 +157,11 @@ class TopologicalExecutor(BaseExecutor):
         if self.outputs is not None:
             out_slots_to_process = [self.pipeline.outputs[name] for name in self.outputs]
         else:
-            out_slots_to_process = self.pipeline.outputs.values()
+            out_slots_to_process = list(self.pipeline.outputs.values())
         output_blocks = [slot.parent_block for slot in out_slots_to_process]
         backward_pass = self._dfs(self._get_backward_aj_list(), output_blocks)
 
-        slots_values: Dict[BaseSlot, Data] = dict()
+        slots_values: Dict[BaseSlot, BaseData] = dict()
         input_blocks_set = set()
         for input_name, input_data in input_values.items():
             input_slot = self.pipeline.inputs.get(input_name, None)
@@ -192,11 +193,19 @@ class TopologicalExecutor(BaseExecutor):
                 inp_data = slots_values[corresponding_output]
                 node_input_data[inp_slot] = inp_data
             outputs = self._execute_block(node, node_input_data)
-            slots_values.update(outputs)
+            # ignore type checking here, because dictionaries can be covariant by keys
+            # i.e. (a: dict[BaseSlot, BaseData]).update(b: dict[BlockOutputSlot, BaseData])
+            # is correct, since BlockOutputSlot is a subclass of BaseSlot
+            slots_values.update(outputs)  # type: ignore
 
-        result: Mapping[str, Data] = dict()
+        result: Dict[str, BaseData] = dict()
         for output_name, output_slot in self.pipeline.outputs.items():
             if self.outputs is None or output_name in self.outputs:
                 slot_data = slots_values.get(output_slot)
+                if slot_data is None:
+                    raise RuntimeError(
+                        f'The output {output_name!r} has not been computed, '
+                        f'it is needed for the block {self.stage!r}'
+                    )
                 result[output_name] = slot_data
         return result
