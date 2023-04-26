@@ -13,7 +13,7 @@ class MultiGrainedScanningBlock(ABC):
     def __init__(self, models: Tuple[Any, Any],
                  window_size: int,
                  stride: int,
-                 shape_sample: Optional[Tuple[int]] = None):
+                 shape_sample: Optional[Tuple[int, ...]] = None):
         super().__init__()
         self._shape_sample = shape_sample
         self._window_size: int = window_size
@@ -39,7 +39,7 @@ class MultiGrainedScanningBlock(ABC):
 
     def _window_slicing_predict(self, X) -> 'np.ndarray':
         sliced_X, _ = self._window_slicing_data(X.data)
-        predict_prob = np.array([])
+        predict_prob: np.ndarray = np.array([])
         for model in self._models:
             if hasattr(model, 'predict_proba'):
                 predict_prob = np.hstack([predict_prob, model.predict_proba(sliced_X)]) \

@@ -215,9 +215,12 @@ class PoolingBlock(BaseBlock):
         # shape: (n_samples, n_channels, n_features_1, ..., n_features_k)
         if isinstance(inputs['X'], GPUData) or self.impl_type == 'jax':
             # can process even CPU data, since JAX natively works with NumPy arrays
+            if not isinstance(xs, jnp.ndarray):
+                xs = jnp.asarray(xs)
             gpu_result = self.__jax_based_pooling(xs)
             return {'output': GPUData(gpu_result)}
         elif isinstance(inputs['X'], CPUData):
+            assert isinstance(xs, np.ndarray)
             if self.chunk_size <= 0:
                 result = self.__chunk_pooling(xs)
             else:

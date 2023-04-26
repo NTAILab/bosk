@@ -6,7 +6,7 @@ from ...meta import BlockMeta, BlockExecutionProperties, DynamicBlockMetaStub, m
 
 class InputBlock(BaseInputBlock):
     DEFAULT_INPUT_NAME = 'X'
-    name: Optional[str]
+    name: Optional[str] = None
     meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, name: Optional[str] = None):
@@ -28,7 +28,7 @@ class InputBlock(BaseInputBlock):
 
 class TargetInputBlock(BaseInputBlock):
     DEFAULT_TARGET_NAME = 'y'
-    name: Optional[str]
+    name: Optional[str] = None
     meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, name: Optional[str] = None):
