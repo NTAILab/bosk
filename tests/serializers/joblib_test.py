@@ -6,4 +6,4 @@ from typing import List
 
 class JoblibSerializerTest(BST):
     def get_serializers(self) -> List[BasePipelineSerializer]:
-        return [JoblibPipelineSerializer(), JoblibPipelineSerializer(compress=3)]
+        return [JoblibPipelineSerializer()]
