@@ -7,7 +7,6 @@ with open('requirements.txt') as f:
     install_requirements = f.read().splitlines()
 
 setup(
-    install_requires=[],
     name="bosk",
     version="0.1.0",
     author="NTAILab",
