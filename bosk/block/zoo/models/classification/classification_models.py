@@ -12,6 +12,8 @@ from .....data import CPUData
 
 @auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
 class RFCBlock(RandomForestClassifier):
+    """Custom documentation.
+    """
     def transform(self, X):
         return CPUData(self.predict_proba(X))
 

@@ -9,8 +9,7 @@ from jax import vmap
 from jax.tree_util import register_pytree_node_class
 
 from ....base import BaseBlock, TransformOutputData, BlockInputData
-from ....meta import BlockMeta, BlockExecutionProperties
-from ....slot import InputSlotMeta, OutputSlotMeta
+from ....meta import BlockMeta, BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
 from .....stages import Stages
 from .....data import GPUData
 # from .....utility import get_random_generator, get_rand_int

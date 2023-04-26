@@ -10,7 +10,7 @@ class BasePipelineBuilder(ABC):
 
     """
     @abstractmethod
-    def build(self, *args, **kwargs) -> BasePipeline:
+    def build(self) -> BasePipeline:
         """Get pipeline (optionally after building).
 
         Returns:

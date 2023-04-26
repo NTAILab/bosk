@@ -1,11 +1,10 @@
 from collections import defaultdict
 from typing import Callable, Dict, Iterable, Mapping, Set, TypeVar, Union, Sequence, Optional, List
 
-from ...data import Data
+from ...data import BaseData, Data
 from ..base import BaseBlockExecutor, BaseExecutor, BaseSlotHandler, Stage
 from ...pipeline import BasePipeline
-from ...block.slot import BlockInputSlot, BlockOutputSlot
-from ...block.base import BaseBlock, BlockOutputData
+from ...block.base import BaseBlock, BlockOutputData, BlockInputSlot, BlockOutputSlot
 from ..utility import get_connection_map
 from joblib import Parallel as JoblibParallel, delayed as joblib_delayed
 from multiprocessing.pool import ThreadPool as MultiprocessingThreadPool
@@ -211,7 +210,7 @@ class GreedyParallelExecutor(BaseExecutor):
             Mapping from `BlockOutputSlot` to `Data`.
 
         """
-        outputs = dict()
+        outputs: Dict[BlockOutputSlot, Data] = dict()
         for block in blocks:
             if not block.meta.execution_props.plain:
                 continue
@@ -232,7 +231,7 @@ class GreedyParallelExecutor(BaseExecutor):
             Mapping from `BlockOutputSlot` to `Data`.
 
         """
-        outputs = dict()
+        outputs: Dict[BlockOutputSlot, Data] = dict()
         # TODO: consider another impl: call block executor method like `execute_threadsafe_blocks`
         #   in this case execution behaviour will be implemented in block executor
         parallel_results = parallel.starmap(
@@ -257,7 +256,7 @@ class GreedyParallelExecutor(BaseExecutor):
             Mapping from `BlockOutputSlot` to `Data`.
 
         """
-        outputs = dict()
+        outputs: Dict[BlockOutputSlot, Data] = dict()
         for block in blocks:
             if block.meta.execution_props.threadsafe or \
                 block.meta.execution_props.plain:
@@ -336,7 +335,7 @@ class GreedyParallelExecutor(BaseExecutor):
                 computed_values[in_slot] = out_data
 
     def __call_with_parallel(self, input_values: Mapping[str, Data],
-                             parallel: ParallelEngine.Instance) -> Dict[BlockOutputSlot, Data]:
+                             parallel: ParallelEngine.Instance) -> Dict[BlockOutputSlot, BaseData]:
         """Pipeline execution with given parallel engine instance.
 
         Args:
@@ -348,6 +347,7 @@ class GreedyParallelExecutor(BaseExecutor):
 
         """
         initial_input_slot_values = self._map_input_names_to_slots(input_values)
+        assert self.outputs is not None
         output_slots = {
             out_slot
             for out_name, out_slot in self.pipeline.outputs.items()
@@ -407,12 +407,13 @@ class GreedyParallelExecutor(BaseExecutor):
             recently_computed_outputs = parallel_outputs
         return output_values
 
-    def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:
+    def __call__(self, input_values: Mapping[str, Data]) -> Dict[str, BaseData]:
         self._check_input_values(input_values)
         with self.parallel_engine as parallel:
             output_values = self.__call_with_parallel(input_values, parallel)
         # convert output values to string-indexed dict
         result = dict()
+        assert self.outputs is not None
         for output_name, output_slot in self.pipeline.outputs.items():
             if output_name in self.outputs:
                 result[output_name] = output_values[output_slot]

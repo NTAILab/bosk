@@ -81,7 +81,7 @@ def split_node_generic_random(
     mask: jnp.ndarray,
     max_splits: int,
     compute_all_scores: Callable,
-) -> Tuple[jnp.ndarray, jnp.ndarray, float, int]:
+) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     points = split_points(X, mask, max_splits)
     scores = compute_all_scores(X, y, mask, points)
 
@@ -100,7 +100,7 @@ def split_node_generic(
     mask: jnp.ndarray,
     max_splits: int,
     compute_all_scores: Callable,
-) -> Tuple[jnp.ndarray, jnp.ndarray, float, int]:
+) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     points = split_points(X, mask, max_splits)
     scores = compute_all_scores(X, y, mask, points)
 
@@ -386,7 +386,7 @@ def predict_proba(y: jnp.ndarray, mask: jnp.ndarray, n_classes: int):
 
 
 @partial(jit, static_argnames=["n_classes"])
-def entropy(y: jnp.ndarray, mask: jnp.ndarray, n_classes: int) -> float:
+def entropy(y: jnp.ndarray, mask: jnp.ndarray, n_classes: int) -> jnp.ndarray:
     n_samples = jnp.sum(mask)
     counts = jnp.bincount(y, weights=mask, length=n_classes)
     probs = counts / n_samples
@@ -401,5 +401,5 @@ def most_frequent(y: jnp.ndarray, mask: jnp.ndarray, n_classes: int) -> int:
     return res
 
 
-def accuracy(y_hat: jnp.array, y: jnp.array) -> jnp.array:
+def accuracy(y_hat: jnp.ndarray, y: jnp.ndarray) -> jnp.ndarray:
     return jnp.mean(y_hat == y)

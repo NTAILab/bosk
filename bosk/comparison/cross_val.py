@@ -11,7 +11,7 @@ from bosk.utility import timer_wrap
 from collections import defaultdict
 from copy import deepcopy
 import numpy as np
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Literal, Optional, Tuple, Type
 from sklearn.model_selection import BaseCrossValidator
 from pandas import DataFrame
 import logging
@@ -25,6 +25,28 @@ class CVComparator(BaseComparator):
     that will define indexes, taken in each fold,
     or you can use predefined iterators from the `sklearn`.
     """
+
+    def __init__(self, pipelines: Optional[BasePipeline | List[BasePipeline]],
+                 foreign_models: Optional[BaseForeignModel | List[BaseForeignModel]],
+                 cv_strat: BaseCrossValidator, exec_cls: Type[BaseExecutor] = TopologicalExecutor,
+                 exec_kw=None, get_blocks_times: bool = False, suppress_exec_warn: bool = True,
+                 f_optimize_pipelines: bool = True, random_state: Optional[int] = None) -> None:
+        super().__init__(pipelines, foreign_models, f_optimize_pipelines, random_state)
+        cv_strat.random_state = random_state
+        self.cv_strat = cv_strat
+        self.exec_cls = exec_cls
+        if exec_kw is None:
+            self.exec_kw = dict()
+        else:
+            forbidden_exec_args = ['pipeline', 'stage', 'block_executor']
+            if any([key in exec_kw for key in forbidden_exec_args]):
+                raise RuntimeError(
+                    f"You mustn't specify following args for executor: {forbidden_exec_args}")
+            self.exec_kw = exec_kw
+        self.measure_blk_time = get_blocks_times
+        self.block_hlr_cls = TimerBlockHandler if get_blocks_times else DefaultBlockExecutor
+        self.warn_context: Literal['ignore'] | Literal['default'] = 'ignore' if suppress_exec_warn else 'default'
+
 
     def _write_metrics_info_to_dict(self, df_dict, metrics,
                                     train_data_dict, train_pred_dict,
@@ -78,31 +100,10 @@ class CVComparator(BaseComparator):
             names.append(name)
         return names
 
-    def _write_preamble(self, df_dict, model_name, fold_num) -> None:
+    def _write_preamble(self, df_dict: defaultdict[str, List], model_name, fold_num) -> None:
         df_dict['model name'] += [model_name] * 2
         df_dict['fold #'] += [fold_num] * 2
         df_dict['train/test'] += ['train', 'test']
-
-    def __init__(self, pipelines: Optional[BasePipeline | List[BasePipeline]],
-                 foreign_models: Optional[BaseForeignModel | List[BaseForeignModel]],
-                 cv_strat: BaseCrossValidator, exec_cls: BaseExecutor = TopologicalExecutor,
-                 exec_kw=None, get_blocks_times: bool = False, suppress_exec_warn: bool = True,
-                 f_optimize_pipelines: bool = True, random_state: Optional[int] = None) -> None:
-        super().__init__(pipelines, foreign_models, f_optimize_pipelines, random_state)
-        cv_strat.random_state = random_state
-        self.cv_strat = cv_strat
-        self.exec_cls = exec_cls
-        if exec_kw is None:
-            self.exec_kw = dict()
-        else:
-            forbidden_exec_args = ['pipeline', 'stage', 'block_executor']
-            if any([key in exec_kw for key in forbidden_exec_args]):
-                raise RuntimeError(
-                    f"You mustn't specify following args for executor: {forbidden_exec_args}")
-            self.exec_kw = exec_kw
-        self.measure_blk_time = get_blocks_times
-        self.block_hlr_cls = TimerBlockHandler if get_blocks_times else DefaultBlockExecutor
-        self.warn_context = 'ignore' if suppress_exec_warn else 'default'
 
     # columns: model name | fold # | train/test | time | blocks time | metric name 1 | ... | metric name n
     def get_score(self, data: Dict[str, BaseData], metrics: List[BaseMetric]) -> DataFrame:
@@ -112,10 +113,11 @@ class CVComparator(BaseComparator):
                 n = value.data.shape[0]
             else:
                 assert value.data.shape[0] == n, "All inputs must have the same number of samples"
+        assert n is not None
 
         metrics_names = self._get_metrics_names(metrics)
         idx = np.arange(n)
-        dataframe_dict = defaultdict(list)
+        dataframe_dict: defaultdict[str, List] = defaultdict(list)
 
         for i, (train_idx, test_idx) in enumerate(self.cv_strat.split(idx)):
             logging.info('Processing fold #%i', i)
@@ -128,10 +130,10 @@ class CVComparator(BaseComparator):
 
             # processing the common part
             if self._common_pipeline is None:
-                common_train_res = dict()
-                common_test_res = common_train_res
-                train_common_part_time = 0
-                test_common_part_time = 0
+                common_train_res: Dict[str, BaseData] = dict()
+                common_test_res: Dict[str, BaseData] = dict()
+                train_common_part_time = 0.0
+                test_common_part_time = 0.0
             else:
                 with warnings.catch_warnings():
                     warnings.simplefilter(self.warn_context)
@@ -141,12 +143,14 @@ class CVComparator(BaseComparator):
                     common_train_res, train_common_part_time = timer_wrap(
                         train_exec)(train_data_dict)
                     if self.measure_blk_time:
+                        assert isinstance(block_exec, TimerBlockHandler)
                         common_block_train_times = block_exec.blocks_time
                     block_exec = self.block_hlr_cls()
                     test_exec = self.exec_cls(
                         self._common_pipeline, Stage.TRANSFORM, block_executor=block_exec, **self.exec_kw)
                     common_test_res, test_common_part_time = timer_wrap(test_exec)(test_data_dict)
                     if self.measure_blk_time:
+                        assert isinstance(block_exec, TimerBlockHandler)
                         common_block_test_times = block_exec.blocks_time
 
             for j in range(len(self._optim_pipelines)):
@@ -165,6 +169,7 @@ class CVComparator(BaseComparator):
                     pip_train_res, train_time = timer_wrap(pip_tr_exec)(cur_train_dict)
                     dataframe_dict['time'].append(train_common_part_time + train_time)
                     if self.measure_blk_time:
+                        assert isinstance(block_exec, TimerBlockHandler)
                         pip_block_train_times = block_exec.blocks_time
                     block_exec = self.block_hlr_cls()
                     pip_test_exec = self.exec_cls(
@@ -172,6 +177,7 @@ class CVComparator(BaseComparator):
                     pip_test_res, test_time = timer_wrap(pip_test_exec)(cur_test_dict)
                     dataframe_dict['time'].append(test_common_part_time + test_time)
                     if self.measure_blk_time:
+                        assert isinstance(block_exec, TimerBlockHandler)
                         pip_block_test_times = block_exec.blocks_time
                         orig_pip_train_times = self._get_times_dict(
                             common_block_train_times, pip_block_train_times,

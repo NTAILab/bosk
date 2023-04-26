@@ -1,11 +1,12 @@
 from abc import ABC, ABCMeta, abstractmethod
+from dataclasses import dataclass, field
 from numpy.random import Generator
-from typing import Mapping, TypeVar, Optional
+from typing import Mapping, Set, TypeVar, Optional
 
-from .meta import BlockMeta
-from ..data import Data
-from .slot import BlockInputSlot, BlockOutputSlot, BlockSlots
+from .meta import BaseSlotMeta, BlockMeta
+from ..data import BaseData, Data
 from ..visitor.base import BaseVisitor
+from ..exceptions import MultipleBlockInputsError, MultipleBlockOutputsError, NoDefaultBlockOutputError
 
 
 BlockT = TypeVar('BlockT', bound='BaseBlock')
@@ -14,19 +15,100 @@ BlockT = TypeVar('BlockT', bound='BaseBlock')
 Required to constrain a block to return itself in `fit(...)`.
 """
 
-BlockInputData = Mapping[str, Data]
+SlotT = TypeVar('SlotT', bound='BaseSlot')
+"""Slot generic typevar.
+"""
+
+SlotMetaT = TypeVar('SlotMetaT', bound='BaseSlotMeta')
+"""Slot Meta generic typevar.
+"""
+
+
+@dataclass(eq=False, frozen=False)
+class BaseSlot:
+    """Base slot.
+
+    Slot is a named placeholder for data.
+
+    Attributes:
+        name: Slot name.
+        stages: At which stages slot value is needed.
+        debug_info: Debugging info.
+
+    """
+    meta: BaseSlotMeta
+    parent_block: 'BaseBlock'
+    debug_info: str = ""
+
+    def __hash__(self) -> int:
+        return id(self)
+
+    def __repr__(self) -> str:
+        return self.meta.name
+
+
+@dataclass(eq=False, frozen=False)
+class BlockInputSlot(BaseSlot):
+    """Block input slot.
+
+    Contains the information required for the input data processing, and input-output matching.
+    """
+
+
+@dataclass(eq=False, frozen=False)
+class BlockOutputSlot(BaseSlot):
+    """Block output slot.
+
+    Contains the information about the output data for input-output matching.
+    """
+
+
+@dataclass(frozen=True)
+class BlockGroup:
+    name: str
+
+    def add(self, block: BlockT):
+        """Add the block to the group.
+
+        Args:
+            block: Block to add.
+
+        """
+        block.slots.groups.add(self)
+
+    def remove(self, block: BlockT):
+        """Remove the block from the group.
+
+        Args:
+            block: Block to remove.
+
+        """
+        block.slots.groups.remove(self)
+
+    def __repr__(self) -> str:
+        return self.name
+
+
+@dataclass
+class BlockSlots:
+    inputs: Mapping[str, BlockInputSlot]
+    outputs: Mapping[str, BlockOutputSlot]
+    groups: Set[BlockGroup] = field(default_factory=lambda: set())
+
+
+BlockInputData = Mapping[str, BaseData]
 """Block input values container data type.
 
 It is indexed by input slot names.
 """
 
-TransformOutputData = Mapping[str, Data]
+TransformOutputData = Mapping[str, BaseData]
 """Block transform output values container data type.
 
 It is indexed by output slot names.
 """
 
-BlockOutputData = Mapping[BlockOutputSlot, Data]
+BlockOutputData = Mapping[BlockOutputSlot, BaseData]
 """Block output values container data type.
 
 It is indexed by output slots, not their names.
@@ -140,6 +222,17 @@ class BaseBlock(ABC):
         else:
             return None
 
+    def get_default_output(self) -> BlockOutputSlot:
+        """Get the default block output slot.
+
+        Returns:
+            The block output slot.
+        """
+        default_output = self.default_output
+        if default_output is None:
+            raise NoDefaultBlockOutputError(self)
+        return self.slots.outputs[default_output]
+
 
 class BaseInputBlock(BaseBlock, metaclass=ABCMeta):
     """Base input block. It is guaranteed that is has a single input and some name.
@@ -168,7 +261,8 @@ class BaseInputBlock(BaseBlock, metaclass=ABCMeta):
         Returns:
             The block input slot.
         """
-        assert len(self.slots.inputs) == 1
+        if len(self.slots.inputs) != 1:
+            raise MultipleBlockInputsError(self)
         return next(iter(self.slots.inputs.values()))
 
 
@@ -199,5 +293,6 @@ class BaseOutputBlock(BaseBlock, metaclass=ABCMeta):
         Returns:
             The block output slot.
         """
-        assert len(self.slots.outputs) == 1
+        if len(self.slots.outputs) != 1:
+            raise MultipleBlockOutputsError(self)
         return next(iter(self.slots.outputs.values()))

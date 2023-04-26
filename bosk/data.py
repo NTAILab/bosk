@@ -26,6 +26,7 @@ class BaseData:
 
 
 class CPUData(BaseData):
+    data: np.ndarray
     def __init__(self, data: Any):
         if isinstance(data, jnp.ndarray):
             data = np.array(data)
@@ -33,6 +34,7 @@ class CPUData(BaseData):
 
 
 class GPUData(BaseData):
+    data: jnp.ndarray
     def __init__(self, data: Any):
         if isinstance(data, np.ndarray):
             data = jnp.array(data)

@@ -3,8 +3,7 @@ from typing import Mapping, FrozenSet, Optional, Sequence
 
 from ..data import Data
 from ..stages import Stage
-from ..block.base import BaseBlock, BlockOutputData
-from ..block.slot import BlockGroup, BlockInputSlot, BaseSlot
+from ..block.base import BaseBlock, BlockOutputData, BlockGroup, BlockInputSlot
 from ..pipeline import BasePipeline
 import warnings
 

@@ -4,8 +4,7 @@ from dataclasses import dataclass, field
 from bosk import Data
 from bosk.executor.base import BaseExecutor
 from bosk.painter.topological import TopologicalPainter
-from bosk.block.slot import BlockInputSlot, BlockOutputSlot
-from bosk.block.base import BaseBlock
+from bosk.block.base import BaseBlock, BlockInputSlot, BlockOutputSlot
 from bosk.pipeline.connection import Connection
 from bosk.pipeline import BasePipeline
 from bosk.executor.topological import TopologicalExecutor

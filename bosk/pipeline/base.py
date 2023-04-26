@@ -2,8 +2,7 @@ from dataclasses import dataclass
 from numpy.random import Generator
 from typing import List, Dict
 from .connection import Connection
-from ..block.slot import BlockInputSlot, BlockOutputSlot
-from ..block.base import BaseBlock
+from ..block.base import BaseBlock, BlockInputSlot, BlockOutputSlot
 from ..utility import get_random_generator, get_rand_int
 from ..visitor.base import BaseVisitor
 

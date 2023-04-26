@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Mapping, FrozenSet, Optional, Sequence
+from typing import Dict, Mapping, FrozenSet, Optional, Sequence
 import warnings
 
-from ..data import Data
+from ..data import BaseData, Data
 from ..stages import Stage
-from ..block.base import BaseBlock, BlockOutputData
-from ..block.slot import BlockInputSlot, BaseSlot
+from ..block.base import BaseBlock, BlockOutputData, BlockInputSlot, BaseSlot
 from ..pipeline import BasePipeline
 from .block import InputSlotToDataMapping, BaseBlockExecutor, DefaultBlockExecutor
 
@@ -125,7 +124,7 @@ class BaseExecutor(ABC):
         else:
             self.__outputs = None
 
-    def _map_input_names_to_slots(self, input_values: Mapping[str, Data]) -> Mapping[BlockInputSlot, Data]:
+    def _map_input_names_to_slots(self, input_values: Mapping[str, Data]) -> Dict[BlockInputSlot, Data]:
         """Method to translate dictionary, passed in :meth:`__call__`, to dictionary that is useful for evaluation.
         Args:
             input_values: Input data, passed to the :meth:`__call__` method.
@@ -174,7 +173,15 @@ class BaseExecutor(ABC):
         return self.__block_executor.execute_block(self.stage, block, block_input_mapping)
 
     @abstractmethod
-    def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:
+    def __call__(self, input_values: Mapping[str, Data]) -> Dict[str, BaseData]:
+        """Executes the pipeline.
+
+        Args:
+            input_values: Input data.
+
+        Returns:
+            Calculated output data.
+        """
         ...
 
     @property
@@ -200,9 +207,9 @@ class BaseExecutor(ABC):
         return self.__slot_handler
 
     @property
-    def block_handler(self) -> BaseBlock:
-        """Getter for the executor's blocks handler."""
-        return self.__block_handler
+    def block_executor(self) -> BaseBlockExecutor:
+        """Getter for the executor's block executor."""
+        return self.__block_executor
 
     @property
     def stage(self) -> Stage:

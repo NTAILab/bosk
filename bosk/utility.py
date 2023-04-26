@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.random import Generator
-from typing import Optional
+from typing import Callable, Optional, Tuple, TypeVar
 from time import process_time
 
 
@@ -17,7 +17,10 @@ def get_rand_int(generator: Generator) -> int:
     return generator.integers(0, np.iinfo(np.int32).max)
 
 
-def timer_wrap(func):
+RT = TypeVar('RT')
+
+
+def timer_wrap(func: Callable[..., RT]) -> Callable[..., Tuple[RT, float]]:
     """Decorator that returns execution CPU-time for a callable object."""
     def wrapper(*args, **kwargs):
         time_stamp = process_time()

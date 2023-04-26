@@ -1,15 +1,15 @@
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import jax.numpy as jnp
 import numpy as np
 
 from ...base import BaseBlock, BlockInputData, TransformOutputData
-from ...meta import make_simple_meta, BlockExecutionProperties
-from ....data import GPUData, CPUData
+from ...meta import BlockMeta, DynamicBlockMetaStub, make_simple_meta, BlockExecutionProperties
+from ....data import BaseData, GPUData, CPUData
 
 
 class ReshapeBlock(BaseBlock):
-    meta = None
+    meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, new_shape: Tuple[int], input_name: str = 'X'):
         self.meta = make_simple_meta([input_name], [input_name],
@@ -17,12 +17,13 @@ class ReshapeBlock(BaseBlock):
         super().__init__()
         self.new_shape = new_shape
 
-    def fit(self, _inputs: BlockInputData) -> 'ConcatBlock':
+    def fit(self, _inputs: BlockInputData) -> 'ReshapeBlock':
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         assert len(inputs) == 1
         name, inp = next(iter(inputs.items()))
+        reshaped: BaseData
         if isinstance(inp, CPUData):
             reshaped = CPUData(inp.data.reshape(self.new_shape))
         elif isinstance(inp, GPUData):
@@ -36,19 +37,20 @@ class ReshapeBlock(BaseBlock):
 class FlattenBlock(BaseBlock):
     """Flattens all dimension except the first.
     """
-    meta = None
+    meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, input_name: str = 'X'):
         self.meta = make_simple_meta([input_name], [input_name],
                                      execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True))
         super().__init__()
 
-    def fit(self, _inputs: BlockInputData) -> 'ConcatBlock':
+    def fit(self, _inputs: BlockInputData) -> 'FlattenBlock':
         return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         assert len(inputs) == 1
         name, inp = next(iter(inputs.items()))
+        reshaped: BaseData
         if isinstance(inp, CPUData):
             reshaped = CPUData(inp.data.reshape((inp.data.shape[0], -1)))
         elif isinstance(inp, GPUData):
@@ -60,14 +62,14 @@ class FlattenBlock(BaseBlock):
 
 
 class ConcatBlock(BaseBlock):
-    meta = None
+    meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, input_names: List[str], axis: int = -1):
         self.meta = make_simple_meta(input_names, ['output'],
                                      execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True))
         super().__init__()
         self.axis = axis
-        self.ordered_input_names = None
+        self.ordered_input_names: Optional[List[str]] = None
 
     def fit(self, inputs: BlockInputData) -> 'ConcatBlock':
         self.ordered_input_names = list(inputs.keys())
@@ -83,7 +85,7 @@ class ConcatBlock(BaseBlock):
                 ordered_inputs.append(inputs[name].data)
             else:
                 raise ValueError("All inputs must be of the same type (CPUData or GPUData)")
-        ordered_inputs = tuple(ordered_inputs)
+        concatenated: BaseData
         if input_type == CPUData:
             concatenated = CPUData(np.concatenate(ordered_inputs, axis=self.axis))
         elif input_type == GPUData:
@@ -95,14 +97,14 @@ class ConcatBlock(BaseBlock):
 
 
 class StackBlock(BaseBlock):
-    meta = None
+    meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, input_names: List[str], axis: int = -1):
         self.meta = make_simple_meta(input_names, ['output'],
                                      execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True))
         super().__init__()
         self.axis = axis
-        self.ordered_input_names = None
+        self.ordered_input_names: Optional[List[str]] = None
 
     def fit(self, inputs: BlockInputData) -> 'StackBlock':
         self.ordered_input_names = list(inputs.keys())
@@ -118,7 +120,7 @@ class StackBlock(BaseBlock):
                 ordered_inputs.append(inputs[name].data)
             else:
                 raise ValueError("All inputs must be of the same type (CPUData or GPUData)")
-        ordered_inputs = tuple(ordered_inputs)
+        stacked: BaseData
         if input_type == CPUData:
             stacked = CPUData(np.stack(ordered_inputs, axis=self.axis))
         elif input_type == GPUData:
