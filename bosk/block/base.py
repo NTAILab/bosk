@@ -4,8 +4,9 @@ from numpy.random import Generator
 from typing import Mapping, Set, TypeVar, Optional
 
 from .meta import BaseSlotMeta, BlockMeta
-from ..data import Data
+from ..data import BaseData, Data
 from ..visitor.base import BaseVisitor
+from ..exceptions import MultipleBlockInputsError, MultipleBlockOutputsError, NoDefaultBlockOutputError
 
 
 BlockT = TypeVar('BlockT', bound='BaseBlock')
@@ -95,19 +96,19 @@ class BlockSlots:
     groups: Set[BlockGroup] = field(default_factory=lambda: set())
 
 
-BlockInputData = Mapping[str, Data]
+BlockInputData = Mapping[str, BaseData]
 """Block input values container data type.
 
 It is indexed by input slot names.
 """
 
-TransformOutputData = Mapping[str, Data]
+TransformOutputData = Mapping[str, BaseData]
 """Block transform output values container data type.
 
 It is indexed by output slot names.
 """
 
-BlockOutputData = Mapping[BlockOutputSlot, Data]
+BlockOutputData = Mapping[BlockOutputSlot, BaseData]
 """Block output values container data type.
 
 It is indexed by output slots, not their names.
@@ -221,6 +222,17 @@ class BaseBlock(ABC):
         else:
             return None
 
+    def get_default_output(self) -> BlockOutputSlot:
+        """Get the default block output slot.
+
+        Returns:
+            The block output slot.
+        """
+        default_output = self.default_output
+        if default_output is None:
+            raise NoDefaultBlockOutputError(self)
+        return self.slots.outputs[default_output]
+
 
 class BaseInputBlock(BaseBlock, metaclass=ABCMeta):
     """Base input block. It is guaranteed that is has a single input and some name.
@@ -249,7 +261,8 @@ class BaseInputBlock(BaseBlock, metaclass=ABCMeta):
         Returns:
             The block input slot.
         """
-        assert len(self.slots.inputs) == 1
+        if len(self.slots.inputs) != 1:
+            raise MultipleBlockInputsError(self)
         return next(iter(self.slots.inputs.values()))
 
 
@@ -280,5 +293,6 @@ class BaseOutputBlock(BaseBlock, metaclass=ABCMeta):
         Returns:
             The block output slot.
         """
-        assert len(self.slots.outputs) == 1
+        if len(self.slots.outputs) != 1:
+            raise MultipleBlockOutputsError(self)
         return next(iter(self.slots.outputs.values()))

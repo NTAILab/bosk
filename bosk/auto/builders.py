@@ -82,7 +82,7 @@ class SequentialPipelineBuilder:
         }
         for alias_name, given_input_name in map_inputs.items():
             given_block = self.pipelines[0].inputs[given_input_name].parent_block
-            given_output_slot = given_block.slots.outputs[given_block.default_output]
+            given_output_slot = given_block.get_default_output()
             connections.append(
                 Connection(
                     given_output_slot,
@@ -107,7 +107,7 @@ class SequentialPipelineBuilder:
                 for base_inp in self.base_input_names:
                     if base_inp in pipeline.inputs and base_inp not in fulfilled_inputs:
                         target_input_block = self.pipelines[0].inputs[base_inp].parent_block
-                        target_output_slot = target_input_block.slots.outputs[target_input_block.default_output]
+                        target_output_slot = target_input_block.get_default_output()
                         connections.append(Connection(target_output_slot, pipeline.inputs[base_inp]))
 
         return BasePipeline(
