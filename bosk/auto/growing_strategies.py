@@ -88,6 +88,7 @@ class EarlyStoppingVal(EarlyStoppingCV):
         growing_state['current_data'] = predictions
         metrics_eval = self.make_metrics_eval()
         assert isinstance(self.y.data, np.ndarray)
+        assert isinstance(predictions['proba'].data, np.ndarray)
         metrics_eval.append_eval(self.y.data, predictions['proba'].data)
         val_metrics = metrics_eval.average()
         return super().need_grow(pipeline, val_metrics, executor_cls, growing_state)

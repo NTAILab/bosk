@@ -13,6 +13,10 @@ class MetricsEvaluator:
     Any metric follows the rule "the higher is better", i.e.
     if originally metric decreases when quality increases, it is multiplied by (-1).
     """
+
+    names: set[str]
+    results: defaultdict[str, List[float]]
+
     def __init__(self, names: List[str]):
         self.names = set(names)
         self.results = defaultdict(list)
