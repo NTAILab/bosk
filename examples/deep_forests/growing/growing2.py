@@ -15,7 +15,7 @@ from sklearn.metrics import roc_auc_score
 
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
-from bosk.data import CPUData
+from bosk.data import BaseData, CPUData
 
 import warnings
 import copy
@@ -204,7 +204,7 @@ class FitCallback(ABC):
 class ROCAUCCallback(FitCallback):
     def __call__(self, df_fit_output: Mapping[str, Data]) -> None:
         print(df_fit_output.keys())
-        print('Fit roc-auc score:', df_fit_output['roc-auc'])
+        print('Fit roc-auc score:', df_fit_output['roc-auc'].data)
 
 
 class SimpleGrowingFitter():
@@ -226,7 +226,8 @@ class SimpleGrowingFitter():
         for key, val in grow_details.items():
             print(f'\t{key}: {val}')
 
-    def fit(self, train_data: Dict[str, Data], val_data: Dict[str, Data], labels: Dict[str, Data]) -> None:
+    def fit(self, train_data: Dict[str, BaseData], val_data: Dict[str, BaseData],
+           labels: Dict[str, BaseData]) -> None:
         input_fit_data = copy.copy(train_data)
         input_test_data = copy.copy(val_data)
         fit_output = None
@@ -288,10 +289,10 @@ def main():
     growing_manager.fit({'X': CPUData(train_X), 'y': CPUData(train_y)}, {
                         'X': CPUData(val_X)}, {'labels': CPUData(val_y)})
     tf_exec = growing_manager.get_transform_executor()
-    output = tf_exec({'X': test_X})
+    output = tf_exec({'X': test_X}).numpy()
 
     TopologicalPainter().from_executor(tf_exec).render('growing forest.png')
-    print("Test ROC-AUC:", roc_auc_score(test_y, output['probas'].data[:, 1]))
+    print("Test ROC-AUC:", roc_auc_score(test_y, output['probas'][:, 1]))
 
 
 if __name__ == "__main__":
