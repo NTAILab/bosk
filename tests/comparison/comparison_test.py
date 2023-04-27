@@ -361,5 +361,5 @@ def blocks_times_test():
                 "Sum of blocks' times must be smaller than total execution time"
     for i in range(len(models)):
         model_blocks_time = cv_res.loc[cv_res.loc[:, 'model name'] == f'model {i}', 'blocks time']
-        assert all(model_blocks_time.apply(lambda x: x == None)), \
+        assert all(model_blocks_time.apply(lambda x: x is None)), \
             "For foreign models blocks times must be None"

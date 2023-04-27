@@ -47,7 +47,6 @@ class CVComparator(BaseComparator):
         self.block_hlr_cls = TimerBlockHandler if get_blocks_times else DefaultBlockExecutor
         self.warn_context: Literal['ignore'] | Literal['default'] = 'ignore' if suppress_exec_warn else 'default'
 
-
     def _write_metrics_info_to_dict(self, df_dict, metrics,
                                     train_data_dict, train_pred_dict,
                                     test_data_dict, test_pred_dict,

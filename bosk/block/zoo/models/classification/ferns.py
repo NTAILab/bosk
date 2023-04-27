@@ -133,10 +133,10 @@ def calculate_bucket_stats(bucket_indices: jnp.ndarray, n_buckets: int, y: jnp.n
 
     bucket_stats = jax.vmap(
         lambda c: jax.vmap(
-                lambda b: jnp.zeros((n_buckets,)).at[b].add(jnp.where(y == c, 1, 0)),
-                in_axes=1,
-                out_axes=0
-            )(bucket_indices),
+            lambda b: jnp.zeros((n_buckets,)).at[b].add(jnp.where(y == c, 1, 0)),
+            in_axes=1,
+            out_axes=0
+        )(bucket_indices),
         in_axes=0,
         out_axes=0
     )(jnp.arange(n_classes))
@@ -316,7 +316,7 @@ class RandomFernsBlock(BaseBlock):
         The implementation is device-agnostic.
 
         """
-        assert type(inputs['X']) == type(inputs['y'])
+        assert type(inputs['X']) == type(inputs['y'])  # noqa: E721
         X = inputs['X'].data
         y = inputs['y'].data
         y = self._classifier_init(y)

@@ -72,4 +72,3 @@ class TransformLambdaBlock(BaseBlock):
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         self.function(inputs)
         return inputs
-

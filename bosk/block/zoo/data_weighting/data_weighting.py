@@ -31,6 +31,6 @@ class WeightsBlock:
             self._weights = GPUData(gpu_weights.reshape((-1,)))
         return self
 
-    def transform(self, _X = None) -> BaseData:
+    def transform(self, _X=None) -> BaseData:
         assert self._weights is not None
         return self._weights

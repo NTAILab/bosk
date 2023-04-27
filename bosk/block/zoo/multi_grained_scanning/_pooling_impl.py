@@ -4,7 +4,8 @@ from typing import Tuple
 
 
 @njit
-def _njit_max_pooling_1d(xs: np.ndarray, result: np.ndarray, kernel_size: Tuple[int], stride: Tuple[int], dilation: int):
+def _njit_max_pooling_1d(xs: np.ndarray, result: np.ndarray,
+                         kernel_size: Tuple[int], stride: Tuple[int], dilation: int):
     n_samples = xs.shape[0]
     n_channels = xs.shape[1]
     res_len = result.shape[2]
@@ -25,7 +26,8 @@ def _njit_max_pooling_1d(xs: np.ndarray, result: np.ndarray, kernel_size: Tuple[
 
 
 @njit
-def _njit_mean_pooling_1d(xs: np.ndarray, result: np.ndarray, kernel_size: Tuple[int], stride: Tuple[int], dilation: int):
+def _njit_mean_pooling_1d(xs: np.ndarray, result: np.ndarray,
+                          kernel_size: Tuple[int], stride: Tuple[int], dilation: int):
     n_samples = xs.shape[0]
     n_channels = xs.shape[1]
     res_len = result.shape[2]

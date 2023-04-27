@@ -1,11 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Mapping, FrozenSet, Optional, Sequence
+from typing import Mapping, Optional, Sequence
 
 from ..data import Data
 from ..stages import Stage
 from ..block.base import BaseBlock, BlockOutputData, BlockGroup, BlockInputSlot
-from ..pipeline import BasePipeline
-import warnings
 
 
 InputSlotToDataMapping = Mapping[BlockInputSlot, Data]
@@ -56,6 +54,7 @@ class FitBlacklistBlockExecutor(DefaultBlockExecutor):
     It is used to be able to manually fit some blocks of the pipeline and avoid overriding of the state
     when the whole pipeline is fitted.
     """
+
     def __init__(self, ignore_blocks: Optional[Sequence[BaseBlock]] = None,
                  ignore_groups: Optional[Sequence[BlockGroup]] = None) -> None:
         """Initialize the block executor.
@@ -72,7 +71,7 @@ class FitBlacklistBlockExecutor(DefaultBlockExecutor):
         self.ignore_groups = set(ignore_groups or [])
 
     def execute_block(self, stage: Stage, block: BaseBlock,
-                        block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
+                      block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
         need_ignore_fit = (block in self.ignore_blocks) or (not block.slots.groups.isdisjoint(self.ignore_groups))
         if need_ignore_fit:
             # avoid block fitting, just apply transform

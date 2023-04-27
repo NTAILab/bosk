@@ -26,7 +26,10 @@ from .validation import (
 )
 
 
-DEFAULT_MAKE_METRICS = lambda: MetricsEvaluator(['f1', 'roc_auc'])
+def DEFAULT_MAKE_METRICS():
+    return MetricsEvaluator(['f1', 'roc_auc'])
+
+
 DEFAULT_EXECUTOR_CLS = RecursiveExecutor
 
 
@@ -41,6 +44,7 @@ class BaseAutoDeepForestConstructor(ABC):
         - At different *iterations* the algorithm generates layers of the same structure.
 
     """
+
     def __init__(self, executor_cls: Type[BaseExecutor],
                  max_iter: int = 10,
                  cv: Optional[int] = 5,

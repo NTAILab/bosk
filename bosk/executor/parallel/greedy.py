@@ -164,7 +164,6 @@ class GreedyParallelExecutor(BaseExecutor):
                     stack.append(dst_to_src[input_slot])
         return result_blocks
 
-
     def _prepare_inputs_by_block(self) -> Dict[BaseBlock, Set[BlockInputSlot]]:
         """Prepare the mapping from blocks to their inputs.
 
@@ -246,7 +245,7 @@ class GreedyParallelExecutor(BaseExecutor):
         return outputs
 
     def _compute_all_non_threadsafe(self, blocks: Sequence[BaseBlock],
-                                computed_values: Mapping[BlockInputSlot, Data]) -> Mapping[BlockOutputSlot, Data]:
+                                    computed_values: Mapping[BlockInputSlot, Data]) -> Mapping[BlockOutputSlot, Data]:
         """Filter blocks that are not plain and cannot be computed in parallel, and compute them.
 
         Args:
@@ -259,7 +258,7 @@ class GreedyParallelExecutor(BaseExecutor):
         outputs: Dict[BlockOutputSlot, Data] = dict()
         for block in blocks:
             if block.meta.execution_props.threadsafe or \
-                block.meta.execution_props.plain:
+                    block.meta.execution_props.plain:
                 continue
             block_inputs = self._prepare_inputs(block, computed_values)
             block_outputs = self._execute_block(block, block_inputs)
@@ -285,7 +284,7 @@ class GreedyParallelExecutor(BaseExecutor):
             del computed_values[in_slot]
 
     def _find_ready_blocks(self, computed_values: Dict[BlockInputSlot, Data],
-                          remaining_blocks: Set[BaseBlock]) -> List[BaseBlock]:
+                           remaining_blocks: Set[BaseBlock]) -> List[BaseBlock]:
         """Find the blocks for which required inputs are already computed.
 
         Args:
