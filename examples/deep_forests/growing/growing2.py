@@ -240,7 +240,7 @@ class SimpleGrowingFitter():
             fit_output = fit_exec(input_fit_data)
             if self.fit_callback is not None:
                 self.fit_callback(fit_output)
-            tf_exec = self.exec_cls(new_layer, stage=Stage.TRANSFORM, **self.exec_kw)
+            tf_exec = self.exec_cls(new_layer, stage=Stage.TRANSFORM, outputs=['probas'], **self.exec_kw)
             test_output = tf_exec(input_test_data)
             f_need_continue = self.strategy.need_grow(labels, test_output, fit_output)
             self._print_log()
