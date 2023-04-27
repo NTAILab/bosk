@@ -9,7 +9,7 @@ from functools import wraps
 import warnings
 
 
-def auto_block(_implicit_cls=None,
+def auto_block(_implicit_cls=None,  # noqa: C901
                execution_props: Optional[BlockExecutionProperties] = None,
                random_state_field: str | None = 'random_state',
                auto_state: bool = False):
