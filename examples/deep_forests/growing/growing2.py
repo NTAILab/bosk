@@ -36,6 +36,7 @@ class StepwisePipeline():
     preference will be given to the last added output slot with the corresponding name.
 
     """
+
     def __init__(self, input_blocks: Mapping[str, BaseBlock], outputs: Set[str]):
         for inp_block in input_blocks.values():
             assert len(inp_block.slots.inputs) == 1, "Input blocks must contain only 1 input slot"
@@ -78,7 +79,7 @@ class StepwisePipeline():
                 inp_conns.append(Connection(out_slot, inp_slot))
         inputs = {key: next(iter(block.slots.inputs.values())) for key, block in self.common_inputs.items()}
         return BasePipeline(nodes=self.cur_nodes, connections=self.cur_internal_conns + inp_conns,
-                        inputs=inputs, outputs=self.cur_outputs)
+                            inputs=inputs, outputs=self.cur_outputs)
 
 
 class BaseGrowingStrategy(ABC):
@@ -88,8 +89,8 @@ class BaseGrowingStrategy(ABC):
     """
     @abstractmethod
     def need_grow(self, labels: Optional[Mapping[str, Data]] = None,
-                transform_results: Optional[Mapping[str, Data]] = None,
-                fit_results: Optional[Mapping[str, Data]] = None) -> bool:
+                  transform_results: Optional[Mapping[str, Data]] = None,
+                  fit_results: Optional[Mapping[str, Data]] = None) -> bool:
         ...
 
     @abstractmethod
@@ -106,12 +107,12 @@ class LayerFactoryBase(ABC):
 @dataclass
 class EarlyStoppingStrategy(BaseGrowingStrategy):
     max_iter_num: int
-    patience: int # todo
+    patience: int  # todo
     _cur_iter: int = field(default=0, init=False)
 
     def need_grow(self, labels: Optional[Mapping[str, Data]] = None,
-                transform_results: Optional[Mapping[str, Data]] = None,
-                fit_results: Optional[Mapping[str, Data]] = None) -> bool:
+                  transform_results: Optional[Mapping[str, Data]] = None,
+                  fit_results: Optional[Mapping[str, Data]] = None) -> bool:
         self._cur_iter += 1
         return self._cur_iter < self.max_iter_num
 
@@ -124,8 +125,8 @@ class ROCAUCStrategy(BaseGrowingStrategy):
         self.last_score = 0
 
     def need_grow(self, labels: Optional[Mapping[str, Data]] = None,
-                transform_results: Optional[Mapping[str, Data]] = None,
-                fit_results: Optional[Mapping[str, Data]] = None) -> bool:
+                  transform_results: Optional[Mapping[str, Data]] = None,
+                  fit_results: Optional[Mapping[str, Data]] = None) -> bool:
         assert labels is not None
         if transform_results is None:
             return True
@@ -143,8 +144,8 @@ class ComplexGrowingStrategy(BaseGrowingStrategy):
         self.strat_seq = copy.copy(strategies)
 
     def need_grow(self, labels: Optional[Mapping[str, Data]] = None,
-                transform_results: Optional[Mapping[str, Data]] = None,
-                fit_results: Optional[Mapping[str, Data]] = None) -> bool:
+                  transform_results: Optional[Mapping[str, Data]] = None,
+                  fit_results: Optional[Mapping[str, Data]] = None) -> bool:
         return all(map(lambda strat: strat.need_grow(labels, transform_results, fit_results), self.strat_seq))
 
     def get_details(self) -> Mapping[str, Any]:
@@ -208,9 +209,9 @@ class ROCAUCCallback(FitCallback):
 
 class SimpleGrowingFitter():
     def __init__(self, pipeline: StepwisePipeline,
-                layer_factory: LayerFactoryBase, growing_strategy: BaseGrowingStrategy,
-                executor_cls: Type[BaseExecutor], exec_kw = {},
-                fit_callback: Optional[FitCallback] = None):
+                 layer_factory: LayerFactoryBase, growing_strategy: BaseGrowingStrategy,
+                 executor_cls: Type[BaseExecutor], exec_kw={},
+                 fit_callback: Optional[FitCallback] = None):
         self.growing_pipeline = pipeline
         self.layer_factory = layer_factory
         self.strategy = growing_strategy
@@ -282,9 +283,10 @@ def main():
     roc_auc_strat = ROCAUCStrategy()
     final_strat = ComplexGrowingStrategy([early_stop_strat, roc_auc_strat])
     growing_manager = SimpleGrowingFitter(growing_pipeline, SimpleDFLayerFactory(), final_strat,
-        TopologicalExecutor, fit_callback=ROCAUCCallback())
+                                          TopologicalExecutor, fit_callback=ROCAUCCallback())
 
-    growing_manager.fit({'X': CPUData(train_X), 'y': CPUData(train_y)}, {'X': CPUData(val_X)}, {'labels': CPUData(val_y)})
+    growing_manager.fit({'X': CPUData(train_X), 'y': CPUData(train_y)}, {
+                        'X': CPUData(val_X)}, {'labels': CPUData(val_y)})
     tf_exec = growing_manager.get_transform_executor()
     output = tf_exec({'X': test_X})
 

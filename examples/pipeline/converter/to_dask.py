@@ -1,6 +1,8 @@
 """Example of deep forest pipeline conversion to a Dask graph.
 
 """
+import json
+from bosk.data import CPUData
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.stages import Stage
 
@@ -62,8 +64,6 @@ def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
     return fit_executor, transform_executor
 
 
-import json
-
 class FnEncoder(json.JSONEncoder):
     def default(self, obj):
         if callable(obj):
@@ -82,8 +82,8 @@ def main():
 
     train_converter = DaskConverter(stage=Stage.FIT, operator_set=FitDaskOperatorSet())
     dsk_train = train_converter(fit_executor.pipeline)
-    dsk_train['X'] = train_X
-    dsk_train['y'] = train_y
+    dsk_train['X'] = CPUData(train_X)
+    dsk_train['y'] = CPUData(train_y)
     outputs = ['probas']
     dsk_train_culled, dependencies = dask_cull(dsk_train, outputs)
     train_outputs = dask_get(dsk_train_culled, outputs)
@@ -91,10 +91,13 @@ def main():
 
     # fit_result = fit_executor({'X': train_X, 'y': train_y})
     print("  Fit successful")
-    train_result = transform_executor({'X': train_X})
-    print("  Fit probas == probas on train:", np.allclose(fit_result['probas'], train_result['probas']))
-    test_result = transform_executor({'X': test_X})
-    print("  Train ROC-AUC:", roc_auc_score(train_y, train_result['probas'][:, 1]))
+    train_result = transform_executor({'X': CPUData(train_X)})
+    print(
+        "  Fit probas == probas on train:",
+        np.allclose(fit_result['probas'].data, train_result['probas'].data)
+    )
+    test_result = transform_executor({'X': CPUData(test_X)})
+    print("  Train ROC-AUC:", roc_auc_score(train_y, train_result['probas'].data[:, 1]))
     # print(
     #     "  Train ROC-AUC calculated by fit_executor:",
     #     fit_result['roc-auc']
@@ -103,7 +106,7 @@ def main():
     #     "  Train ROC-AUC for RF_1:",
     #     fit_result['rf_1_roc-auc']
     # )
-    print("  Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'][:, 1]))
+    print("  Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'].data[:, 1]))
 
     # execute with Dask
 
@@ -111,11 +114,11 @@ def main():
     dsk = converter(fit_executor.pipeline)
     # print("Dask Graph:")
     # print(json.dumps(dsk, cls=FnEncoder, indent=4))
-    dsk['X'] = test_X
+    dsk['X'] = CPUData(test_X)
     outputs = ['probas']
     dsk_culled, dependencies = dask_cull(dsk, outputs)
     test_outputs = dask_get(dsk_culled, outputs)
-    print("  Test ROC-AUC (Dask):", roc_auc_score(test_y, test_outputs[0][:, 1]))
+    print("  Test ROC-AUC (Dask):", roc_auc_score(test_y, test_outputs[0].data[:, 1]))
 
 
 if __name__ == "__main__":
