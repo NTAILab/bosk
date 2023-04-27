@@ -187,7 +187,8 @@ class BaseComparator(ABC):
                     queue_list[i].append(neig_node)
 
     def _get_input_plug(self, slot: BaseSlot) -> BaseInputBlock:
-        if slot.meta.stages.transform:
+        if isinstance(slot, BlockInputSlot) and slot.meta.stages.transform\
+                or isinstance(slot, BlockOutputSlot):
             return InputBlock()
         return TargetInputBlock()
 
