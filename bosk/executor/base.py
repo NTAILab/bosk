@@ -16,7 +16,7 @@ class BaseSlotHandler(ABC):
     """
 
     @abstractmethod
-    def is_slot_required(self, stage: Stage, slot: BaseSlot) -> bool:
+    def is_slot_required(self, stage: Stage, slot: BlockInputSlot) -> bool:
         """Method that determines if the slot is required during
         the computational graph execution.
 
@@ -27,7 +27,7 @@ class BaseSlotHandler(ABC):
 
 
 class DefaultSlotHandler(BaseSlotHandler):
-    def is_slot_required(self, stage: Stage, slot: BaseSlot) -> bool:
+    def is_slot_required(self, stage: Stage, slot: BlockInputSlot) -> bool:
         assert isinstance(
             slot, BlockInputSlot), "InputSlotStrategy proceeds only input slots"
         if stage == Stage.FIT:
@@ -177,7 +177,7 @@ class BaseExecutor(ABC):
             if input_slot is None:
                 warnings.warn(f'Unable to find input "{name}" in the pipeline')
 
-    def _is_slot_required(self, slot: BaseSlot) -> bool:
+    def _is_slot_required(self, slot: BlockInputSlot) -> bool:
         """Method that determines if the slot is required during
         the computational graph execution. Added for additional debugging (and polymorphism)
         features and to make the code shorter.
