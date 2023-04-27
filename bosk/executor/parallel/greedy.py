@@ -333,7 +333,7 @@ class GreedyParallelExecutor(BaseExecutor):
             for in_slot in self._edges[out_slot]:
                 computed_values[in_slot] = out_data
 
-    def __call_with_parallel(self, input_values: Mapping[str, Data],
+    def __execute_with_parallel(self, input_values: Mapping[str, Data],
                              parallel: ParallelEngine.Instance) -> Dict[BlockOutputSlot, BaseData]:
         """Pipeline execution with given parallel engine instance.
 
@@ -406,10 +406,10 @@ class GreedyParallelExecutor(BaseExecutor):
             recently_computed_outputs = parallel_outputs
         return output_values
 
-    def __call__(self, input_values: Mapping[str, Data]) -> Dict[str, BaseData]:
+    def execute(self, input_values: Mapping[str, Data]) -> Dict[str, BaseData]:
         self._check_input_values(input_values)
         with self.parallel_engine as parallel:
-            output_values = self.__call_with_parallel(input_values, parallel)
+            output_values = self.__execute_with_parallel(input_values, parallel)
         # convert output values to string-indexed dict
         result = dict()
         assert self.outputs is not None

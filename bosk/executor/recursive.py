@@ -39,7 +39,7 @@ class RecursiveExecutor(BaseExecutor):
         super().__init__(pipeline, stage, inputs, outputs, slot_handler, block_executor)
         self._conn_map = get_connection_map(self)
 
-    def __call__(self, input_values: Mapping[str, Data]) -> Dict[str, BaseData]:
+    def execute(self, input_values: Mapping[str, Data]) -> Dict[str, BaseData]:
         self._check_input_values(input_values)
         slots_values: Dict[Union[BlockInputSlot, BlockOutputSlot], Data] = dict()
         # here typing is ignored, because keys in result of `_map_input_names_to_slots`

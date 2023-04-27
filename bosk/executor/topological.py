@@ -138,7 +138,7 @@ class TopologicalExecutor(BaseExecutor):
                 forward_aj_list[out_slot.parent_block].add(inp_slot.parent_block)
         return forward_aj_list
 
-    def __call__(self, input_values: Mapping[str, Data]) -> Dict[str, BaseData]:
+    def execute(self, input_values: Mapping[str, Data]) -> Dict[str, BaseData]:
         """The main method for the processing of the computational graph.
 
         Args:
