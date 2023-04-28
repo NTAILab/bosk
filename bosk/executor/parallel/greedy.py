@@ -334,7 +334,7 @@ class GreedyParallelExecutor(BaseExecutor):
                 computed_values[in_slot] = out_data
 
     @property
-    def outputs(self) -> frozenset[str]:
+    def outputs(self) -> Optional[frozenset[str]]:
         if super().outputs is None:
             return frozenset(self.pipeline.outputs.keys())
         return super().outputs
