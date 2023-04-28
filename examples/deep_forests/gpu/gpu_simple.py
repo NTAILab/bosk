@@ -16,8 +16,8 @@ from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBloc
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
 from bosk.block.zoo.metrics import RocAucBlock
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
-
 from bosk.block.zoo.gpu_blocks.transition import MoveToBlock
+from bosk.executor.block import GPUBlockExecutor, CPUBlockExecutor
 from bosk.data import CPUData, GPUData
 
 
@@ -35,6 +35,7 @@ def make_deep_forest_functional_cpu(executor, **ex_kw):
         stage=Stage.FIT,
         inputs=['X', 'y'],
         outputs=['concat'],
+        block_executor=CPUBlockExecutor(),
         **ex_kw
     )
     transform_executor = executor(
@@ -45,6 +46,7 @@ def make_deep_forest_functional_cpu(executor, **ex_kw):
         stage=Stage.TRANSFORM,
         inputs=['X'],
         outputs=['concat'],
+        block_executor=CPUBlockExecutor(),
         **ex_kw
     )
     return fit_executor, transform_executor
@@ -64,6 +66,7 @@ def make_deep_forest_functional_gpu(executor, **ex_kw):
         stage=Stage.FIT,
         inputs=['X', 'y'],
         outputs=['concat'],
+        block_executor=GPUBlockExecutor(),
         **ex_kw
     )
     transform_executor = executor(
@@ -74,6 +77,7 @@ def make_deep_forest_functional_gpu(executor, **ex_kw):
         stage=Stage.TRANSFORM,
         inputs=['X'],
         outputs=['concat'],
+        block_executor=GPUBlockExecutor(),
         **ex_kw
     )
     return fit_executor, transform_executor
