@@ -333,6 +333,12 @@ class GreedyParallelExecutor(BaseExecutor):
             for in_slot in self._edges[out_slot]:
                 computed_values[in_slot] = out_data
 
+    @property
+    def outputs(self) -> frozenset[str]:
+        if super().outputs is None:
+            return frozenset(self.pipeline.outputs.keys())
+        return super().outputs
+
     def __execute_with_parallel(self, input_values: Mapping[str, Data],
                              parallel: ParallelEngine.Instance) -> Dict[BlockOutputSlot, BaseData]:
         """Pipeline execution with given parallel engine instance.
