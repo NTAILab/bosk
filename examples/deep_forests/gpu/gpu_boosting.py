@@ -157,4 +157,3 @@ if __name__ == "__main__":
     run_gpu()
     end_time = time.time()
     print(f"Time GPU execution: {end_time - start_time} sec")
-

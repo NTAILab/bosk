@@ -3,7 +3,7 @@ from typing import List
 import numpy as np
 
 from ...base import BaseBlock, BlockInputData, TransformOutputData
-from ...meta import BlockExecutionProperties, make_simple_meta
+from ...meta import BlockExecutionProperties, BlockMeta, DynamicBlockMetaStub, make_simple_meta
 from ....data import CPUData
 
 
@@ -29,7 +29,7 @@ class CSBlock(BaseBlock):
 
 
 class CSFilterBlock(BaseBlock):
-    meta = None
+    meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, input_names: List[str]):
         output_names = input_names

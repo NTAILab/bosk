@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from ..block.slot import BlockInputSlot, BlockOutputSlot
+from ..block.base import BlockInputSlot, BlockOutputSlot
 from ..visitor.base import BaseVisitor
 
 

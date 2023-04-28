@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Mapping, FrozenSet, Optional, Sequence
+from typing import Dict, Mapping, FrozenSet, Optional, Sequence, Union
 import warnings
 
-from ..data import Data
+import numpy as np
+
+from ..data import BaseData, CPUData, Data
 from ..stages import Stage
-from ..block.base import BaseBlock, BlockOutputData
-from ..block.slot import BlockInputSlot, BaseSlot
+from ..block.base import BaseBlock, BlockOutputData, BlockInputSlot, BaseSlot
 from ..pipeline import BasePipeline
 from .block import InputSlotToDataMapping, BaseBlockExecutor, DefaultBlockExecutor
 
@@ -15,7 +16,7 @@ class BaseSlotHandler(ABC):
     """
 
     @abstractmethod
-    def is_slot_required(self, stage: Stage, slot: BaseSlot) -> bool:
+    def is_slot_required(self, stage: Stage, slot: BlockInputSlot) -> bool:
         """Method that determines if the slot is required during
         the computational graph execution.
 
@@ -26,7 +27,7 @@ class BaseSlotHandler(ABC):
 
 
 class DefaultSlotHandler(BaseSlotHandler):
-    def is_slot_required(self, stage: Stage, slot: BaseSlot) -> bool:
+    def is_slot_required(self, stage: Stage, slot: BlockInputSlot) -> bool:
         assert isinstance(
             slot, BlockInputSlot), "InputSlotStrategy proceeds only input slots"
         if stage == Stage.FIT:
@@ -34,6 +35,29 @@ class DefaultSlotHandler(BaseSlotHandler):
                 or slot.meta.stages.transform \
                 or slot.meta.stages.transform_on_fit
         return slot.meta.stages.transform
+
+
+class ExecutionResult(Dict[str, BaseData]):
+    """Pipeline execution result. Basically behaves as a dictionary of `BaseData` objects.
+
+    Wraps a dictionary of `BaseData` objects and provides method to obtain dictionary of NumPy arrays.
+    Rationale: frequently expected result of the pipeline execution is a dictionary of NumPy arrays.
+    """
+    def __init__(self, result: Dict[str, BaseData]):
+        """Initialize execution result with dictionary of results.
+
+        Args:
+            result: Dictionary of result `BaseData` objects.
+        """
+        super().__init__(result)
+
+    def numpy(self) -> Dict[str, np.ndarray]:
+        """Convert execution result to dictionary of NumPy arrays.
+
+        Returns:
+            Dictionary of NumPy arrays.
+        """
+        return {k: v.to_cpu().data for k, v in self.items()}
 
 
 class BaseExecutor(ABC):
@@ -125,7 +149,7 @@ class BaseExecutor(ABC):
         else:
             self.__outputs = None
 
-    def _map_input_names_to_slots(self, input_values: Mapping[str, Data]) -> Mapping[BlockInputSlot, Data]:
+    def _map_input_names_to_slots(self, input_values: Mapping[str, Data]) -> Dict[BlockInputSlot, Data]:
         """Method to translate dictionary, passed in :meth:`__call__`, to dictionary that is useful for evaluation.
         Args:
             input_values: Input data, passed to the :meth:`__call__` method.
@@ -153,7 +177,7 @@ class BaseExecutor(ABC):
             if input_slot is None:
                 warnings.warn(f'Unable to find input "{name}" in the pipeline')
 
-    def _is_slot_required(self, slot: BaseSlot) -> bool:
+    def _is_slot_required(self, slot: BlockInputSlot) -> bool:
         """Method that determines if the slot is required during
         the computational graph execution. Added for additional debugging (and polymorphism)
         features and to make the code shorter.
@@ -173,8 +197,32 @@ class BaseExecutor(ABC):
         """
         return self.__block_executor.execute_block(self.stage, block, block_input_mapping)
 
+    def __call__(self, input_values: Mapping[str, Union[BaseData, np.ndarray]]) -> ExecutionResult:
+        """Executes the pipeline given `BaseData` or just NumPy arrays and returns results dictionary.
+
+        Args:
+            input_values: Input data.
+
+        Returns:
+            Calculated output data.
+        """
+        input_values_data = {
+            name: data if isinstance(data, BaseData) else CPUData(data)
+            for name, data in input_values.items()
+        }
+        outputs = self.execute(input_values_data)
+        return ExecutionResult(outputs)
+
     @abstractmethod
-    def __call__(self, input_values: Mapping[str, Data]) -> Mapping[str, Data]:
+    def execute(self, input_values: Mapping[str, BaseData]) -> Dict[str, BaseData]:
+        """Executes the pipeline given `BaseData` inputs and return `BaseData` output values.
+
+        Args:
+            input_values: Input data.
+
+        Returns:
+            Calculated output data dictionary that maps output names to the data.
+        """
         ...
 
     @property
@@ -200,9 +248,9 @@ class BaseExecutor(ABC):
         return self.__slot_handler
 
     @property
-    def block_handler(self) -> BaseBlock:
-        """Getter for the executor's blocks handler."""
-        return self.__block_handler
+    def block_executor(self) -> BaseBlockExecutor:
+        """Getter for the executor's block executor."""
+        return self.__block_executor
 
     @property
     def stage(self) -> Stage:

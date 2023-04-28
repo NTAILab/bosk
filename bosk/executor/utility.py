@@ -2,9 +2,9 @@
 can be used by many executors.
 """
 
-from typing import Mapping
+from typing import Dict, Mapping
 from .base import BaseExecutor
-from ..block.slot import BlockInputSlot, BlockOutputSlot
+from ..block.base import BlockInputSlot, BlockOutputSlot
 
 
 def get_connection_map(executor: BaseExecutor) -> Mapping[BlockInputSlot, BlockOutputSlot]:
@@ -14,7 +14,7 @@ def get_connection_map(executor: BaseExecutor) -> Mapping[BlockInputSlot, BlockO
     Raises:
         AssertionError: If some input slot has more than one corresponding output slot.
     """
-    conn_dict: Mapping[BlockInputSlot, BlockOutputSlot] = dict()
+    conn_dict: Dict[BlockInputSlot, BlockOutputSlot] = dict()
     for conn in executor.pipeline.connections:
         assert (conn.dst not in conn_dict), f'Input slot "{repr(conn.dst)}" of block \
             "{repr(conn.dst.parent_block)}" is used more than once'

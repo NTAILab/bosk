@@ -14,7 +14,7 @@ class TimerBlockHandler(BaseBlockExecutor):
     def execute_block(self, stage: Stage,
                       block: BaseBlock,
                       block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
-        fit_time = 0
+        fit_time = 0.0
         if stage == Stage.FIT:
             _, fit_time = timer_wrap(block.fit)({
                 slot.meta.name: values

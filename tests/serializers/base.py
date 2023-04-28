@@ -4,7 +4,7 @@ from bosk.executor.recursive import RecursiveExecutor
 from bosk.pipeline.base import BasePipeline
 from bosk.stages import Stage
 import numpy as np
-from ..pipelines import *
+from ..pipelines import *  # noqa: F403
 from ..pipelines.base import BasePipelineTest as BPT
 from ..utility import get_all_subclasses, fit_pipeline, log_test_name
 from . import TMP_SAVE_DIR

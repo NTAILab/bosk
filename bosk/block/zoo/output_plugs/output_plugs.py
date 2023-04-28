@@ -1,12 +1,12 @@
 from typing import Optional
 from ...base import BaseOutputBlock, BlockInputData, TransformOutputData
-from ...meta import BlockExecutionProperties, make_simple_meta
+from ...meta import BlockExecutionProperties, BlockMeta, DynamicBlockMetaStub, make_simple_meta
 
 
 class OutputBlock(BaseOutputBlock):
     DEFAULT_OUTPUT_NAME = 'out'
     name = None
-    meta = None
+    meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, name: Optional[str] = None):
         slot_name = name if name is not None else self.DEFAULT_OUTPUT_NAME

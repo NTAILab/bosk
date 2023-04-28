@@ -4,6 +4,7 @@
 from collections import defaultdict
 from time import time, sleep
 from bosk.block.meta import BlockExecutionProperties
+from bosk.data import CPUData
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.stages import Stage
 
@@ -141,15 +142,15 @@ def test_executor(executor_class, ex_kw=None, n_time_iter: int = 1, forest_param
     all_times = defaultdict(list)
     for _ in range(n_time_iter):
         with SimpleTimer() as t:
-            fit_result = fit_executor({'X': train_X, 'y': train_y})
+            fit_result = fit_executor({'X': train_X, 'y': train_y}).numpy()
         all_times['fit'].append(t.duration)
     print("  Fit successful")
     for _ in range(n_time_iter):
         with SimpleTimer() as t:
-            train_result = transform_executor({'X': train_X})
+            train_result = transform_executor({'X': train_X}).numpy()
         all_times['transform'].append(t.duration)
     print("  Fit probas == probas on train:", np.allclose(fit_result['probas'], train_result['probas']))
-    test_result = transform_executor({'X': test_X})
+    test_result = transform_executor({'X': test_X}).numpy()
     print("  Train ROC-AUC:", roc_auc_score(train_y, train_result['probas'][:, 1]))
     print(
         "  Train ROC-AUC calculated by fit_executor:",
@@ -162,8 +163,8 @@ def test_executor(executor_class, ex_kw=None, n_time_iter: int = 1, forest_param
     print("  Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'][:, 1]))
     print("  Times:")
     for stage, times in all_times.items():
-        times = np.array(times)
-        print(f"    {stage} = {times.mean()} ± {times.std()}")
+        t = np.array(times)
+        print(f"    {stage} = {t.mean()} ± {t.std()}")
 
 
 def main():

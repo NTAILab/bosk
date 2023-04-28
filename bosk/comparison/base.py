@@ -1,24 +1,23 @@
-from abc import ABC, abstractmethod
-from bosk.block.base import BaseBlock
-from bosk.block.slot import BlockInputSlot, BlockOutputSlot
-from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
-from bosk.pipeline.base import BasePipeline, Connection
-from bosk.block.base import BaseInputBlock
-from bosk.block.slot import BaseSlot
-from bosk.data import BaseData
-from collections import deque, defaultdict
-from .metric import BaseMetric
 import joblib
 from functools import cache
-from typing import List, Set, Dict, Optional, Iterable, Deque
+from typing import List, Mapping, MutableMapping, Set, Dict, Optional, Iterable, Deque
 from copy import deepcopy
 from pandas import DataFrame
+from abc import ABC, abstractmethod
+from collections import deque, defaultdict
+
+from ..block.base import BaseBlock, BlockInputSlot, BlockOutputSlot, BaseSlot, BlockSlots
+from ..block.zoo.input_plugs import InputBlock, TargetInputBlock
+from ..pipeline.base import BasePipeline, Connection
+from ..block.base import BaseInputBlock
+from ..data import BaseData
+from .metric import BaseMetric
 
 
 class BaseForeignModel(ABC):
     """Adapter class for all models, defined outside
     of the `bosk` framework. It is needed to make sure
-    that the model handles bosk's style of the data transmission. 
+    that the model handles bosk's style of the data transmission.
     """
 
     @abstractmethod
@@ -27,7 +26,7 @@ class BaseForeignModel(ABC):
 
     @abstractmethod
     def predict(self, data: Dict[str, BaseData]) -> Dict[str, BaseData]:
-        """Method for using the fitted model and obtain transformed 
+        """Method for using the fitted model and obtain transformed
         data dictionary."""
 
     @abstractmethod
@@ -47,7 +46,7 @@ class BaseComparator(ABC):
     """Class that performes comparison of different models.
     The models, defined via `bosk` framework, marked as `pipelines`
     and may have a common part in them to optimize calculations
-    (common part pipeline will be executed once and retreived 
+    (common part pipeline will be executed once and retreived
     data will be used in other pipelines). The common part must be
     a common begining of all pipelines.
 
@@ -56,7 +55,7 @@ class BaseComparator(ABC):
     adapter to handle the `bosk` data transmission style.
     """
 
-    random_state: int
+    random_state: Optional[int]
 
     def _get_aj_lists(self, pipeline: BasePipeline):
         # output->input, forward pass
@@ -137,7 +136,6 @@ class BaseComparator(ABC):
             queue_hashes = [get_block_md5_hash(block) for block in queue_list[i]]
             # find matching block in queue
             match_idxes = [i for i, hash in enumerate(queue_hashes) if hash == cur_block_hash]
-            match_block: BaseBlock = None
             # we will choose the first suitable, that's not fully correct
             # but otherwise the algorithm will be much larger
             for idx in match_idxes:
@@ -146,14 +144,16 @@ class BaseComparator(ABC):
                     match_block = queue_list[i][idx]
                     matched_blocks.append(match_block)
                     break
-            if match_block is None:
+            else:
                 return None
         return matched_blocks
 
     def _add_common_block(self, pipelines_blocks: List[BaseBlock],
-                          conn_map_list, iso_blocks_list,
-                          iso_slots_list, common_blocks,
-                          common_conn_map) -> None:
+                          conn_map_list: List[Dict[BlockInputSlot, BlockOutputSlot]],
+                          iso_blocks_list,
+                          iso_slots_list: List[MutableMapping[BaseSlot, BaseSlot]],
+                          common_blocks: List[BaseBlock],
+                          common_conn_map: MutableMapping[BlockInputSlot, BaseSlot]) -> None:
         block_for_copy = pipelines_blocks[0]
         new_block = deepcopy(block_for_copy)
         common_blocks.append(new_block)
@@ -187,7 +187,8 @@ class BaseComparator(ABC):
                     queue_list[i].append(neig_node)
 
     def _get_input_plug(self, slot: BaseSlot) -> BaseInputBlock:
-        if slot.meta.stages.transform:
+        if isinstance(slot, BlockInputSlot) and slot.meta.stages.transform\
+                or isinstance(slot, BlockOutputSlot):
             return InputBlock()
         return TargetInputBlock()
 
@@ -285,12 +286,12 @@ class BaseComparator(ABC):
         aj_block_list = []
         aj_conn_list = []
         queue_list = []
-        block_iso_list = []
-        slot_iso_list = []
+        block_iso_list: List[MutableMapping[BaseBlock, BaseBlock]] = []
+        slot_iso_list: List[MutableMapping[BaseSlot, BaseSlot]] = []
 
         common_inputs_names = self._get_common_inputs(pipelines)
-        common_blocks = []
-        common_conn_map: Dict[BlockInputSlot, BlockOutputSlot] = dict()
+        common_blocks: List[BaseBlock] = []
+        common_conn_map: MutableMapping[BlockInputSlot, BaseSlot] = dict()
 
         for pipeline in pipelines:
             cur_blocks_al, cur_conns_al = self._get_aj_lists(pipeline)
@@ -351,11 +352,11 @@ class BaseComparator(ABC):
         # Finding blocks in the common part
         # which can be used as the outputs
         common_outputs = dict()
-        extra_blocks_list = [[] for _ in range(len(pipelines))]
-        extra_inputs_list = [dict() for _ in range(len(pipelines))]
-        extra_outputs_list = [dict() for _ in range(len(pipelines))]
-        conns_to_remove_list = [[] for _ in range(len(pipelines))]
-        conns_to_append_list = [[] for _ in range(len(pipelines))]
+        extra_blocks_list: List[List[BaseBlock]] = [[] for _ in range(len(pipelines))]
+        extra_inputs_list: List[MutableMapping[str, BlockInputSlot]] = [dict() for _ in range(len(pipelines))]
+        extra_outputs_list: List[MutableMapping[str, BlockOutputSlot]] = [dict() for _ in range(len(pipelines))]
+        conns_to_remove_list: List[List[Connection]] = [[] for _ in range(len(pipelines))]
+        conns_to_append_list: List[List[Connection]] = [[] for _ in range(len(pipelines))]
         pip_out_slots_list = []
 
         # reversing the outputs dictionary

@@ -1,12 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Mapping, FrozenSet, Optional, Sequence
+from typing import Mapping, Optional, Sequence
 
 from ..data import Data, BaseData, CPUData, GPUData
 from ..stages import Stage
-from ..block.base import BaseBlock, BlockOutputData
-from ..block.slot import BlockGroup, BlockInputSlot, BaseSlot
-from ..pipeline import BasePipeline
-import warnings
+from ..block.base import BaseBlock, BlockOutputData, BlockGroup, BlockInputSlot
 
 InputSlotToDataMapping = Mapping[BlockInputSlot, Data]
 """Block input slot data mapping.
