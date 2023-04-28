@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from numpy.random import Generator
 from typing import Mapping, Set, TypeVar, Optional
 
-from .meta import BaseSlotMeta, BlockMeta
+from .meta import BaseSlotMeta, BlockMeta, InputSlotMeta, OutputSlotMeta
 from ..data import BaseData, Data
 from ..visitor.base import BaseVisitor
 from ..exceptions import MultipleBlockInputsError, MultipleBlockOutputsError, NoDefaultBlockOutputError
@@ -53,6 +53,7 @@ class BlockInputSlot(BaseSlot):
 
     Contains the information required for the input data processing, and input-output matching.
     """
+    meta: InputSlotMeta
 
 
 @dataclass(eq=False, frozen=False)
@@ -61,6 +62,7 @@ class BlockOutputSlot(BaseSlot):
 
     Contains the information about the output data for input-output matching.
     """
+    meta: OutputSlotMeta
 
 
 @dataclass(frozen=True)

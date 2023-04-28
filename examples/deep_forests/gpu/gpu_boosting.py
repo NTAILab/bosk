@@ -103,7 +103,7 @@ def run_cpu():
 
     all_X, all_y = make_moons(noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    fit_result = fit_executor({'X': CPUData(train_X), 'y':CPUData(train_y)})
+    fit_result = fit_executor({'X': CPUData(train_X), 'y': CPUData(train_y)})
     print("Fit successful")
     train_result = transform_executor({'X': CPUData(train_X)})
     print("Fit probas == probas on train:", np.allclose(fit_result['probas'].data, train_result['probas'].data))
@@ -157,4 +157,3 @@ if __name__ == "__main__":
     run_gpu()
     end_time = time.time()
     print(f"Time GPU execution: {end_time - start_time} sec")
-

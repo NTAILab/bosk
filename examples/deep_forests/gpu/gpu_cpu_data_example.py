@@ -31,4 +31,3 @@ if __name__ == "__main__":
     inputs = input_block.transform(inputs)
     inputs = move_to_block_gpu.transform(inputs)
     assert isinstance(inputs['X'], GPUData)
-

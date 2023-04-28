@@ -73,7 +73,8 @@ class TopologicalExecutor(BaseExecutor):
                     stack.append(neig_node)
         return visited
 
-    def _topological_sort(self, aj_list: Mapping[BaseBlock, Set[BaseBlock]], begin_nodes: Iterable[BaseBlock]) -> List[BaseBlock]:
+    def _topological_sort(self, aj_list: Mapping[BaseBlock, Set[BaseBlock]],
+                          begin_nodes: Iterable[BaseBlock]) -> List[BaseBlock]:
         """Method that performs the topological sort of the computational graph.
         The algorithm begins its work from the nodes `begin_nodes`. The algorithm is written using recursive scheme.
 
@@ -137,7 +138,7 @@ class TopologicalExecutor(BaseExecutor):
                 forward_aj_list[out_slot.parent_block].add(inp_slot.parent_block)
         return forward_aj_list
 
-    def __call__(self, input_values: Mapping[str, Data]) -> Dict[str, BaseData]:
+    def execute(self, input_values: Mapping[str, Data]) -> Dict[str, BaseData]:
         """The main method for the processing of the computational graph.
 
         Args:

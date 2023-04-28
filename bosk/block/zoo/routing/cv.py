@@ -25,7 +25,7 @@ class CVTrainIndicesBlock(BaseBlock):
                 for name in ('X', 'y')
             ],
             outputs=[
-                OutputSlotMeta(name=str(i), stages=Stages(fit=True, transform=False, transform_on_fit=True))
+                OutputSlotMeta(name=str(i))
                 for i in range(size)
             ],
             execution_props=BlockExecutionProperties(plain=True)

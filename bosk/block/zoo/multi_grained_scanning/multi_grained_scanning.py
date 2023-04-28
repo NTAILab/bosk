@@ -59,5 +59,4 @@ class MultiGrainedScanningBlock(ABC):
             if hasattr(model, 'random_state'):
                 model.random_state = get_rand_int(gen)
             else:
-                warnings.warn("Model %s doesn't have 'random_state' field",
-                                model.__class__.__name__)
+                warnings.warn(f"Model {model.__class__.__name__!r} doesn't have 'random_state' field")

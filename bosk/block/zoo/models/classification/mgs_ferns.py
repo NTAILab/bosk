@@ -147,7 +147,8 @@ def apply_window_binary_ferns(xs: jnp.ndarray, raveled_pooling_indices,
     fern_size = left_indices.shape[1]
     index_multipliers = 2 ** jnp.arange(fern_size)
 
-    compare = lambda x: (x[:, left_indices] >= x[:, right_indices])
+    def compare(x):
+        return x[:, left_indices] >= x[:, right_indices]
 
     result = jax.vmap(
         lambda x: (
@@ -317,23 +318,23 @@ class MGSRandomFernsBlock(BaseBlock):
         raveled_pooling_indices = jnp.ravel_multi_index(pooling_indices.full_index_tuple, xs.shape[1:])
         if self.kind == 'unary':
             return apply_window_unary_ferns(
-                 raveled_xs,
-                 raveled_pooling_indices,
-                 n_channels,
-                 pooling_indices.n_corners,
-                 pooling_indices.n_kernel_points,
-                 pooling_indices.pooled_shape,
-                 *ferns
+                raveled_xs,
+                raveled_pooling_indices,
+                n_channels,
+                pooling_indices.n_corners,
+                pooling_indices.n_kernel_points,
+                pooling_indices.pooled_shape,
+                *ferns
             )
         elif self.kind == 'binary':
             return apply_window_binary_ferns(
-                 raveled_xs,
-                 raveled_pooling_indices,
-                 n_channels,
-                 pooling_indices.n_corners,
-                 pooling_indices.n_kernel_points,
-                 pooling_indices.pooled_shape,
-                 *ferns
+                raveled_xs,
+                raveled_pooling_indices,
+                n_channels,
+                pooling_indices.n_corners,
+                pooling_indices.n_kernel_points,
+                pooling_indices.pooled_shape,
+                *ferns
             )
         else:
             raise ValueError(f'Wrong kind: {self.kind!r}')
@@ -366,7 +367,7 @@ class MGSRandomFernsBlock(BaseBlock):
         The implementation is device-agnostic.
 
         """
-        assert type(inputs['X']) == type(inputs['y'])
+        assert type(inputs['X']) == type(inputs['y'])  # noqa: E721
         X = inputs['X'].data
         y = inputs['y'].data
         y = self._classifier_init(y)

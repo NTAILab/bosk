@@ -56,7 +56,7 @@ class CVPipelineModelValidator(BasePipelineModelValidator):
                 k: CPUData(v.data[val_idx])
                 for k, v in cpu_data.items()
             }
-            preds_val = transformer({k: v for k, v in val_data.items() if k != 'y'})[output].data
+            preds_val = transformer({k: v for k, v in val_data.items() if k != 'y'})[output]
             metrics.append_eval(val_data['y'].to_cpu().data, preds_val.data)
         return metrics.average()
 

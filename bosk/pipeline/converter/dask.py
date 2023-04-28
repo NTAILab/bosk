@@ -28,7 +28,6 @@ class DaskOperatorSet(ABC):
         ...
 
 
-
 class TransformDaskOperatorSet(DaskOperatorSet):
     @staticmethod
     def bypass(value: Data) -> Data:
@@ -118,7 +117,7 @@ class DaskConverter:
                         continue
                 elif self.parent.stage == Stage.FIT:
                     if not input_slot.meta.stages.transform and not input_slot.meta.stages.fit \
-                        and input_slot.meta.stages.transform_on_fit:
+                            and input_slot.meta.stages.transform_on_fit:
                         continue
                 else:
                     raise NotImplementedError('Unhandled stage')
@@ -149,7 +148,6 @@ class DaskConverter:
                         '_output_key': out_key
                     }
                 )
-
 
         @visit.register
         def _(self, connection: Connection):

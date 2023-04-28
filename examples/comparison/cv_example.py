@@ -97,13 +97,14 @@ def my_acc(y_true, y_pred):
 def my_roc_auc(y_true, y_pred):
     return roc_auc_score(y_true, np.int_(y_pred[:, 1]))
 
-if __name__=='__main__':
+
+def main():
     logging.basicConfig(level=logging.INFO)
     random_state = 42
     common_part, pipelines = get_pipelines()
     models = [RFCModel(), CatBoostModel()]
     comparator = CVComparator(pipelines, models,
-                            KFold(shuffle=True, n_splits=3), random_state=random_state)
+                              KFold(shuffle=True, n_splits=3), random_state=random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
     data = {
         'X': CPUData(x),
@@ -112,3 +113,7 @@ if __name__=='__main__':
     metrics = [MetricWrapper(my_acc, name='accuracy'), MetricWrapper(my_roc_auc, name='roc_auc')]
     cv_res = comparator.get_score(data, metrics)
     print(cv_res.to_string())
+
+
+if __name__ == '__main__':
+    main()

@@ -1,11 +1,13 @@
 """Script that contains common tests for all executors."""
 
-from bosk.executor import *
+from bosk.executor import RecursiveExecutor
+from bosk.executor import *  # noqa: F403
 from bosk.executor.base import BaseExecutor
 from bosk.stages import Stage
 from collections import defaultdict
 import numpy as np
-from ..pipelines import *
+from ..pipelines import CasualManualForest
+from ..pipelines import *  # noqa: F403
 from ..pipelines.base import BasePipelineTest as BPT
 from ..utility import fit_pipeline, get_all_subclasses, log_test_name
 import logging
@@ -50,8 +52,12 @@ def fit_transform_test():
         pipeline = pipeline_wrapper.get_pipeline()
         try:
             logging.info('Starting fit process')
-            fitted_pipeline, _ = fit_pipeline(pipeline,
-                                              pipeline_wrapper.get_fit_data(), e_cls, *pipeline_wrapper.get_fit_in_out())
+            fitted_pipeline, _ = fit_pipeline(
+                pipeline,
+                pipeline_wrapper.get_fit_data(),
+                e_cls,
+                *pipeline_wrapper.get_fit_in_out()
+            )
             logging.info('Fit process succeeded')
             logging.info('Starting transform process')
             data = pipeline_wrapper.get_transform_data()

@@ -1,15 +1,24 @@
+import numpy as np
 from numpy.random import Generator
-from typing import Optional, Type, Mapping
+from typing import Optional, Type, Mapping, Protocol, Union
 from .base import BaseBlock, BlockInputData, TransformOutputData
 from .meta import BlockMeta, BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
-from ..data import Data
+from ..data import BaseData, CPUData, Data
 from ..stages import Stages
 from ..utility import get_random_generator, get_rand_int
 from functools import wraps
 import warnings
 
 
-def auto_block(_implicit_cls=None,
+class FitTransformClass(Protocol):
+    def fit(self, X: np.ndarray, y: np.ndarray):
+        ...
+
+    def transform(self, X: np.ndarray) -> Union[np.ndarray, BaseData]:
+        ...
+
+
+def auto_block(_implicit_cls=None,  # noqa: C901
                execution_props: Optional[BlockExecutionProperties] = None,
                random_state_field: str | None = 'random_state',
                auto_state: bool = False):
@@ -30,7 +39,7 @@ def auto_block(_implicit_cls=None,
         Block wrapping function.
 
     """
-    def _auto_block_impl(cls: Type[BaseBlock]):
+    def _auto_block_impl(cls: Type[FitTransformClass]):
         """Make auto block wrapper instance.
 
         Args:
@@ -82,7 +91,16 @@ def auto_block(_implicit_cls=None,
 
             def transform(self, inputs: BlockInputData) -> TransformOutputData:
                 transformed = self.__instance.transform(**self.__prepare_kwargs(inputs))
-                return {'output': transformed}
+                if isinstance(transformed, BaseData):
+                    output = transformed
+                elif isinstance(transformed, np.ndarray):
+                    output = CPUData(transformed)
+                else:
+                    raise TypeError(
+                        f"Unexpected type {type(transformed)} for transformed output. "
+                        f"Expected `BaseData` or `np.ndarray`."
+                    )
+                return {'output': output}
 
             def __get_instance_state(self):
                 if hasattr(self.__instance, '__getstate__'):

@@ -84,7 +84,11 @@ class ConcatBlock(BaseBlock):
             if isinstance(inputs[name], input_type):
                 ordered_inputs.append(inputs[name].data)
             else:
-                raise ValueError("All inputs must be of the same type (CPUData or GPUData)")
+                raise ValueError(
+                    "All inputs must be of the same type (CPUData or GPUData). "
+                    f"Current input type: {type(inputs[name])!r}, "
+                    f" expected: {input_type!r}"
+                )
         concatenated: BaseData
         if input_type == CPUData:
             concatenated = CPUData(np.concatenate(ordered_inputs, axis=self.axis))

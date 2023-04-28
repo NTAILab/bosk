@@ -125,7 +125,6 @@ class ZipPipelineSerializer(BasePipelineSerializer):
             with storage.open(STRUCTURE_FILENAME, 'w') as structure_outf:
                 structure_outf.write(json_dumps(structure).encode('utf-8'))
 
-
     def load(self, in_file) -> BasePipeline:
         with ZipFile(in_file, 'r') as storage:
             with storage.open(STRUCTURE_FILENAME, 'r') as structure_inf:

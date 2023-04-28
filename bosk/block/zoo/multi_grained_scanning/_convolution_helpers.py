@@ -50,7 +50,8 @@ class _ConvolutionHelper:
             stride = (self.params.stride,) * n_spatial_dims
         return stride
 
-    def get_pooled_shape(self, spatial_dims: Tuple[int, ...], kernel_size: Tuple[int, ...], stride: Tuple[int, ...]) -> Tuple[int, ...]:
+    def get_pooled_shape(self, spatial_dims: Tuple[int, ...], kernel_size: Tuple[int, ...],
+                         stride: Tuple[int, ...]) -> Tuple[int, ...]:
         pooled_shape = tuple([
             (
                 (spatial_dims[i] // s) if s >= kernel_size[i]

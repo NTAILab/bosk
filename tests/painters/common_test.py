@@ -1,6 +1,7 @@
 """Script that contains common tests for all painters."""
 
-from bosk.painter import *
+from bosk.painter import BasePainter
+from bosk.painter import *  # noqa: F403
 from . import PIC_SAVE_DIR, PIC_SAVE_FMT
 from ..pipelines import CasualFuncForest
 from ..utility import get_all_subclasses, log_test_name

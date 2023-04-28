@@ -249,7 +249,8 @@ class GlobalAveragePoolingBlock(BaseBlock):
 
     def _check_dims(self, inputs):
         assert 'X' in inputs
-        assert inputs['X'].data.ndim > 2, 'Global Average Pooling supports only data with at least one spatial dimension'
+        assert inputs['X'].data.ndim > 2, \
+            'Global Average Pooling supports only data with at least one spatial dimension'
 
     def fit(self, inputs: BlockInputData) -> 'GlobalAveragePoolingBlock':
         self._check_dims(inputs)

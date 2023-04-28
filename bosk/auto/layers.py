@@ -39,7 +39,7 @@ class Layer(ABC):
         ...
 
     def calc_metrics(self, data: Mapping[str, BaseData], pipeline: BasePipeline,
-                       output: str, fit_outputs: List[str]) -> Optional[MetricsResults]:
+                     output: str, fit_outputs: List[str]) -> Optional[MetricsResults]:
         fitter = self.executor_cls(pipeline, Stage.FIT, outputs=[output, *fit_outputs])
         transformer = self.executor_cls(pipeline, Stage.TRANSFORM)
         return self.validator.calc_metrics(data, fitter, transformer, output)
@@ -89,7 +89,7 @@ class MGSLayer(Layer):
         )(X=pooled, y=y_)
         embedding_output = b.Output('X')(pooled)
         b.Output('embedding')(embedding_output)
-        proba_output = b.Output('proba')(proba)  # used only for validation
+        b.Output('proba')(proba)  # used only for validation
         pipeline = b.build()
         pipeline.accept(ModifyGroupVisitor('add', BlockGroup(self.layer_name)))
         # evaluate the pipeline
@@ -195,7 +195,6 @@ class ForestsLayer(Layer):
         )
         self.make_blocks = make_blocks
 
-
     def fit(self, data: Mapping[str, BaseData]):
         rng = get_random_generator(self.random_state)
         # forests layer leverages CPU algorithms
@@ -260,7 +259,7 @@ class StackingLayer(Layer):
         self.make_blocks = make_blocks
 
     def __custom_cross_validate(self, data: Mapping[str, BaseData], pipeline: BasePipeline,
-                       blocks: List[BaseBlock], rng: np.random.Generator) -> Optional[MetricsResults]:
+                                blocks: List[BaseBlock], rng: np.random.Generator) -> Optional[MetricsResults]:
         fitter = self._make_fitter(pipeline, blocks, rng)
         transformer = self.executor_cls(pipeline, Stage.TRANSFORM)
         return self.validator.calc_metrics(data, fitter, transformer, 'proba')
@@ -268,6 +267,7 @@ class StackingLayer(Layer):
     def _make_fitter(self, pipeline: BasePipeline, blocks: List[BaseBlock], rng: np.random.Generator):
         new_rng = get_random_generator(get_rand_int(rng))
         basic_fitter = self.executor_cls(pipeline, Stage.FIT, block_executor=FitBlacklistBlockExecutor(blocks))
+
         def _fit_fn(inputs: Mapping[str, CPUData]):
             kfold = StratifiedKFold(n_splits=len(blocks), shuffle=True, random_state=get_rand_int(new_rng))
             inp_X = inputs['X'].data

@@ -11,17 +11,18 @@ class BaseSlotMeta:
 
     Attributes:
         name: Slot name.
-        stages: At which stages slot value is needed.
-
     """
     name: str
-    stages: Stages = Stages()
 
 
 @dataclass(eq=True, frozen=True)
 class InputSlotMeta(BaseSlotMeta):
     """Block input slot meta.
+
+    Attributes:
+        stages: At which stages slot value is needed.
     """
+    stages: Stages = Stages()
 
 
 @dataclass(eq=True, frozen=True)
