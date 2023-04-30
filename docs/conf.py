@@ -16,13 +16,14 @@ sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
+from bosk import __version__
 
-project = 'bosk'
-copyright = '2022, NTAILab'
+project = 'Bosk'
+copyright = '2023, NTAILab'
 author = 'NTAILab'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -38,7 +39,18 @@ extensions = [
 ]
 autoapi_dirs = ['../bosk']
 autoapi_add_toctree_entry = False
+
 autodoc_typehints = 'description'
+# autodoc_default_flags = [
+#     # Make sure that any autodoc declarations show the right members
+#     "members",
+#     "inherited-members",
+#     "show-inheritance",
+# ]
+# napoleon_include_private_with_doc = False
+# napoleon_use_ivar = False
+# napoleon_use_param = True
+# autosummary_generate = True  # Make _autosummary files and include them
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -59,4 +71,4 @@ html_theme = 'furo'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = []
