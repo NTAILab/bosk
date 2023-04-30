@@ -9,8 +9,6 @@ Data = Any
 
 class BaseData:
     def __init__(self, data: Union[np.ndarray, jnp.ndarray]):
-        # if not isinstance(data, (np.ndarray, jnp.ndarray)):
-        #     raise TypeError(f"Data type {type(data)} not supported.")
         self.data = data
 
     def to_cpu(self) -> 'CPUData':
@@ -26,6 +24,8 @@ class BaseData:
 
 
 class CPUData(BaseData):
+    data: np.ndarray
+
     def __init__(self, data: Any):
         if isinstance(data, jnp.ndarray):
             data = np.array(data)
@@ -33,6 +33,8 @@ class CPUData(BaseData):
 
 
 class GPUData(BaseData):
+    data: jnp.ndarray
+
     def __init__(self, data: Any):
         if isinstance(data, np.ndarray):
             data = jnp.array(data)

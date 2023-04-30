@@ -1,14 +1,13 @@
 from typing import Optional
 from ...base import BaseInputBlock, BlockInputData, TransformOutputData
 from ....stages import Stages
-from ...slot import BlockInputSlot, BlockOutputSlot, InputSlotMeta, OutputSlotMeta
-from ...meta import BlockMeta, BlockExecutionProperties, make_simple_meta
+from ...meta import BlockMeta, BlockExecutionProperties, DynamicBlockMetaStub, make_simple_meta
 
 
 class InputBlock(BaseInputBlock):
     DEFAULT_INPUT_NAME = 'X'
-    name = None
-    meta = None
+    name: Optional[str] = None
+    meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, name: Optional[str] = None):
         slot_name = name if name is not None else self.DEFAULT_INPUT_NAME
@@ -29,8 +28,8 @@ class InputBlock(BaseInputBlock):
 
 class TargetInputBlock(BaseInputBlock):
     DEFAULT_TARGET_NAME = 'y'
-    name = None
-    meta = None
+    name: Optional[str] = None
+    meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, name: Optional[str] = None):
         slot_name = name if name is not None else self.DEFAULT_TARGET_NAME

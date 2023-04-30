@@ -3,11 +3,11 @@
 from functools import singledispatchmethod
 from typing import Literal
 from .base import BaseVisitor
-from ..block.slot import BlockGroup
 from ..block import BaseBlock
+from ..block.base import BlockGroup
 
 
-ModificationAction = Literal['add'] | Literal['remove']
+ModificationAction = Literal['add', 'remove']
 
 
 class ModifyGroupVisitor(BaseVisitor):

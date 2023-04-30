@@ -5,19 +5,18 @@ from jax import random
 from functools import partial
 from sklearn.utils.multiclass import check_classification_targets
 from joblib import Parallel, delayed
-from typing import Optional
+from typing import List, Optional, Union
 
 
 from ....base import BaseBlock, TransformOutputData, BlockInputData
-from ....meta import BlockMeta, BlockExecutionProperties
-from ....slot import InputSlotMeta, OutputSlotMeta
+from ....meta import BlockMeta, BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
 from .....stages import Stages
 from .....data import CPUData, GPUData
 from .....utility import get_random_generator, get_rand_int
 
 
 @partial(jax.jit, static_argnames=('n_ferns', 'fern_size'))
-def make_unary_ferns(xs: jnp.ndarray, n_ferns: int, fern_size: int, key: random.PRNGKey):
+def make_unary_ferns(xs: jnp.ndarray, n_ferns: int, fern_size: int, key: random.KeyArray):
     """Generate indices and threshold values for unary fern.
     An unary fern represents a function that maps x to an integer number:
         x -> [ x[i[0]] >= t[0], ..., x[i[k]] >= t[k] ].
@@ -70,7 +69,7 @@ def apply_unary_ferns(xs: jnp.ndarray, feature_indices, feature_thresholds):
 
 
 @partial(jax.jit, static_argnames=('n_ferns', 'fern_size'))
-def make_binary_ferns(xs: jnp.ndarray, n_ferns: int, fern_size: int, key: random.PRNGKey):
+def make_binary_ferns(xs: jnp.ndarray, n_ferns: int, fern_size: int, key: random.KeyArray):
     """Generate indices and threshold values for unary fern.
     An unary fern represents a function that maps x to an integer number:
         x -> [ x[i[0]] >= x[j[0]], ..., x[i[k]] >= x[j[k]] ].
@@ -134,10 +133,10 @@ def calculate_bucket_stats(bucket_indices: jnp.ndarray, n_buckets: int, y: jnp.n
 
     bucket_stats = jax.vmap(
         lambda c: jax.vmap(
-                lambda b: jnp.zeros((n_buckets,)).at[b].add(jnp.where(y == c, 1, 0)),
-                in_axes=1,
-                out_axes=0
-            )(bucket_indices),
+            lambda b: jnp.zeros((n_buckets,)).at[b].add(jnp.where(y == c, 1, 0)),
+            in_axes=1,
+            out_axes=0
+        )(bucket_indices),
         in_axes=0,
         out_axes=0
     )(jnp.arange(n_classes))
@@ -317,7 +316,7 @@ class RandomFernsBlock(BaseBlock):
         The implementation is device-agnostic.
 
         """
-        assert type(inputs['X']) == type(inputs['y'])
+        assert type(inputs['X']) == type(inputs['y'])  # noqa: E721
         X = inputs['X'].data
         y = inputs['y'].data
         y = self._classifier_init(y)
@@ -329,6 +328,7 @@ class RandomFernsBlock(BaseBlock):
         ferns = self._make_ferns(X, ferns_key)
         bucket_indices = self._apply_ferns(X, ferns)
 
+        group_data_indices: Union[List[jnp.ndarray], List[slice]]
         if not self.bootstrap:
             group_data_indices = [slice(None, None) for _ in range(self.n_groups)]
         else:

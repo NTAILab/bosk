@@ -10,19 +10,18 @@ from ..pipeline.builder.functional import FunctionalPipelineBuilder
 from ..block.zoo.models.classification.classification_models import RFCBlock, ETCBlock
 from ..block.zoo.routing.cv import CVTrainIndicesBlock, SubsetTrainWrapperBlock
 from ..block.zoo.multi_grained_scanning._convolution_helpers import _ConvolutionParams, _ConvolutionHelper
-from ..block.base import BaseBlock, BlockOutputData
-from ..block.slot import BlockGroup
+from ..block.base import BaseBlock, BlockOutputData, BlockGroup
 from ..data import BaseData, CPUData
 from ..executor.base import BaseExecutor, DefaultBlockExecutor, InputSlotToDataMapping
 from ..executor.block import FitBlacklistBlockExecutor
 from ..pipeline.base import BasePipeline
-from .validation import CVPipelineModelValidator
+from .validation import BasePipelineModelValidator, CVPipelineModelValidator
 from .metrics import MetricsResults
 
 
 class Layer(ABC):
     def __init__(self, executor_cls: Type[BaseExecutor],
-                 validator: CVPipelineModelValidator,
+                 validator: BasePipelineModelValidator,
                  layer_name: str = 'forests_layer',
                  random_state: Optional[int] = None):
         self.executor_cls = executor_cls
@@ -39,8 +38,8 @@ class Layer(ABC):
     def fit(self, inputs: Mapping[str, BaseData]) -> Tuple[BasePipeline, MetricsResults]:
         ...
 
-    def calc_metrics(self, data: Mapping[str, CPUData], pipeline: BasePipeline,
-                       output: str, fit_outputs: List[str]) -> Mapping[str, float]:
+    def calc_metrics(self, data: Mapping[str, BaseData], pipeline: BasePipeline,
+                     output: str, fit_outputs: List[str]) -> Optional[MetricsResults]:
         fitter = self.executor_cls(pipeline, Stage.FIT, outputs=[output, *fit_outputs])
         transformer = self.executor_cls(pipeline, Stage.TRANSFORM)
         return self.validator.calc_metrics(data, fitter, transformer, output)
@@ -90,7 +89,7 @@ class MGSLayer(Layer):
         )(X=pooled, y=y_)
         embedding_output = b.Output('X')(pooled)
         b.Output('embedding')(embedding_output)
-        proba_output = b.Output('proba')(proba)  # used only for validation
+        b.Output('proba')(proba)  # used only for validation
         pipeline = b.build()
         pipeline.accept(ModifyGroupVisitor('add', BlockGroup(self.layer_name)))
         # evaluate the pipeline
@@ -132,7 +131,7 @@ class MGSRFLayer(Layer):
         reshaped_ = b.Reshape((-1, *self.input_shape))(x_)
 
         conv_helper = _ConvolutionHelper(self.conv_params)
-        current_spatial_dims = self.input_shape[1:]
+        current_spatial_dims: Tuple[int, ...] = self.input_shape[1:]
         kernel_size = conv_helper.check_kernel_size(len(current_spatial_dims))
         stride = conv_helper.check_stride(current_spatial_dims, kernel_size)
         while all(current_spatial_dims[i] >= kernel_size[i] for i in range(len(current_spatial_dims))):
@@ -195,7 +194,6 @@ class ForestsLayer(Layer):
             random_state=random_state,
         )
         self.make_blocks = make_blocks
-
 
     def fit(self, data: Mapping[str, BaseData]):
         rng = get_random_generator(self.random_state)
@@ -261,14 +259,15 @@ class StackingLayer(Layer):
         self.make_blocks = make_blocks
 
     def __custom_cross_validate(self, data: Mapping[str, BaseData], pipeline: BasePipeline,
-                       blocks: List[BaseBlock], rng: np.random.RandomState) -> Mapping[str, float]:
+                                blocks: List[BaseBlock], rng: np.random.Generator) -> Optional[MetricsResults]:
         fitter = self._make_fitter(pipeline, blocks, rng)
         transformer = self.executor_cls(pipeline, Stage.TRANSFORM)
         return self.validator.calc_metrics(data, fitter, transformer, 'proba')
 
-    def _make_fitter(self, pipeline: BasePipeline, blocks: List[BaseBlock], rng: np.random.RandomState):
+    def _make_fitter(self, pipeline: BasePipeline, blocks: List[BaseBlock], rng: np.random.Generator):
         new_rng = get_random_generator(get_rand_int(rng))
         basic_fitter = self.executor_cls(pipeline, Stage.FIT, block_executor=FitBlacklistBlockExecutor(blocks))
+
         def _fit_fn(inputs: Mapping[str, CPUData]):
             kfold = StratifiedKFold(n_splits=len(blocks), shuffle=True, random_state=get_rand_int(new_rng))
             inp_X = inputs['X'].data
@@ -344,7 +343,7 @@ class NativeStackingLayer(Layer):
 
     def __init__(self, make_blocks: Callable[[], Sequence[BaseBlock]],
                  executor_cls: Type[BaseExecutor],
-                 validator: CVPipelineModelValidator,
+                 validator: BasePipelineModelValidator,
                  layer_name: str = 'stacking_layer',
                  random_state: Optional[int] = None):
         super().__init__(

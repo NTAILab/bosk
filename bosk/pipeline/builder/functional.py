@@ -2,7 +2,7 @@ from typing import Literal, Mapping, Type, Union
 from ...block import BaseBlock, BaseInputBlock, BaseOutputBlock
 from ...block.functional import FunctionalBlockWrapper
 from ...block.repo import BaseBlockClassRepository, DEFAULT_BLOCK_CLASS_REPOSITORY
-from ...block.slot import BlockInputSlot, BlockOutputSlot
+from ...block.base import BlockInputSlot, BlockOutputSlot
 from ..connection import Connection
 from ..base import BasePipeline
 from .base import BasePipelineBuilder

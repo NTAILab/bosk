@@ -16,7 +16,7 @@ from bosk.data import CPUData
 
 from examples.deep_forests.casual.source import make_deep_forest, make_deep_forest_functional
 from examples.deep_forests.cs.simple import make_deep_forest_functional_confidence_screening
-from examples.deep_forests.mg_scanning.mg_scanning import (make_deep_forest_functional_multi_grained_scanning_1d, 
+from examples.deep_forests.mg_scanning.mg_scanning import (make_deep_forest_functional_multi_grained_scanning_1d,
                                                            make_deep_forest_functional_multi_grained_scanning_2d)
 from examples.deep_forests.weighted_cs.simple import make_deep_forest_weighted_confidence_screening
 
@@ -40,7 +40,7 @@ def get_iris_dataset():
     all_X = iris.data
     all_y = iris.target
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    return CPUData(train_X), CPUData(test_X), CPUData(train_y),CPUData(test_y)
+    return CPUData(train_X), CPUData(test_X), CPUData(train_y), CPUData(test_y)
 
 
 class DeepForestWrapper():
@@ -48,16 +48,16 @@ class DeepForestWrapper():
         self.df_factory = df_factory
         self.dataset_factory = dataset_factory
         self.is_fitted = False
-    
+
     def train(self, exec_cls, **exec_kw):
         train_X, self.test_X, train_y, _ = self.dataset_factory()
         self.fit_exec, self.tf_exec = self.df_factory(exec_cls, **exec_kw)
         fit_res = self.fit_exec({'X': train_X, 'y': train_y})
         self.is_fitted = True
         return fit_res
-    
+
     def predict_test(self):
-        assert(self.is_fitted == True)
+        assert self.is_fitted
         return self.tf_exec({'X': self.test_X})
 
     def paint(self, name):
@@ -85,11 +85,11 @@ def main():
 
     def print_scores(dictionary, postfix):
         for key, val in dictionary.items():
-                if isinstance(val.data, float) or isinstance(val.data, int):
-                    print(f'\t\t{key}:', val)
-                else:
-                    print(f'\t\t{key}: ... (mean {np.round(np.mean(val.data), 4)})', )
-                score_dict[key + f' ({postfix})'].append(val)
+            if isinstance(val.data, float) or isinstance(val.data, int):
+                print(f'\t\t{key}:', val)
+            else:
+                print(f'\t\t{key}: ... (mean {np.round(np.mean(val.data), 4)})', )
+            score_dict[key + f' ({postfix})'].append(val)
     for df_name, df_wrapper in wrappers_dict.items():
         score_dict = defaultdict(list)
         for exec_name, (exec_cls, exec_kw) in executors_dict.items():

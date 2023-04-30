@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from typing import Type
 
 
-
 class BaseBlockClassRepository(ABC):
     """Base block class repository, the parent of every block class repo.
 

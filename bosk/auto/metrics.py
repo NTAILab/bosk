@@ -13,6 +13,10 @@ class MetricsEvaluator:
     Any metric follows the rule "the higher is better", i.e.
     if originally metric decreases when quality increases, it is multiplied by (-1).
     """
+
+    names: set[str]
+    results: defaultdict[str, List[float]]
+
     def __init__(self, names: List[str]):
         self.names = set(names)
         self.results = defaultdict(list)
@@ -20,7 +24,11 @@ class MetricsEvaluator:
     def append_eval(self, y_true: np.ndarray, y_pred: np.ndarray):
         pred_labels = np.argmax(y_pred, axis=1)
         if 'roc_auc' in self.names:
-            self.results['roc_auc'].append(roc_auc_score(y_true, y_pred, multi_class='ovr'))
+            if y_pred.shape[1] == 2:
+                ras_y = y_pred[:, 1]
+            else:
+                ras_y = y_pred
+            self.results['roc_auc'].append(roc_auc_score(y_true, ras_y, multi_class='ovr'))
         if 'f1' in self.names:
             self.results['f1'].append(f1_score(y_true, pred_labels, average='macro'))
         if 'accuracy' in self.names:

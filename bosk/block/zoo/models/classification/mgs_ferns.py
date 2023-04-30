@@ -5,12 +5,11 @@ import jax
 import jax.numpy as jnp
 from jax import random
 from sklearn.utils.multiclass import check_classification_targets
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 from functools import partial, reduce
 
 from ....base import BaseBlock, TransformOutputData, BlockInputData
-from ....meta import BlockMeta, BlockExecutionProperties
-from ....slot import InputSlotMeta, OutputSlotMeta
+from ....meta import BlockMeta, BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
 from .....stages import Stages
 from .....data import CPUData, GPUData
 from .....utility import get_random_generator, get_rand_int
@@ -24,7 +23,7 @@ def make_window_unary_ferns(xs: jnp.ndarray,
                             window_size: int,
                             n_ferns: int,
                             fern_size: int,
-                            key: random.PRNGKey):
+                            key: random.KeyArray):
     """Generate indices and threshold values for unary fern that is applied to a sliding window.
     The sliding window captures all channels simultaneously.
 
@@ -99,7 +98,7 @@ def make_window_binary_ferns(n_channels: int,
                              window_size: int,
                              n_ferns: int,
                              fern_size: int,
-                             key: random.PRNGKey):
+                             key: random.KeyArray):
     """Generate pair indices for binary fern which is applied to a sliding window.
     The sliding window captures all channels simultaneously.
 
@@ -148,7 +147,8 @@ def apply_window_binary_ferns(xs: jnp.ndarray, raveled_pooling_indices,
     fern_size = left_indices.shape[1]
     index_multipliers = 2 ** jnp.arange(fern_size)
 
-    compare = lambda x: (x[:, left_indices] >= x[:, right_indices])
+    def compare(x):
+        return x[:, left_indices] >= x[:, right_indices]
 
     result = jax.vmap(
         lambda x: (
@@ -318,23 +318,23 @@ class MGSRandomFernsBlock(BaseBlock):
         raveled_pooling_indices = jnp.ravel_multi_index(pooling_indices.full_index_tuple, xs.shape[1:])
         if self.kind == 'unary':
             return apply_window_unary_ferns(
-                 raveled_xs,
-                 raveled_pooling_indices,
-                 n_channels,
-                 pooling_indices.n_corners,
-                 pooling_indices.n_kernel_points,
-                 pooling_indices.pooled_shape,
-                 *ferns
+                raveled_xs,
+                raveled_pooling_indices,
+                n_channels,
+                pooling_indices.n_corners,
+                pooling_indices.n_kernel_points,
+                pooling_indices.pooled_shape,
+                *ferns
             )
         elif self.kind == 'binary':
             return apply_window_binary_ferns(
-                 raveled_xs,
-                 raveled_pooling_indices,
-                 n_channels,
-                 pooling_indices.n_corners,
-                 pooling_indices.n_kernel_points,
-                 pooling_indices.pooled_shape,
-                 *ferns
+                raveled_xs,
+                raveled_pooling_indices,
+                n_channels,
+                pooling_indices.n_corners,
+                pooling_indices.n_kernel_points,
+                pooling_indices.pooled_shape,
+                *ferns
             )
         else:
             raise ValueError(f'Wrong kind: {self.kind!r}')
@@ -367,7 +367,7 @@ class MGSRandomFernsBlock(BaseBlock):
         The implementation is device-agnostic.
 
         """
-        assert type(inputs['X']) == type(inputs['y'])
+        assert type(inputs['X']) == type(inputs['y'])  # noqa: E721
         X = inputs['X'].data
         y = inputs['y'].data
         y = self._classifier_init(y)
@@ -384,6 +384,7 @@ class MGSRandomFernsBlock(BaseBlock):
         spatial_size = reduce(mul, bucket_indices.shape[1:-1], 1)
         flattened_y = jnp.tile(y[:, np.newaxis], (1, spatial_size)).reshape((-1,))
 
+        group_data_indices: List[jnp.ndarray] | List[slice]
         if not self.bootstrap:
             group_data_indices = [slice(None, None) for _ in range(self.n_groups)]
         else:

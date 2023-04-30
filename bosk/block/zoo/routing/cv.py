@@ -5,7 +5,7 @@ from sklearn.model_selection import StratifiedKFold
 from ...base import BaseBlock
 from ....stages import Stages
 from ....data import CPUData
-from ...meta import BlockMeta, BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
+from ...meta import BlockMeta, BlockExecutionProperties, DynamicBlockMetaStub, InputSlotMeta, OutputSlotMeta
 
 
 class CVTrainIndicesBlock(BaseBlock):
@@ -14,7 +14,7 @@ class CVTrainIndicesBlock(BaseBlock):
     Generates training indices for `size` models.
     The block has `size` outputs, each named as a number of model: `"0", "1", ...`.
     """
-    meta = None
+    meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, size: int, random_state: Optional[int]):
         self.size = size
@@ -25,7 +25,7 @@ class CVTrainIndicesBlock(BaseBlock):
                 for name in ('X', 'y')
             ],
             outputs=[
-                OutputSlotMeta(name=str(i), stages=Stages(fit=True, transform=False, transform_on_fit=True))
+                OutputSlotMeta(name=str(i))
                 for i in range(size)
             ],
             execution_props=BlockExecutionProperties(plain=True)
@@ -58,7 +58,7 @@ class SubsetTrainWrapperBlock(BaseBlock):
     """
     TRAINING_INDICES_NAME = 'training_indices'
 
-    meta = None
+    meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, block: BaseBlock):
         self.meta = BlockMeta(
@@ -98,5 +98,5 @@ class SubsetTrainWrapperBlock(BaseBlock):
         block_inputs = self._exclude_training_indices(inputs)
         return self.block.transform(block_inputs)
 
-    def set_random_state(self, seed: Optional[int | np.random.RandomState]) -> None:
+    def set_random_state(self, seed: Optional[int | np.random.Generator]) -> None:
         return self.block.set_random_state(seed)

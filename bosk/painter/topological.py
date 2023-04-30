@@ -27,10 +27,10 @@ class TopologicalPainter(GraphvizPainter):
         """Method that parses a :class:`TopologicalExecutor` and make internal representation
         of the computational graph to render its image in the :meth:`render` method.
 
-        * The solid black edges and nodes are the ones that will be used during calculations. 
-        * The dashed will be skipped during the optimization. 
+        * The solid black edges and nodes are the ones that will be used during calculations.
+        * The dashed will be skipped during the optimization.
         * The red colored nodes mean used inputs and outputs, the red colored edges signalize that
-          type of the block's input slot was misspecified: according to the :attr:`stage` metainformation 
+          type of the block's input slot was misspecified: according to the :attr:`stage` metainformation
           the connection should be used, but the corresponding block won't be used because of the optimization.
         * The blue colored nodes mean skipped inputs and outputs. They were specified in the pipeline,
             but not in the executor.

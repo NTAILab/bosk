@@ -1,16 +1,24 @@
+import numpy as np
 from numpy.random import Generator
-from typing import Optional, Type, Mapping
+from typing import Optional, Type, Mapping, Protocol, Union
 from .base import BaseBlock, BlockInputData, TransformOutputData
-from .meta import BlockMeta, BlockExecutionProperties
-from .slot import InputSlotMeta, OutputSlotMeta
-from ..data import Data
+from .meta import BlockMeta, BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
+from ..data import BaseData, CPUData, Data
 from ..stages import Stages
 from ..utility import get_random_generator, get_rand_int
 from functools import wraps
 import warnings
 
 
-def auto_block(_implicit_cls=None,
+class FitTransformClass(Protocol):
+    def fit(self, X: np.ndarray, y: np.ndarray):
+        ...
+
+    def transform(self, X: np.ndarray) -> Union[np.ndarray, BaseData]:
+        ...
+
+
+def auto_block(_implicit_cls=None,  # noqa: C901
                execution_props: Optional[BlockExecutionProperties] = None,
                random_state_field: str | None = 'random_state',
                auto_state: bool = False):
@@ -22,7 +30,7 @@ def auto_block(_implicit_cls=None,
                        brackets is used. Otherwise it should be `None`.
         execution_props: Custom block execution properties.
         random_state_field: Field name in the class that corresponds to object's random seed.
-            Pass `None` if the class doesn't have any. If the class already has 
+            Pass `None` if the class doesn't have any. If the class already has
             the `set_random_state` method, it won't be redefined.
         auto_state: Automatically implement `__getstate__` and `__setstate__` methods.
                     These methods are required for serialization.
@@ -31,7 +39,7 @@ def auto_block(_implicit_cls=None,
         Block wrapping function.
 
     """
-    def _auto_block_impl(cls: Type[BaseBlock]):
+    def _auto_block_impl(cls: Type[FitTransformClass]):
         """Make auto block wrapper instance.
 
         Args:
@@ -46,7 +54,7 @@ def auto_block(_implicit_cls=None,
 
         @wraps(cls, updated=())
         class AutoBlock(BaseBlock):
-            meta: Optional[BlockMeta] = BlockMeta(
+            meta: BlockMeta = BlockMeta(
                 inputs=[
                     InputSlotMeta(
                         name=name,
@@ -83,7 +91,16 @@ def auto_block(_implicit_cls=None,
 
             def transform(self, inputs: BlockInputData) -> TransformOutputData:
                 transformed = self.__instance.transform(**self.__prepare_kwargs(inputs))
-                return {'output': transformed}
+                if isinstance(transformed, BaseData):
+                    output = transformed
+                elif isinstance(transformed, np.ndarray):
+                    output = CPUData(transformed)
+                else:
+                    raise TypeError(
+                        f"Unexpected type {type(transformed)} for transformed output. "
+                        f"Expected `BaseData` or `np.ndarray`."
+                    )
+                return {'output': output}
 
             def __get_instance_state(self):
                 if hasattr(self.__instance, '__getstate__'):
@@ -143,8 +160,7 @@ def auto_block(_implicit_cls=None,
                     gen = get_random_generator(seed)
                     setattr(self.__instance, random_state_field, get_rand_int(gen))
                 else:
-                    warnings.warn("%s doesn't have random_state_field '%s'", cls.__name__,
-                                    random_state_field)
+                    warnings.warn("%s doesn't have random_state_field '%s'" % (cls.__name__, random_state_field))
 
         return AutoBlock
 

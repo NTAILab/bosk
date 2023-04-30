@@ -1,5 +1,7 @@
 from collections import defaultdict
-from typing import Mapping, Optional, Type
+from typing import Any, Dict, List, Mapping, Optional, Type
+
+from bosk.block.base import BlockInputData
 
 from ..executor.base import BaseExecutor
 from ..pipeline.base import BasePipeline
@@ -12,17 +14,19 @@ from .layers import Layer
 
 class SequentialPipelineBuilder:
     base_input_names = ['X', 'y']
+    pipelines: List[BasePipeline]
+    history: Mapping[str, List[float]]
 
     def __init__(self, executor_cls: Type[BaseExecutor],
-                 growing_strategy: Optional[GrowingStrategy] = None,
-                 **inputs: Mapping[str, BaseData]):
+                 growing_strategy: GrowingStrategy,
+                 **inputs: BaseData):
         super().__init__()
         self.executor_cls = executor_cls
         self.inputs = inputs
-        self.prev_step_inputs = None
+        self.prev_step_inputs: Optional[BlockInputData] = None
         self.pipelines = []
         self.growing_strategy = growing_strategy
-        self.__growing_state = dict()
+        self.__growing_state: Dict[str, Any] = dict()
         self.history = defaultdict(list)
 
     def append(self, layer: Layer) -> bool:
@@ -78,7 +82,7 @@ class SequentialPipelineBuilder:
         }
         for alias_name, given_input_name in map_inputs.items():
             given_block = self.pipelines[0].inputs[given_input_name].parent_block
-            given_output_slot = given_block.slots.outputs[given_block.default_output]
+            given_output_slot = given_block.get_default_output()
             connections.append(
                 Connection(
                     given_output_slot,
@@ -103,7 +107,7 @@ class SequentialPipelineBuilder:
                 for base_inp in self.base_input_names:
                     if base_inp in pipeline.inputs and base_inp not in fulfilled_inputs:
                         target_input_block = self.pipelines[0].inputs[base_inp].parent_block
-                        target_output_slot = target_input_block.slots.outputs[target_input_block.default_output]
+                        target_output_slot = target_input_block.get_default_output()
                         connections.append(Connection(target_output_slot, pipeline.inputs[base_inp]))
 
         return BasePipeline(

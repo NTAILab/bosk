@@ -1,5 +1,7 @@
-from .lambda_block import FitLambdaBlock
+from .lambda_block import FitLambdaBlock, TransformLambdaBlock
+
 
 __all__ = [
-    "FitLambdaBlock",
+    'FitLambdaBlock',
+    'TransformLambdaBlock'
 ]

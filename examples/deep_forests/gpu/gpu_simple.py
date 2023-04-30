@@ -16,8 +16,8 @@ from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBloc
 from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
 from bosk.block.zoo.metrics import RocAucBlock
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
-
 from bosk.block.zoo.gpu_blocks.transition import MoveToBlock
+from bosk.executor.block import GPUBlockExecutor, CPUBlockExecutor
 from bosk.data import CPUData, GPUData
 
 
@@ -35,6 +35,7 @@ def make_deep_forest_functional_cpu(executor, **ex_kw):
         stage=Stage.FIT,
         inputs=['X', 'y'],
         outputs=['concat'],
+        block_executor=CPUBlockExecutor(),
         **ex_kw
     )
     transform_executor = executor(
@@ -45,6 +46,7 @@ def make_deep_forest_functional_cpu(executor, **ex_kw):
         stage=Stage.TRANSFORM,
         inputs=['X'],
         outputs=['concat'],
+        block_executor=CPUBlockExecutor(),
         **ex_kw
     )
     return fit_executor, transform_executor
@@ -64,6 +66,7 @@ def make_deep_forest_functional_gpu(executor, **ex_kw):
         stage=Stage.FIT,
         inputs=['X', 'y'],
         outputs=['concat'],
+        block_executor=GPUBlockExecutor(),
         **ex_kw
     )
     transform_executor = executor(
@@ -74,6 +77,7 @@ def make_deep_forest_functional_gpu(executor, **ex_kw):
         stage=Stage.TRANSFORM,
         inputs=['X'],
         outputs=['concat'],
+        block_executor=GPUBlockExecutor(),
         **ex_kw
     )
     return fit_executor, transform_executor
@@ -97,7 +101,7 @@ def run_gpu():
 
     all_X, all_y = make_moons(n_samples=1000000, noise=0.5, random_state=42)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    fit_result = fit_executor({'X': GPUData(train_X), 'y': GPUData(train_y)})
+    fit_executor({'X': GPUData(train_X), 'y': GPUData(train_y)})
     print("Fit successful")
     transform_executor({'X': GPUData(train_X)})
     transform_executor({'X': GPUData(test_X)})
@@ -261,4 +265,3 @@ if __name__ == "__main__":
     run_gpu_advanced()  # more block - slower execution
     end_time = time.time()
     print(f"Time GPU execution: {end_time - start_time} sec")
-

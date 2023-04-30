@@ -6,9 +6,14 @@ from .base import (
     TransformOutputData,
     BaseInputBlock,
     BaseOutputBlock,
+    BaseSlot,
+    BlockInputSlot,
+    BlockOutputSlot,
+    SlotT,
+    BaseSlotMeta,
+    BlockGroup
 )
 from .meta import BlockMeta, InputSlotMeta, OutputSlotMeta
-from .slot import BaseSlot, BlockInputSlot, BlockOutputSlot, SlotT, BaseSlotMeta, BlockGroup
 
 __all__ = [
     # packages
