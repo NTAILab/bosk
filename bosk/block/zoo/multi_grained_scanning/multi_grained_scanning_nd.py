@@ -102,7 +102,7 @@ class MultiGrainedScanningNDBlock(BaseBlock):
             assert self.model.default_output is not None,\
                 'Cannot use base blocks with more than one output and no default chosen'
             outputs = self.model.transform({'X': CPUData(sliced)})
-            block_default_out_data = outputs[self.model.default_output].data
+            block_default_out_data = outputs[self.model.default_output]
             assert isinstance(block_default_out_data, CPUData)
             return block_default_out_data.data
         if hasattr(self.model, 'predict_proba'):
