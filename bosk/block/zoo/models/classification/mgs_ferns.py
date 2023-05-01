@@ -382,7 +382,7 @@ class MGSRandomFernsBlock(BaseBlock):
         n_ferns = bucket_indices.shape[-1]
         flattened_bucket_indices = bucket_indices.reshape((-1, n_ferns))
         spatial_size = reduce(mul, bucket_indices.shape[1:-1], 1)
-        flattened_y = jnp.tile(y[:, np.newaxis], (1, spatial_size)).reshape((-1,))
+        flattened_y = jnp.tile(y[:, np.newaxis], (1, spatial_size)).reshape((-1, *y.shape[1:]))
 
         group_data_indices: List[jnp.ndarray] | List[slice]
         if not self.bootstrap:
@@ -429,7 +429,7 @@ class MGSRandomFernsBlock(BaseBlock):
             group_preds.append(
                 probas.reshape((-1, *spatial_dims, probas.shape[-1]))
             )
-        preds = jnp.stack(group_preds, axis=0).mean(axis=0)
+        preds = jnp.moveaxis(jnp.stack(group_preds, axis=0).mean(axis=0), -1, 1)
         return preds
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
