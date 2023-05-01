@@ -50,6 +50,7 @@ class BaseAutoDeepForestConstructor(ABC):
                  cv: Optional[int] = 5,
                  make_metrics: Optional[Callable[[], MetricsEvaluator]] = None,
                  growing_strategy: Optional[GrowingStrategy] = None,
+                 block_classes: Optional[Tuple[Type[BaseBlock], ...]] = None,
                  random_state: Optional[int] = None):
         self.executor_cls = executor_cls or DEFAULT_EXECUTOR_CLS
         assert issubclass(self.executor_cls, BaseExecutor)
@@ -62,6 +63,7 @@ class BaseAutoDeepForestConstructor(ABC):
             else:
                 growing_strategy = EarlyStoppingCV()
         self.growing_strategy = growing_strategy
+        self.block_classes = block_classes
         self.random_state = random_state
 
     @property
@@ -117,7 +119,8 @@ class BaseAutoDeepForestConstructor(ABC):
         return pipeline
 
 
-def _make_base_df_blocks(params: dict, layer_width: int) -> List[BaseBlock]:
+def _make_base_df_blocks(params: dict, layer_width: int,
+                         block_classes: Optional[Tuple[Type[BaseBlock], ...]] = None) -> List[BaseBlock]:
     """Make base Deep Forest Blocks for one layer.
 
     Args:
@@ -129,9 +132,11 @@ def _make_base_df_blocks(params: dict, layer_width: int) -> List[BaseBlock]:
 
     """
     BLOCK_CLASSES = (RFCBlock, ETCBlock)
+    if block_classes is None:
+        block_classes = BLOCK_CLASSES
     result = [
         [block_cls(**params) for _ in range(layer_width)]
-        for block_cls in BLOCK_CLASSES
+        for block_cls in block_classes
     ]
     # flatten
     return [b for list_of_blocks in result for b in list_of_blocks]  # type: ignore
@@ -156,8 +161,9 @@ class ClassicalDeepForestConstructor(BaseAutoDeepForestConstructor):
                  cv: Optional[int] = 5,
                  make_metrics: Optional[Callable[[], MetricsEvaluator]] = None,
                  growing_strategy: Optional[GrowingStrategy] = None,
+                 block_classes: Optional[Tuple[Type[BaseBlock], ...]] = None,
                  random_state: Optional[int] = None):
-        super().__init__(executor_cls, max_iter, cv, make_metrics, growing_strategy, random_state)
+        super().__init__(executor_cls, max_iter, cv, make_metrics, growing_strategy, block_classes, random_state)
         if rf_params is None:
             rf_params = dict()
         self.rf_params = rf_params
@@ -168,7 +174,7 @@ class ClassicalDeepForestConstructor(BaseAutoDeepForestConstructor):
                         validator: BasePipelineModelValidator,
                         rng: np.random.Generator):
         return self.LAYER_CLS(
-            make_blocks=lambda: _make_base_df_blocks(self.rf_params, self.layer_width),
+            make_blocks=lambda: _make_base_df_blocks(self.rf_params, self.layer_width, self.block_classes),
             layer_name=f'{self.LAYER_CLS.__name__}({step=}, {iteration=})',
             executor_cls=self.executor_cls,
             validator=validator,
@@ -195,8 +201,9 @@ class HyperparamSearchDeepForestConstructor(BaseAutoDeepForestConstructor):
                  cv: Optional[int] = 5,
                  make_metrics: Optional[Callable[[], MetricsEvaluator]] = None,
                  growing_strategy: Optional[GrowingStrategy] = None,
+                 block_classes: Optional[Tuple[Type[BaseBlock], ...]] = None,
                  random_state: Optional[int] = None):
-        super().__init__(executor_cls, max_iter, cv, make_metrics, growing_strategy, random_state)
+        super().__init__(executor_cls, max_iter, cv, make_metrics, growing_strategy, block_classes, random_state)
         if rf_param_grid is None:
             rf_param_grid = dict()
         self.rf_param_grid = rf_param_grid
@@ -210,7 +217,7 @@ class HyperparamSearchDeepForestConstructor(BaseAutoDeepForestConstructor):
         sampler = ParameterSampler(self.rf_param_grid, n_iter=1, random_state=get_rand_int(rng))
         rf_params = next(iter(sampler))
         return self.LAYER_CLS(
-            make_blocks=lambda: _make_base_df_blocks(rf_params, self.layer_width),
+            make_blocks=lambda: _make_base_df_blocks(rf_params, self.layer_width, self.block_classes),
             layer_name=f'{self.LAYER_CLS.__name__}({step=}, {iteration=})',
             executor_cls=self.executor_cls,
             validator=validator,
@@ -242,8 +249,9 @@ class MGSDeepForestConstructor(BaseAutoDeepForestConstructor):
                  cv: Optional[int] = 5,
                  make_metrics: Optional[Callable[[], MetricsEvaluator]] = None,
                  growing_strategy: Optional[GrowingStrategy] = None,
+                 block_classes: Optional[Tuple[Type[BaseBlock], ...]] = None,
                  random_state: Optional[int] = None):
-        super().__init__(executor_cls, max_iter, cv, make_metrics, growing_strategy, random_state)
+        super().__init__(executor_cls, max_iter, cv, make_metrics, growing_strategy, block_classes, random_state)
         self.input_shape = input_shape
         if conv_params is None:
             conv_params = dict()
@@ -271,7 +279,7 @@ class MGSDeepForestConstructor(BaseAutoDeepForestConstructor):
             )
         else:  # step == 1, stacking layers
             return self.STACKING_LAYER_CLS(
-                make_blocks=lambda: _make_base_df_blocks(self.rf_params, self.layer_width),
+                make_blocks=lambda: _make_base_df_blocks(self.rf_params, self.layer_width, self.block_classes),
                 layer_name=f'{self.STACKING_LAYER_CLS.__name__}({step=}, {iteration=})',
                 executor_cls=self.executor_cls,
                 validator=validator,
