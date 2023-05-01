@@ -60,6 +60,10 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
                 assert len(pfn_kwargs) == 0, "All arguments should be either named or unnamed"
                 assert len(block.slots.inputs), "Please, specify argument names: `block(arg1=value1, ..)`"
                 input_block_wrapper = pfn_args[0]
+                assert isinstance(input_block_wrapper, FunctionalBlockWrapper), \
+                    f'Expected the argument is `FunctionalBlockWrapper` but got {type(input_block_wrapper)}. '\
+                    'Maybe wrapping function is passed instead of block placeholder, check '\
+                    'that some arguments were passed to the placeholder making function.'
                 single_input = next(iter(block.slots.inputs.values()))
                 self._connections.append(
                     Connection(

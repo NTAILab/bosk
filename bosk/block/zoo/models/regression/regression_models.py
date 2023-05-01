@@ -35,3 +35,18 @@ class XGBCRegressorBlock(XGBRegressor):
 
     def transform(self, X):
         return CPUData(self.predict(X))
+
+
+try:
+    from lightgbm import LGBMRegressor
+
+    @auto_block(execution_props=BlockExecutionProperties())
+    class LGBMRegressorBlock(LGBMRegressor):
+        def fit(self, X, y):
+            super().fit(X, y)
+
+        def transform(self, X):
+            return CPUData(self.predict(X))
+
+except ModuleNotFoundError:
+    pass

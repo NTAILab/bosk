@@ -63,6 +63,7 @@ class EarlyStoppingCV(GrowingStrategy):
         """
         count = growing_state['count']
         if count > 0:
+            growing_state['count'] = 0
             return pipelines[:-count]
         return pipelines
 

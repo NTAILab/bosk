@@ -11,5 +11,8 @@ class ScopeBlockClassRepository(BaseBlockClassRepository):
         block_name = name + 'Block'
         block_cls = self.__scope.get(block_name, None)
         if block_cls is None:
-            raise ValueError(f'Wrong block class: {name} ({block_name} not found)')
+            raise ValueError(
+                f'Wrong block class: {name} ({block_name} not found). '
+                'Probably name ends with "Block", in this case just remove this postfix.'
+            )
         return block_cls
