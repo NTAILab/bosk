@@ -3,7 +3,7 @@
 from bosk.pipeline.base import BasePipeline, Connection
 from bosk.executor.base import BaseExecutor
 from bosk.stages import Stage
-from bosk.data import Data
+from bosk.data import BaseData
 from bosk.block.base import BaseBlock
 from typing import Dict, Type, Optional, Sequence, Tuple, List, Set, TypeVar
 import os
@@ -12,9 +12,9 @@ import logging
 T = TypeVar('T')
 
 
-def fit_pipeline(pipeline: BasePipeline, data: Dict[str, Data], exec_cls: Type[BaseExecutor],
+def fit_pipeline(pipeline: BasePipeline, data: Dict[str, BaseData], exec_cls: Type[BaseExecutor],
                  inputs: Optional[Sequence[str]] = None,
-                 outputs: Optional[Sequence[str]] = None) -> Tuple[BasePipeline, Dict[str, Data]]:
+                 outputs: Optional[Sequence[str]] = None) -> Tuple[BasePipeline, Dict[str, BaseData]]:
     """Function that fits the pipeline with the preferred executor. Returns fitted pipeline and the
     pipeline's output. Is needed to avoid the boilerplate code.
     """

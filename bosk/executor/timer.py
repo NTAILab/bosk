@@ -7,6 +7,17 @@ from typing import Dict
 
 
 class TimerBlockExecutor(BaseBlockExecutor):
+    """Timer block executor.
+
+    Executes blocks like :py:class:`DefaultBlockExecutor` and additionally
+    measures performance.
+
+    The result times can be accessed through :py:attr:`blocks_time`.
+
+    Attributes:
+        block_time: Dictionary that maps blocks to their fit-transform time.
+
+    """
     def __init__(self) -> None:
         super().__init__()
         self._time_dict: Dict[BaseBlock, float] = dict()

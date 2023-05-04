@@ -1,13 +1,13 @@
-"""Topological executor with the graph painter.
+"""Topological executor.
 
-This file contains the optimizing executor, which also can draw the computational graph.
+This file contains the optimizing executor that can check pipeline before computation start.
 
 """
 
 from typing import Deque, Dict, Iterable, List, Mapping, Sequence, Set, Optional, Union
 from collections import defaultdict, deque
 
-from ..data import BaseData, Data
+from ..data import BaseData
 from .base import BaseBlockExecutor, BaseExecutor, BaseSlotHandler, Stage
 from ..pipeline import BasePipeline
 from ..block.base import BaseSlot, BlockInputSlot, BlockOutputSlot
@@ -18,9 +18,10 @@ import warnings
 
 
 class TopologicalExecutor(BaseExecutor):
-    """Topological executor with the graph painter.
-    The optimization algoritm computes only blocks which are connected with the inputs and needed for
-    the outputs calculation.
+    """Topological executor.
+
+    The optimization algoritm computes only blocks which are connected with the inputs and which outputs are needed
+    for the pipeline outputs calculation.
 
     Attributes:
         _conn_dict: Pipeline connections, represented as a hash map, the keys are blocks' input slots,
@@ -35,6 +36,7 @@ class TopologicalExecutor(BaseExecutor):
         outputs: Sets :attr:`.BaseExecutor.__outputs`.
         slot_handler: Sets :attr:`.BaseExecutor.__slot_handler` with `_prepare_slot_handler` method.
         block_executor: Sets :attr:`.BaseExecutor.__block_executor` with `_prepare_block_executor` method.
+
     """
 
     _conn_dict: Dict[BlockInputSlot, Union[BlockInputSlot, BlockOutputSlot]]
@@ -138,7 +140,7 @@ class TopologicalExecutor(BaseExecutor):
                 forward_aj_list[out_slot.parent_block].add(inp_slot.parent_block)
         return forward_aj_list
 
-    def execute(self, input_values: Mapping[str, Data]) -> Dict[str, BaseData]:
+    def execute(self, input_values: Mapping[str, BaseData]) -> Dict[str, BaseData]:
         """The main method for the processing of the computational graph.
 
         Args:
@@ -176,7 +178,9 @@ class TopologicalExecutor(BaseExecutor):
             else:
                 input_blocks_set.add(input_slot.parent_block)
         topological_order = self._topological_sort(
-            self._get_forward_aj_list(backward_pass), input_blocks_set)
+            self._get_forward_aj_list(backward_pass),
+            input_blocks_set
+        )
 
         for node in topological_order:
             node_input_data = dict()

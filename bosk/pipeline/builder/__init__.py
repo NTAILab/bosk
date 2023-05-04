@@ -1,3 +1,6 @@
+"""Pipeline builders can be used to construct pipelines.
+
+"""
 from .base import BasePipelineBuilder
 from .functional import FunctionalBlockWrapper, FunctionalPipelineBuilder
 

@@ -1,3 +1,8 @@
+"""Block meta information.
+
+Determines the `type` of a block: which inputs, outputs and execution properties it has.
+
+"""
 from dataclasses import dataclass
 from typing import Mapping, List
 from ..stages import Stages
@@ -9,20 +14,20 @@ class BaseSlotMeta:
 
     Slot meta is unique for a block slot.
 
-    Attributes:
-        name: Slot name.
     """
     name: str
+    """Slot name.
+    """
 
 
 @dataclass(eq=True, frozen=True)
 class InputSlotMeta(BaseSlotMeta):
     """Block input slot meta.
 
-    Attributes:
-        stages: At which stages slot value is needed.
     """
     stages: Stages = Stages()
+    """At which stages slot value is needed.
+    """
 
 
 @dataclass(eq=True, frozen=True)
@@ -35,32 +40,36 @@ class OutputSlotMeta(BaseSlotMeta):
 class BlockExecutionProperties:  # TODO: move to a separate file
     """Block execution properties.
 
-    Attributes:
-        cpu: Has CPU implementation that handles CPU data.
-        gpu: Has GPU implementation that handles GPU data.
-        threadsafe: CPU/GPU implementation is thread safe, can be executed in parallel.
-        plain: Block implementation is straightforward and not computantionally expensive,
-               it should not be parallelized (parallelization costs are larger than computation).
-
     """
     cpu: bool = True
+    """Has CPU implementation that handles CPU data.
+    """
     gpu: bool = False
+    """Has GPU implementation that handles GPU data.
+    """
     threadsafe: bool = False
+    """CPU/GPU implementation is thread safe, can be executed in parallel.
+    """
     plain: bool = False
+    """Block implementation is straightforward and not computantionally expensive,
+    it should not be parallelized (parallelization costs are larger than computation).
+    """
 
 
 @dataclass(init=False)
 class BlockMeta:
     """Block meta, containing input and output slots description.
 
-    Attributes:
-        inputs: Mapping from input slots names to their meta.
-        outputs: Mapping from output slots names to their meta.
-
     """
     inputs: Mapping[str, InputSlotMeta]
+    """Mapping from input slots names to their meta.
+    """
     outputs: Mapping[str, OutputSlotMeta]
+    """Mapping from output slots names to their meta.
+    """
     execution_props: BlockExecutionProperties
+    """Block execution properties.
+    """
 
     def __init__(self, *, inputs=None, outputs=None, execution_props=None):
         assert inputs is not None, 'Meta inputs description is required'

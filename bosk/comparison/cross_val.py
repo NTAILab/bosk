@@ -24,13 +24,32 @@ class CVComparator(BaseComparator):
     your own iterator (based on sklearn's `BaseCrossValidator` class)
     that will define indexes, taken in each fold,
     or you can use predefined iterators from the `sklearn`.
+
+    Args:
+        pipelines: A pipeline or a list of pipelines to evaluate.
+        foreign_models: A foreign model or a list of foreign models to evaluate.
+        cv_strat: A cross-validation strategy to use.
+        exec_cls: The executor class to use.
+        exec_kw: The keyword arguments for the executor.
+        get_blocks_times: Whether to get block execution times.
+                          If True, the block executor will be changed to :py:class:`TimerBlockExecutor`.
+        suppress_exec_warn: Whether to suppress warnings when using the executor.
+        f_optimize_pipelines: Whether to optimize pipelines.
+        random_state: The random state.
+                      It will be used as a seed for generator tu further propagate seeds
+                      to every block.
+
     """
 
     def __init__(self, pipelines: Optional[BasePipeline | List[BasePipeline]],
                  foreign_models: Optional[BaseForeignModel | List[BaseForeignModel]],
-                 cv_strat: BaseCrossValidator, exec_cls: Type[BaseExecutor] = TopologicalExecutor,
-                 exec_kw=None, get_blocks_times: bool = False, suppress_exec_warn: bool = True,
-                 f_optimize_pipelines: bool = True, random_state: Optional[int] = None) -> None:
+                 cv_strat: BaseCrossValidator,
+                 exec_cls: Type[BaseExecutor] = TopologicalExecutor,
+                 exec_kw=None,
+                 get_blocks_times: bool = False,
+                 suppress_exec_warn: bool = True,
+                 f_optimize_pipelines: bool = True,
+                 random_state: Optional[int] = None) -> None:
         super().__init__(pipelines, foreign_models, f_optimize_pipelines, random_state)
         cv_strat.random_state = random_state
         self.cv_strat = cv_strat

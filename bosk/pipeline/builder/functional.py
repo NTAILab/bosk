@@ -14,14 +14,17 @@ SlotOrBlockWrapper = Union[BlockInputSlot, FunctionalBlockWrapper]
 
 class FunctionalPipelineBuilder(BasePipelineBuilder):
     """Pipeline builder with functional interface.
+
+    Args:
+        block_repo: Block class repository for resolving blocks by their names.
+                    Default is zoo scope repository, which means that
+                    all blocks defined in :py:mod:`bosk.block.zoo` will be available
+                    (without postfix "Block", for example:
+                    :py:class:`bosk.block.zoo.data_conversion.ArgmaxBlock`
+                    should be accessed as just "Argmax").
+
     """
     def __init__(self, block_repo: Optional[BaseBlockClassRepository] = None):
-        """Initialize functional pipeline builder.
-
-        Args:
-            block_repo: Block class repository for resolving blocks by their names.
-
-        """
         self._nodes: List[BaseBlock] = []
         self._connections: List[Connection] = []
         if block_repo is None:

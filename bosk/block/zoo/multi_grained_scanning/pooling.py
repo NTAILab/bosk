@@ -28,11 +28,46 @@ AGGREGATION_FUNCTIONS = {
 }
 
 
+
 class PoolingBlock(BaseBlock):
     """Pooling Block implements n-dimensional downsampling with an aggregation operation.
 
-    It takes `X` of shape (n_samples, n_channels, n_features_1, ..., n_features_k)
-    as an input and returns the pooled tensor of shape (n_samples, n_channels, t_1, ..., t_k).
+    It takes `X` of shape `(n_samples, n_channels, n_features_1, ..., n_features_k)`
+    as an input and returns the pooled tensor of shape `(n_samples, n_channels, t_1, ..., t_k)`.
+
+    Args:
+        kernel_size: Kernel size (int or tuple).
+        stride: Stride.
+        dilation: Dilation (kernel stride).
+        padding: Padding size (see `numpy.pad`);
+                    if None padding is disabled.
+        aggregation: Aggregation operation name ('max', 'min', 'mean', 'sum') or function.
+                        If the function is given, it should aggregate by the last axis;
+                        also the function can be passed only if `impl_type` is `index`
+                        and input data are at CPU.
+        chunk_size: Chunk size. Affects performance.
+        impl_type: Implementation type ('index', 'njit', 'jax').
+                    Note that 'jax' impl type will move data to GPU.
+                    For the GPU input data only 'jax' implementation is available.
+
+    Input slots
+    -----------
+
+    Fit inputs
+    ~~~~~~~~~~
+
+        - X: Data tensor of shape `(n_samples, n_channels, n_features_1,..., n_features_k)`.
+
+    Transform inputs
+    ~~~~~~~~~~~~~~~~
+
+        - X: Data tensor of shape `(n_samples, n_channels, n_features_1,..., n_features_k)`.
+
+    Output slots
+    ------------
+
+        - output: Pooled tensor of shape `(n_samples, n_out_channels, out_n_features_1,..., out_n_features_k)`.
+
     """
 
     meta = make_simple_meta(
@@ -48,24 +83,6 @@ class PoolingBlock(BaseBlock):
                  aggregation: str = 'max',
                  chunk_size: int = -1,
                  impl_type: str = 'index'):
-        """Initialize Pooling Block.
-
-        Args:
-            kernel_size: Kernel size (int or tuple).
-            stride: Stride.
-            dilation: Dilation (kernel stride).
-            padding: Padding size (see `numpy.pad`);
-                     if None padding is disabled.
-            aggregation: Aggregation operation name ('max', 'min', 'mean', 'sum') or function.
-                         If the function is given, it should aggregate by the last axis;
-                         also the function can be passed only if `impl_type` is `index`
-                         and input data are at CPU.
-            chunk_size: Chunk size. Affects performance.
-            impl_type: Implementation type ('index', 'njit', 'jax').
-                       Note that 'jax' impl type will move data to GPU.
-                       For the GPU input data only 'jax' implementation is available.
-
-        """
         super().__init__()
         self.params = _ConvolutionParams(
             kernel_size=kernel_size,
@@ -236,16 +253,34 @@ class PoolingBlock(BaseBlock):
 
 
 class GlobalAveragePoolingBlock(BaseBlock):
-    """Global Average Pooling averages across all dimensions except sample and channels.
-
-    For example, given an input of shape `(n_samples, n_channels, n_1, ..., n_d)`,
-    the output will be of shape `(n_samples, n_channels)`.
-    """
     meta = make_simple_meta(['X'], ['output'], execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True))
 
-    def __init__(self, axis: int = -1):
+    def __init__(self):
+        """Global Average Pooling averages across all dimensions except sample and channels.
+
+        For example, given an input of shape `(n_samples, n_channels, n_1, ..., n_d)`,
+        the output will be of shape `(n_samples, n_channels)`.
+
+        Input slots
+        -----------
+
+        Fit inputs
+        ~~~~~~~~~~
+
+            - X: Data tensor of shape `(n_samples, n_channels, n_features_1,..., n_features_k)`.
+
+        Transform inputs
+        ~~~~~~~~~~~~~~~~
+
+            - X: Data tensor of shape `(n_samples, n_channels, n_features_1,..., n_features_k)`.
+
+        Output slots
+        ------------
+
+            - output: Pooled tensor of shape `(n_samples, n_channels)`.
+
+        """
         super().__init__()
-        self.axis = axis
 
     def _check_dims(self, inputs):
         assert 'X' in inputs

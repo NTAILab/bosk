@@ -7,6 +7,17 @@ from typing import Any, Optional
 
 
 class SkopsBlockSerializer(BaseBlockSerializer):
+    """Skops-based pipeline serialization.
+
+    Skops is more secure than Joblib, but doesn't allow to serialize
+    the whole pipelines.
+    If you are going to do so, consider :py:class:`bosk.pipeline.serializer.ZipPipelineSerializer`.
+
+    Args:
+        trusted: Will the given data be trusted or not.
+                 Note that it is True by default.
+
+    """
     def __init__(self, trusted: bool = True):
         self.trusted = trusted
 

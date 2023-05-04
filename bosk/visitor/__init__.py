@@ -1,10 +1,11 @@
-# from .base import BaseVisitor
-# from .group import ModificationAction, ModifyGroupVisitor
+"""Visitors module.
 
-# __all__ = [
-#     "BaseVisitor",
-#     "ModificationAction",
-#     "ModifyGroupVisitor",
-# ]
+Pipelines, blocks and connections support visitors that have interface :py:class:`BaseVisitor`.
 
-# circular import! BaseBlock->BaseVisitor: visitor.__init__->visitor.group->BaseBlock
+"""
+from .base import BaseVisitor
+
+
+__all__ = [
+    "BaseVisitor",
+]

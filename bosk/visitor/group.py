@@ -12,6 +12,11 @@ ModificationAction = Literal['add', 'remove']
 
 class ModifyGroupVisitor(BaseVisitor):
     """Visitor for block groups modification, given a group and action.
+
+    Args:
+        action: Action to perform (add block to group or remove from it).
+        group: The group to modify.
+
     """
     def __init__(self, action: ModificationAction, group: BlockGroup):
         self.action = action
