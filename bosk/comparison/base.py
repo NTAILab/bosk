@@ -219,7 +219,7 @@ class BaseComparator(ABC):
             inp_dict[name] = slots_iso[inp_dict_pip[name]]
         return inp_dict
 
-    def __init__(self, pipelines: Optional[BasePipeline | List[BasePipeline]],
+    def __init__(self, pipelines: Optional[BasePipeline | List[BasePipeline]],  # noqa: C901
                  foreign_models: Optional[BaseForeignModel | List[BaseForeignModel]],
                  f_optimize_pipelines: bool = True, random_state: Optional[int] = None) -> None:
 
