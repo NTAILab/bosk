@@ -1,4 +1,4 @@
-User guide
+Examples
 ==========
 
 The basic idea behind the deep forest is stacking of the so-called layers containing decision forest models. Each next layer gets his input as the outcome of the previous one concatenated with the input features.
@@ -17,4 +17,5 @@ To deeply understand the deep forest specifics, consider reading the following p
 - `Utkin L., Konstantinov A., Meldo A., Ryabinin M., Chukanov V. A Deep Forest Improvement by Using Weighted Schemes <https://ieeexplore.ieee.org/document/8711886>`_
 
 Let's look at some particular bosk use examples.
+
 *The examples will be inserted there*

@@ -12,18 +12,19 @@
 #
 import os
 import sys
+from datetime import date
+from bosk import __version__ as bosk_version
 sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
-from bosk import __version__
 
-project = 'Bosk'
-copyright = '2023, NTAILab'
+project = 'bosk'
+copyright = f'2022-{date.today().year}, NTAILab'
 author = 'NTAILab'
 
 # The full version, including alpha/beta/rc tags
-release = __version__
+release = str(bosk_version)
 
 
 # -- General configuration ---------------------------------------------------
@@ -32,25 +33,35 @@ release = __version__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx.ext.coverage',
     'sphinx.ext.autodoc',
     'sphinx.ext.autodoc.typehints',
     'sphinx.ext.napoleon',
+    'sphinx.ext.inheritance_diagram',
     'autoapi.extension',
 ]
 autoapi_dirs = ['../bosk']
-autoapi_add_toctree_entry = False
-
+autoapi_add_toctree_entry = True
+autoapi_generate_api_docs = True
+autoapi_keep_files = True
 autodoc_typehints = 'description'
-# autodoc_default_flags = [
-#     # Make sure that any autodoc declarations show the right members
-#     "members",
-#     "inherited-members",
-#     "show-inheritance",
-# ]
-# napoleon_include_private_with_doc = False
-# napoleon_use_ivar = False
-# napoleon_use_param = True
-# autosummary_generate = True  # Make _autosummary files and include them
+# autoapi_python_class_content = 'init'
+autodoc_default_flags = ['undoc-members', 'inherited-members']
+autodoc_default_options = {
+    'special-members': '__init__, __repr__',
+    'undoc-members': True,
+    'inherited-members': True,
+}
+
+
+# def skip(app, what, name, obj, would_skip, options):
+#     if name.startswith("__") and not name.endswith("__"):
+#         return True
+#     return would_skip
+#
+# def setup(app):
+#     app.connect("autodoc-skip-member", skip)
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
