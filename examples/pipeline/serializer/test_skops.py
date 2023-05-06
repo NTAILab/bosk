@@ -44,7 +44,6 @@ def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
         stage=Stage.FIT,
         inputs=['X', 'y'],
         outputs=['probas', 'rf_1_roc-auc', 'roc-auc'],
-        # outputs=['probas'],
         **ex_kw
     )
     transform_executor = executor(
@@ -63,10 +62,9 @@ def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
 def main():
     fit_executor, transform_executor = make_deep_forest_functional(RecursiveExecutor)
 
-    # all_X, all_y = make_moons(noise=0.5, random_state=42)
     all_X, all_y = load_breast_cancer(return_X_y=True)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
-    fit_result = fit_executor({'X': train_X, 'y': train_y})
+    fit_result = fit_executor({'X': train_X, 'y': train_y}).numpy()
     print("  Fit successful")
 
     block_serializer = SkopsBlockSerializer()
@@ -81,9 +79,9 @@ def main():
         outputs=['probas', 'labels'],
     )
 
-    train_result = transform_executor({'X': train_X})
+    train_result = transform_executor({'X': train_X}).numpy()
     print("  Fit probas == probas on train:", np.allclose(fit_result['probas'], train_result['probas']))
-    test_result = transform_executor({'X': test_X})
+    test_result = transform_executor({'X': test_X}).numpy()
     print("  Train ROC-AUC:", roc_auc_score(train_y, train_result['probas'][:, 1]))
     print(
         "  Train ROC-AUC calculated by fit_executor:",

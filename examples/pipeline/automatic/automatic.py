@@ -2,17 +2,13 @@ import numpy as np
 import pandas as pd
 from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
-from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import f1_score, roc_auc_score
 
 from bosk.auto.deep_forest import ClassicalDeepForestConstructor
-from bosk.auto.validation import TrainSetPipelineModelValidator
 from bosk.data import CPUData
-from bosk.executor.recursive import RecursiveExecutor
 from bosk.executor.topological import TopologicalExecutor
 from bosk.painter.topological import TopologicalPainter
 from bosk.executor.sklearn_interface import BoskPipelineClassifier
-from bosk.auto.metrics import MetricsEvaluator
 
 
 def make_fit_model(X: np.ndarray, y: np.ndarray):
@@ -26,7 +22,6 @@ def make_fit_model(X: np.ndarray, y: np.ndarray):
         layer_width=2,
         cv=2,
         random_state=12345,
-        # make_metrics=lambda: MetricsEvaluator(['f1', 'roc_auc']),
     )
     pipeline = constructor.construct(X.data, y.data)
 

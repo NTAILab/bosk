@@ -48,7 +48,6 @@ def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
         stage=Stage.FIT,
         inputs=['X', 'y'],
         outputs=['probas', 'rf_1_roc-auc', 'roc-auc'],
-        # outputs=['probas'],
         **ex_kw
     )
     transform_executor = executor(
@@ -76,7 +75,6 @@ class FnEncoder(json.JSONEncoder):
 def main():
     fit_executor, transform_executor = make_deep_forest_functional(RecursiveExecutor)
 
-    # all_X, all_y = make_moons(noise=0.5, random_state=42)
     all_X, all_y = load_breast_cancer(return_X_y=True)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
 
@@ -85,11 +83,10 @@ def main():
     dsk_train['X'] = CPUData(train_X)
     dsk_train['y'] = CPUData(train_y)
     outputs = ['probas']
-    dsk_train_culled, dependencies = dask_cull(dsk_train, outputs)
+    dsk_train_culled, _ = dask_cull(dsk_train, outputs)
     train_outputs = dask_get(dsk_train_culled, outputs)
     fit_result = dict(zip(outputs, train_outputs))
 
-    # fit_result = fit_executor({'X': train_X, 'y': train_y})
     print("  Fit successful")
     train_result = transform_executor({'X': CPUData(train_X)})
     print(
@@ -98,14 +95,6 @@ def main():
     )
     test_result = transform_executor({'X': CPUData(test_X)})
     print("  Train ROC-AUC:", roc_auc_score(train_y, train_result['probas'].data[:, 1]))
-    # print(
-    #     "  Train ROC-AUC calculated by fit_executor:",
-    #     fit_result['roc-auc']
-    # )
-    # print(
-    #     "  Train ROC-AUC for RF_1:",
-    #     fit_result['rf_1_roc-auc']
-    # )
     print("  Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'].data[:, 1]))
 
     # execute with Dask
@@ -116,7 +105,7 @@ def main():
     # print(json.dumps(dsk, cls=FnEncoder, indent=4))
     dsk['X'] = CPUData(test_X)
     outputs = ['probas']
-    dsk_culled, dependencies = dask_cull(dsk, outputs)
+    dsk_culled, _ = dask_cull(dsk, outputs)
     test_outputs = dask_get(dsk_culled, outputs)
     print("  Test ROC-AUC (Dask):", roc_auc_score(test_y, test_outputs[0].data[:, 1]))
 
