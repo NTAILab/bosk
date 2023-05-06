@@ -29,6 +29,9 @@ JAX installation
 ~~~~~~~~~~~~~~~~
 
 Bosk uses JAX for GPU computations, but JAX installation is not trivial.
+Officially JAX is only distributed for Linux and Mac OS, so, unfortunatelly,
+Windows users should use `WSL <https://docs.microsoft.com/en-us/windows/wsl/about>`_
+to install JAX and use bosk.
 
 **CPU-only system**
 
@@ -42,8 +45,12 @@ Please, follow `The official JAX installation guide <https://github.com/google/j
 or run the following command to install CUDA12 version::
     pip install --upgrade "jax[cuda12_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
-Note that pip wheels are available only for linux, for other platforms either adapters
-like Windows Subsystem for Linux can be used or JAX can be built manually.
+.. note::
+    Notice that, according to the `NVIDIA guide <https://docs.nvidia.com/cuda/wsl-user-guide/index.html>`_, Windows users
+    must not install any NVIDIA GPU Linux driver within WSL 2. Those NTAILab participants, who uses Windows,
+    installed CUDA Toolkit and cuDNN manually, so we only can recommend to use
+    `part of the guide <https://github.com/google/jax#pip-installation-gpu-cuda-installed-locally-harder>`_
+    where the preinstalled copy of CUDA is used to install JAX over it.
 
 .. _install-package:
 
