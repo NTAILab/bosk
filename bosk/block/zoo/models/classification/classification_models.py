@@ -37,3 +37,18 @@ class XGBClassifierBlock(XGBClassifier):
 
     def transform(self, X):
         return CPUData(self.predict_proba(X))
+
+
+try:
+    from lightgbm import LGBMClassifier
+
+    @auto_block(execution_props=BlockExecutionProperties())
+    class LGBMClassifierBlock(LGBMClassifier):
+        def fit(self, X, y):
+            super().fit(X, y)
+
+        def transform(self, X):
+            return CPUData(self.predict_proba(X))
+
+except ModuleNotFoundError:
+    pass
