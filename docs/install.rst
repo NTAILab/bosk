@@ -15,7 +15,7 @@ Prerequisites
 Environment
 ~~~~~~~~~~~
 
-Make sure that the python >= 3.9 envoronment is ready.
+Make sure that the python >= 3.9 environment is ready.
 
 For example, with `Anaconda <https://www.anaconda.com/distribution/>`_
 the environment can be created and activated by running::
