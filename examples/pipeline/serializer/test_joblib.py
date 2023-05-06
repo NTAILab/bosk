@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from bosk.executor.recursive import RecursiveExecutor
 
 from sklearn.metrics import roc_auc_score
-from bosk.pipeline.serializer.joblib import JoblibSerializer
+from bosk.pipeline.serializer.joblib import JoblibPipelineSerializer
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.stages import Stage
 
@@ -68,7 +68,7 @@ def main():
     fit_result = fit_executor({'X': train_X, 'y': train_y})
     print("  Fit successful")
 
-    serializer = JoblibSerializer()
+    serializer = JoblibPipelineSerializer()
     transform_pipeline_file = '_test.gz'
     serializer.dump(transform_executor.pipeline, transform_pipeline_file)
     transform_pipeline = serializer.load(transform_pipeline_file)
