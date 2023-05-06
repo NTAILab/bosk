@@ -74,3 +74,7 @@ For more examples visit our documentation. Also, you can found example scripts a
 ### Documentation
 
 More information about bosk can be found in our documentation.
+
+### Contribution
+
+We are glad to see new contributors. Please, look at the contribution guide to get started and read the guidelines.

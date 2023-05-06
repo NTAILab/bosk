@@ -68,6 +68,7 @@ Alternatively the repo can be cloned and installed manually::
     pip install -r requirements.txt
     python setup.py install
 
+.. _dev_install:
 
 Dev Installation
 ~~~~~~~~~~~~~~~~

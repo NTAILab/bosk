@@ -7,7 +7,8 @@ Welcome to bosk's documentation!
 
    Installation guide <install>
    getting_started
-   Examples <examples>
+   examples
+   contribution
 
 
 Bosk is a framework for Deep Forest construction.
