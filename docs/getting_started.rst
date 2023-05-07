@@ -38,8 +38,9 @@ which correspond to meta information. But the slots are unique for each block (i
 Every block class should be derived from :py:class:`bosk.block.base.BaseBlock`,
 define meta information and implement the :py:meth:`fit` and :py:meth:`transform` methods.
 
-*Note*, that block prediction is always performed with the :py:meth:`transform` method, not with "predict"
-or something else.
+.. note::
+  Block prediction is always performed with the :py:meth:`transform` method, not with "predict"
+  or something else.
 
 List of available blocks can be found in the :py:mod:`bosk.block.zoo`.
 
@@ -62,7 +63,7 @@ Here we will consider only the second and the third options, since they are more
 .. _functional-pipeline-builder:
 
 Functional-style Pipeline Definition
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Deep Forest can be built manually by using
 `FunctionalPipelineBuilder`.
@@ -164,3 +165,5 @@ Example of usage:
     predictions = predictor({'X': X_test}).numpy()  # result: dictionary of output numpy arrays
 
 Executors and more detailed description are listed in :py:mod:`bosk.executor`.
+
+You can find more examples on the :doc:`examples` page.

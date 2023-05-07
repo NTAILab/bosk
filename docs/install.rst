@@ -43,6 +43,7 @@ If there is no GPU available, install the CPU JAX version::
 
 Please, follow `The official JAX installation guide <https://github.com/google/jax#pip-installation-gpu-cuda-installed-via-pip-easier>`_
 or run the following command to install CUDA12 version::
+    
     pip install --upgrade "jax[cuda12_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
 .. note::

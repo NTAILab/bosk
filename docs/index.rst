@@ -1,16 +1,6 @@
 Welcome to bosk's documentation!
 ================================
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Contents:
-
-   Installation guide <install>
-   getting_started
-   examples
-   contribution
-
-
 Bosk is a framework for Deep Forest construction.
 
 Following common principle of deep neural network frameworks, we consider models as
@@ -62,3 +52,13 @@ forest, the following code could be used:
 
 For more examples look at :doc:`getting_started`
 
+Contents
+~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   Installation guide <install>
+   getting_started
+   examples
+   contribution
