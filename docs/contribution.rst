@@ -60,8 +60,17 @@ Commit messages should be short and informative. Once you have done with the cod
 Building the Documentation
 --------------------------
 
-The documentation is located in the ``docs/`` folder and is written in
+The documentation is located in the ``docs`` folder and is written in
 reStructuredText. HTML files of the documentation can be generated using `Sphinx`_.
+Before the documentation building, make sure you have installed packages
+listed in ``docs/requirements.txt``.
+
+.. note::
+
+    We use Jupyter notebooks as examples in the documentation. To render
+    them properly you have to install a `Pandoc <https://pandoc.org/installing.html>`_
+    utility manually.
+
 The easiest way to build the documentation is to run::
 
     cd docs
