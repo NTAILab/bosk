@@ -4,7 +4,6 @@
 from collections import defaultdict
 from time import time, sleep
 from bosk.block.meta import BlockExecutionProperties
-from bosk.data import CPUData
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.stages import Stage
 
@@ -21,12 +20,6 @@ from bosk.executor.parallel.greedy import (
     JoblibParallelEngine,
     MultiprocessingParallelEngine,
 )
-
-# from examples.deep_forests.casual.source import make_deep_forest, make_deep_forest_functional
-# from examples.deep_forests.cs.simple import make_deep_forest_functional_confidence_screening
-# from examples.deep_forests.mg_scanning.mg_scanning import (make_deep_forest_functional_multi_grained_scanning_1d,
-#                                                            make_deep_forest_functional_multi_grained_scanning_2d)
-# from examples.deep_forests.weighted_cs.simple import make_deep_forest_weighted_confidence_screening
 from sklearn.metrics import roc_auc_score
 from bosk.block.auto import auto_block
 from joblib import parallel_backend
@@ -90,7 +83,6 @@ def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
         stage=Stage.FIT,
         inputs=['X', 'y'],
         outputs=['probas', 'rf_1_roc-auc', 'roc-auc'],
-        # outputs=['probas'],
         **ex_kw
     )
     transform_executor = executor(
@@ -136,7 +128,6 @@ def test_executor(executor_class, ex_kw=None, n_time_iter: int = 1, forest_param
         **ex_kw
     )
 
-    # all_X, all_y = make_moons(noise=0.5, random_state=42)
     all_X, all_y = load_breast_cancer(return_X_y=True)
     train_X, test_X, train_y, test_y = train_test_split(all_X, all_y, test_size=0.2, random_state=42)
     all_times = defaultdict(list)

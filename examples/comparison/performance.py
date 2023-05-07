@@ -7,12 +7,11 @@ from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.data import CPUData
 from bosk.stages import Stage
 from sklearn.calibration import LabelEncoder
-from sklearn.datasets import fetch_openml, make_moons, load_breast_cancer
-from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
+from sklearn.datasets import fetch_openml
+from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
-from typing import Dict
 import logging
 from pathlib import Path
 

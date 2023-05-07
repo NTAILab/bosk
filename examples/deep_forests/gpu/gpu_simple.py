@@ -7,16 +7,9 @@ from sklearn.datasets import make_moons
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
-from bosk.pipeline.base import BasePipeline, Connection
 from bosk.executor.recursive import RecursiveExecutor
-from bosk.executor.base import BaseExecutor
 from bosk.stages import Stage
-from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
-from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
-from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
-from bosk.block.zoo.metrics import RocAucBlock
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
-from bosk.block.zoo.gpu_blocks.transition import MoveToBlock
 from bosk.executor.block import GPUBlockExecutor, CPUBlockExecutor
 from bosk.data import CPUData, GPUData
 
@@ -210,11 +203,11 @@ def run_cpu_advanced():
     print("Train ROC-AUC:", roc_auc_score(train_y.data, train_result['probas'].data[:, 1]))
     print(
         "Train ROC-AUC calculated by fit_executor:",
-        fit_result['roc-auc']
+        fit_result['roc-auc'].data
     )
     print(
         "Train ROC-AUC for RF_1:",
-        fit_result['rf_1_roc-auc']
+        fit_result['rf_1_roc-auc'].data
     )
     print("Test ROC-AUC:", roc_auc_score(test_y.data, test_result['probas'].data[:, 1]))
 
@@ -234,11 +227,11 @@ def run_gpu_advanced():
     print("Train ROC-AUC:", roc_auc_score(train_y.data, train_result['probas'].data[:, 1]))
     print(
         "Train ROC-AUC calculated by fit_executor:",
-        fit_result['roc-auc']
+        fit_result['roc-auc'].data
     )
     print(
         "Train ROC-AUC for RF_1:",
-        fit_result['rf_1_roc-auc']
+        fit_result['rf_1_roc-auc'].data
     )
     print("Test ROC-AUC:", roc_auc_score(test_y.data, test_result['probas'].data[:, 1]))
 
