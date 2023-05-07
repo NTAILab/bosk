@@ -29,8 +29,7 @@ class GraphvizPainter(BasePainter):
         self._dpi = figure_dpi
         self._rankdir = figure_rankdir
         self._render_groups = render_groups
-        self._graph = gv.Digraph('DeepForestGraph', renderer='cairo',
-                                 formatter='cairo', node_attr={'shape': 'record'})
+        self._graph = gv.Digraph('DeepForestGraph', node_attr={'shape': 'record'})
         self._f_used = False
 
     def _add_node(self, block: BaseBlock, style: str = 'solid', color: str = 'black') -> None:
