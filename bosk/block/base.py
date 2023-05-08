@@ -4,7 +4,7 @@ from numpy.random import Generator
 from typing import Mapping, Set, TypeVar, Optional
 
 from .meta import BaseSlotMeta, BlockMeta, InputSlotMeta, OutputSlotMeta
-from ..data import BaseData, Data
+from ..data import BaseData
 from ..visitor.base import BaseVisitor
 from ..exceptions import MultipleBlockInputsError, MultipleBlockOutputsError, NoDefaultBlockOutputError
 
@@ -67,7 +67,17 @@ class BlockOutputSlot(BaseSlot):
 
 @dataclass(frozen=True)
 class BlockGroup:
+    """Block group is an assiciated collection of blocks.
+
+    Practically, each block has collection of groups to which the block belongs.
+
+    Block groups can be used to express that some blocks belong to the same Deep Forest layer,
+    and it helps to draw more understandable pipeline diagrams.
+
+    """
     name: str
+    """Block group name.
+    """
 
     def add(self, block: BlockT):
         """Add the block to the group.
@@ -93,6 +103,14 @@ class BlockGroup:
 
 @dataclass
 class BlockSlots:
+    """Collection of block input and output slots, as well as block groups.
+
+    Attributes:
+        inputs: Input slots.
+        outputs: Output slots.
+        groups: Block groups.
+
+    """
     inputs: Mapping[str, BlockInputSlot]
     outputs: Mapping[str, BlockOutputSlot]
     groups: Set[BlockGroup] = field(default_factory=lambda: set())
@@ -120,8 +138,21 @@ It is indexed by output slots, not their names.
 class BaseBlock(ABC):
     """Base block, the parent of every computation block.
 
+    Block has meta information, that defines the inputs and outputs as well as block execution properties,
+    and slots which are unique for each block instance and can be used to connect different
+    block between each other.
+
+    Main block methods are: `fit(...)` and `transform(...)`.
+    Both accept dictionaries as input, `transform(...)` returns a dictionary with output data.
+
     Attributes:
         meta: Meta information of the block.
+              May be shaped between different blocks.
+              If the meta information cannot be specified at the class definition step,
+              :py:class:`DynamicBlockMetaStub` should be used as a stub, and
+              then redefined at the initialization step.
+        slots: Block slots of type :py:class:`BlockSlots`, made dynamically at the initialization.
+               Slots are unique for the block instance.
 
     """
     def __init__(self):
@@ -178,7 +209,7 @@ class BaseBlock(ABC):
 
         """
 
-    def wrap(self, output_values: Mapping[str, Data]) -> BlockOutputData:
+    def wrap(self, output_values: Mapping[str, BaseData]) -> BlockOutputData:
         """Wrap outputs dictionary into ``BlockOutputs`` object.
 
         Args:

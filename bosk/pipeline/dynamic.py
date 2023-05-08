@@ -3,11 +3,15 @@ from typing import Optional, Sequence
 
 from .base import BasePipeline
 from .connection import Connection
-from ..block.slot import BlockInputSlot, BlockOutputSlot
-from ..block.base import BaseBlock
 
 
 class BaseDynamicPipeline(BasePipeline):
+    """Dynamic pipeline.
+
+    It is a pipeline that can be extended with other pipeline
+    and connections between self and the other pipelien nodes.
+
+    """
     def extend(self, other: BasePipeline,
                connections_extension: Optional[Sequence[Connection]] = None):
         """Extend current pipeline with other pipeline inplace.

@@ -2,12 +2,46 @@ from typing import Tuple, Optional
 
 import numpy as np
 
-from .multi_grained_scanning import MultiGrainedScanningBlock
+from .base import MultiGrainedScanningBlock
 from ...auto import auto_block
 
 
 @auto_block(auto_state=True, random_state_field=None)
 class MultiGrainedScanning1DBlock(MultiGrainedScanningBlock):
+    """1-dimensional Multi Grained Scanning Block.
+
+    Main use case is to process data with one spatial dimension, like sequences.
+
+    It takes `X` of shape `(n_samples, n_channels)`
+    as an input and returns the tensor of shape `(n_samples, n_out_channels)`.
+
+    Args:
+        models: Tuple of underlying models.
+        window_size: Size of the sliding window.
+        stride: Stride of the sliding window.
+        shape_sample: Input data spatial dimensions (shape).
+
+    Input slots
+    -----------
+
+    Fit inputs
+    ~~~~~~~~~~
+
+        - X: Data tensor of shape `(n_samples, n_channels)`.
+        - y: Target variable values of shape `(n_samples, [n_outputs])`.
+
+    Transform inputs
+    ~~~~~~~~~~~~~~~~
+
+        - X: Data tensor of shape `(n_samples, n_channels)`.
+
+    Output slots
+    ------------
+
+        - output: Prediction tensor of shape `(n_samples, n_out_channels)`.
+
+    """
+
     def _window_slicing_data(self, X, y=None) -> 'Tuple[np.ndarray, Optional[np.ndarray]]':
         shape = X.shape[1]
         if shape < self._window_size:

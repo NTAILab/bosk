@@ -71,6 +71,17 @@ class ConnectionSerializer:
 
 
 class ZipPipelineSerializer(BasePipelineSerializer):
+    """Zip-based pipeline serializer.
+
+    It is parametrized by block serializer, and
+    just serializes block separately, providing
+    additional information about connections (edges) between blocks
+    to be able to restore the pipeline structure.
+
+    Args:
+        block_serializer: Block serializer.
+
+    """
     def __init__(self, block_serializer: BaseBlockSerializer):
         self.block_serializer = block_serializer
 

@@ -15,6 +15,11 @@ from .....data import CPUData, GPUData
 from .....utility import get_random_generator, get_rand_int
 
 
+__all__ = [
+    "RandomFernsBlock",
+]
+
+
 @partial(jax.jit, static_argnames=('n_ferns', 'fern_size'))
 def make_unary_ferns(xs: jnp.ndarray, n_ferns: int, fern_size: int, key: random.KeyArray):
     """Generate indices and threshold values for unary fern.
@@ -189,6 +194,34 @@ def predict_proba(pred_bucket_indices: jnp.ndarray, bucket_stats: jnp.ndarray, p
 class RandomFernsBlock(BaseBlock):
     """Random Ferns Classifier Block.
 
+    Args:
+        n_groups: Number of ferns groups (like a number of estimators).
+        n_ferns_in_group: Number of ferns in a group.
+        fern_size: Number of tests in fern.
+        kind: Kind of tests ('unary' or 'binary').
+        bootstrap: Apply data bootstrap or not.
+        n_jobs: Number of threads.
+        random_state: Random state.
+
+    Input slots
+    -----------
+
+    Fit inputs
+    ~~~~~~~~~~
+
+        - X: Input features.
+        - y: Ground truth labels.
+
+    Transform inputs
+    ~~~~~~~~~~~~~~~~
+
+        - X: Input features.
+
+    Output slots
+    ------------
+
+        - probas: Predicted probabilities.
+
     """
     meta = BlockMeta(
         inputs=[
@@ -216,18 +249,6 @@ class RandomFernsBlock(BaseBlock):
                  bootstrap: bool = False,
                  n_jobs: Optional[int] = None,
                  random_state: Optional[int] = None):
-        """Initialize Random Ferns Block.
-
-        Args:
-            n_groups: Number of ferns groups (like a number of estimators).
-            n_ferns_in_group: Number of ferns in a group.
-            fern_size: Number of tests in fern.
-            kind: Kind of tests ('unary' or 'binary').
-            bootstrap: Apply data bootstrap or not.
-            n_jobs: Number of threads.
-            random_state: Random state.
-
-        """
         super().__init__()
         assert fern_size <= 32, 'Maximum number of tests in a fern is 32'
         self.n_groups = n_groups

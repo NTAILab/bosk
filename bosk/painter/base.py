@@ -5,6 +5,9 @@ from ..executor.base import BaseExecutor
 
 
 class BasePainter(ABC):
+    """Abstract base class for all pipeline painters.
+    """
+
     @abstractmethod
     def from_pipeline(self, pipeline: BasePipeline) -> 'BasePainter':
         """Method for drawing the `pipeline` and saving the

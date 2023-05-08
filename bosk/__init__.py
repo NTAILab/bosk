@@ -1,16 +1,18 @@
 __version__ = '0.1'
 
 
-from .data import Data
-from .stages import Stages
-from .block.base import BaseSlot, BlockInputSlot, BlockOutputSlot, SlotT
+from .data import BaseData, CPUData, GPUData
+from .stages import Stages, Stage
+from .utility import get_random_generator, get_rand_int, timer_wrap
 
 
 __all__ = [
-    "Data",
+    "BaseData",
+    "CPUData",
+    "GPUData",
     "Stages",
-    "BaseSlot",
-    "BlockInputSlot",
-    "BlockOutputSlot",
-    "SlotT",
+    "Stage",
+    "get_random_generator",
+    "get_rand_int",
+    "timer_wrap"
 ]

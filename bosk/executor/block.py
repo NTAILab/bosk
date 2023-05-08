@@ -1,11 +1,28 @@
+"""Block execution module.
+
+When a pipeline is executed, block executors, derived from the :py:class:`BaseBlockExecutor`
+are used to evaluate result of each block.
+
+"""
+
 from abc import ABC, abstractmethod
 from typing import Mapping, Optional, Sequence
 
-from ..data import Data, BaseData, CPUData, GPUData
+from ..data import BaseData, CPUData, GPUData
 from ..stages import Stage
 from ..block.base import BaseBlock, BlockOutputData, BlockGroup, BlockInputSlot
 
-InputSlotToDataMapping = Mapping[BlockInputSlot, Data]
+
+__all__ = [
+    "BaseBlockExecutor",
+    "DefaultBlockExecutor",
+    "GPUBlockExecutor",
+    "CPUBlockExecutor",
+    "FitBlacklistBlockExecutor",
+]
+
+
+InputSlotToDataMapping = Mapping[BlockInputSlot, BaseData]
 """Block input slot data mapping.
 
 It is indexed by input slots.
@@ -20,16 +37,23 @@ class BaseBlockExecutor(ABC):
     @abstractmethod
     def execute_block(self, stage: Stage, block: BaseBlock,
                       block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
-        """Method that executes the block.
+        """Execute the `block` at the `stage` given `block_input_mapping` data dictionary.
 
         Args:
             stage: The execution stage.
             block: The computational block to execute.
             block_input_mapping: The data for the block execution.
+
         """
 
 
 class DefaultBlockExecutor(BaseBlockExecutor):
+    """Default block executor.
+
+    Prepares arguments and calls `transform` method at both `FIT` and `TRANSFORM` stages,
+    and before that `fit` method at `FIT` stage.
+
+    """
     def execute_block(self, stage: Stage,
                       block: BaseBlock,
                       block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
@@ -48,6 +72,9 @@ class DefaultBlockExecutor(BaseBlockExecutor):
 
 
 class GPUBlockExecutor(BaseBlockExecutor):
+    """Block executor that tries to execute block on GPU, if it is possible.
+
+    """
     def execute_block(self, stage: Stage,
                       block: BaseBlock,
                       block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
@@ -98,6 +125,9 @@ class GPUBlockExecutor(BaseBlockExecutor):
 
 
 class CPUBlockExecutor(BaseBlockExecutor):
+    """Block executor that tries to execute block on CPU, if it is possible.
+
+    """
     def execute_block(self, stage: Stage,
                       block: BaseBlock,
                       block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
@@ -147,19 +177,17 @@ class FitBlacklistBlockExecutor(DefaultBlockExecutor):
 
     It is used to be able to manually fit some blocks of the pipeline and avoid overriding of the state
     when the whole pipeline is fitted.
+
+    Args:
+        ignore_blocks: List of blocks to ignore.
+        ignore_groups: List of block groups to ignore.
+                        If block belongs to at least one group from `ignore_groups`,
+                        it won't be fitted.
+
     """
 
     def __init__(self, ignore_blocks: Optional[Sequence[BaseBlock]] = None,
                  ignore_groups: Optional[Sequence[BlockGroup]] = None) -> None:
-        """Initialize the block executor.
-
-        Args:
-            ignore_blocks: List of blocks to ignore.
-            ignore_groups: List of block groups to ignore.
-                           If block belongs to at least one group from `ignore_groups`,
-                           it won't be fitted.
-
-        """
         super().__init__()
         self.ignore_blocks = set(ignore_blocks or [])
         self.ignore_groups = set(ignore_groups or [])

@@ -11,7 +11,7 @@ from ..pipeline.base import BasePipeline
 from ..executor.base import BaseExecutor
 from ..executor.recursive import RecursiveExecutor
 from ..utility import get_rand_int, get_random_generator
-from ..block.zoo.models.classification.classification_models import ETCBlock, RFCBlock
+from ..block.zoo.models.classification import ETCBlock, RFCBlock
 from ..block.base import BaseBlock
 
 from .metrics import MetricsEvaluator
@@ -42,6 +42,15 @@ class BaseAutoDeepForestConstructor(ABC):
 
         - At different *steps* the algorithm makes principally different blocks;
         - At different *iterations* the algorithm generates layers of the same structure.
+
+    Args:
+        executor_cls: Executor class (see :py:mod:`bosk.executor`).
+        max_iter: Maximum number of iterations.
+        cv: Number of cross-validation folds. If `None` the cross-validation is not performed.
+        make_metrics: Function that makes metrics evaluator.
+        growing_strategy: Growing strategy.
+        block_classes: List of block classes used in layers.
+        random_state: Random state.
 
     """
 
@@ -79,9 +88,27 @@ class BaseAutoDeepForestConstructor(ABC):
                         X: np.ndarray, y: np.ndarray,
                         validator: BasePipelineModelValidator,
                         rng: np.random.Generator) -> Optional[Layer]:
+        """Make the current step layer.
+
+        Args:
+            step: Current step number.
+            iteration: Current iteration number.
+            X: Input features data.
+            y: Target data.
+            validator: Pipeline model validator.
+            rng: Random number generator.
+
+        """
         ...
 
     def construct(self, X_: np.ndarray, y_: np.ndarray) -> BasePipeline:
+        """Construct the pipeline given training data.
+
+        Args:
+            `X_`: Input features data.
+            `y_`: Target data.
+
+        """
         assert type(self.n_steps) == int
         rng = get_random_generator(self.random_state)
         X = CPUData(X_)
@@ -146,13 +173,26 @@ class ClassicalDeepForestConstructor(BaseAutoDeepForestConstructor):
     """Classical Deep Forest iteratively builds layers consisting of different
     Random Forests and Extremely Randomized Trees Classifiers.
 
+    Args:
+        executor_cls: Executor class (see :py:mod:`bosk.executor`).
+        rf_params: Parameters of tree ensembles (Random Forests, Extra Trees).
+        layer_width: Number of blocks of each type in a layer.
+        max_iter: Maximum number of iterations.
+        cv: Number of cross-validation folds. If `None` the cross-validation is not performed.
+        make_metrics: Function that makes metrics evaluator.
+        growing_strategy: Growing strategy.
+        block_classes: List of block classes used in layers.
+        random_state: Random state.
+
+
     Attributes:
-        n_steps: Number of steps. The Classical Deep Forest has just one step.
         rf_params: Parameters of tree ensembles (Random Forests, Extra Trees).
 
     """
     LAYER_CLS = NativeStackingLayer
     n_steps = 1
+    """Number of steps. The Classical Deep Forest has just one step.
+    """
 
     def __init__(self, executor_cls: Type[BaseExecutor],
                  rf_params: Optional[dict] = None,
@@ -185,12 +225,25 @@ class ClassicalDeepForestConstructor(BaseAutoDeepForestConstructor):
 class HyperparamSearchDeepForestConstructor(BaseAutoDeepForestConstructor):
     """Classical Deep Forest that estimates the best parameters at each step.
 
+    Args:
+        executor_cls: Executor class (see :py:mod:`bosk.executor`).
+        rf_params: Parameters of tree ensembles (Random Forests, Extra Trees).
+        layer_width: Number of blocks of each type in a layer.
+        n_steps: Number of steps.
+        max_iter: Maximum number of iterations.
+        cv: Number of cross-validation folds. If `None` the cross-validation is not performed.
+        make_metrics: Function that makes metrics evaluator.
+        growing_strategy: Growing strategy.
+        block_classes: List of block classes used in layers.
+        random_state: Random state.
+
     Attributes:
-        n_steps: Number of steps. At each step the best parameters are estimated.
         rf_param_grid: Parameters grid for the tree ensembles (Random Forests, Extra Trees).
 
     """
     n_steps = None  # set at initialization
+    """Number of steps. At each step the best parameters are estimated.
+    """
     LAYER_CLS = NativeStackingLayer
 
     def __init__(self, executor_cls: Type[BaseExecutor],
@@ -231,14 +284,28 @@ class MGSDeepForestConstructor(BaseAutoDeepForestConstructor):
     It consists of convolutional layers which reduce spatial dimensions (step 1),
     and classical stacking-based layers (step 2).
 
+    Args:
+        executor_cls: Executor class (see :py:mod:`bosk.executor`).
+        input_shape: Input shape (spatial dimensions).
+        rf_params: Parameters of tree ensembles (Random Forests, Extra Trees).
+        conv_params: Parameters of MGS layers.
+        layer_width: Number of blocks of each type in a layer.
+        max_iter: Maximum number of iterations.
+        cv: Number of cross-validation folds. If `None` the cross-validation is not performed.
+        make_metrics: Function that makes metrics evaluator.
+        growing_strategy: Growing strategy.
+        block_classes: List of block classes used in layers.
+        random_state: Random state.
+
     Attributes:
-        n_steps: Number of steps. The Classical Deep Forest has two steps.
         rf_params: Parameters of tree ensembles (Random Forests, Extra Trees).
 
     """
     STACKING_LAYER_CLS = NativeStackingLayer
     MGS_LAYER_CLS = MGSRFLayer
     n_steps = 2
+    """Number of steps. The Classical Deep Forest has two steps.
+    """
 
     def __init__(self, executor_cls: Type[BaseExecutor],
                  input_shape: Tuple[int],

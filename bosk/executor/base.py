@@ -4,7 +4,7 @@ import warnings
 
 import numpy as np
 
-from ..data import BaseData, CPUData, Data
+from ..data import BaseData, CPUData
 from ..stages import Stage
 from ..block.base import BaseBlock, BlockOutputData, BlockInputSlot, BaseSlot
 from ..pipeline import BasePipeline
@@ -23,13 +23,22 @@ class BaseSlotHandler(ABC):
         Args:
             stage: The execution stage.
             slot: The computational block's slot to check.
+
         """
 
 
 class DefaultSlotHandler(BaseSlotHandler):
+    """Default slot handling policy.
+
+    At `FIT` stage requires preceding block execution
+    even if it will be required only for transforming data.
+
+    At `TRANSFORM` stage requires preceding block execution
+    only if it is needed for the given input slot.
+
+    """
     def is_slot_required(self, stage: Stage, slot: BlockInputSlot) -> bool:
-        assert isinstance(
-            slot, BlockInputSlot), "InputSlotStrategy proceeds only input slots"
+        assert isinstance(slot, BlockInputSlot), "InputSlotStrategy proceeds only input slots"
         if stage == Stage.FIT:
             return slot.meta.stages.fit \
                 or slot.meta.stages.transform \
@@ -42,12 +51,14 @@ class ExecutionResult(Dict[str, BaseData]):
 
     Wraps a dictionary of `BaseData` objects and provides method to obtain dictionary of NumPy arrays.
     Rationale: frequently expected result of the pipeline execution is a dictionary of NumPy arrays.
+
     """
     def __init__(self, result: Dict[str, BaseData]):
         """Initialize execution result with dictionary of results.
 
         Args:
             result: Dictionary of result `BaseData` objects.
+
         """
         super().__init__(result)
 
@@ -56,6 +67,7 @@ class ExecutionResult(Dict[str, BaseData]):
 
         Returns:
             Dictionary of NumPy arrays.
+
         """
         return {k: v.to_cpu().data for k, v in self.items()}
 
@@ -63,29 +75,35 @@ class ExecutionResult(Dict[str, BaseData]):
 class BaseExecutor(ABC):
     """Base pipeline executor.
 
+    *Note*, that all properties are stored as fields with "__" predix,
+    for example `pipeline` property corresponds to the underlying field `__pipeline`.
+    This allows a derived class to override property getter, preserving the original field,
+    probably used internally by the framework.
+
     Attributes:
-        __pipeline: The pipeline (computational graph). Contains blocks as nodes
+        pipeline: The pipeline (computational graph). Contains blocks as nodes
             and connections between output and input blocks' slots as edges.
-        __stage: The computational mode, which will be performed by the executor.
-        __slots_handler: Object defining the executor's behaviour during slots processing.
-        __blocks_handler: Object defining the executor's behaviour during blocks processing.
-        __inputs: Set of the inputs to process. Passing it, you set up the hard requirement
+        stage: The computational mode, which will be performed by the executor.
+        slot_handler: Object defining the executor's behaviour during slots processing.
+        block_executor: Object defining the executor's behaviour during blocks processing.
+        inputs: Set of the inputs to process. Passing it, you set up the hard requirement
             for the input values to execute the computational graph. Keep it `None` to
             use any of the pipeline's inputs during the execution process.
-        __outputs: Set of the outputs to process. Keep it `None` to handle all of the
+        outputs: Set of the outputs to process. Keep it `None` to handle all of the
             pipeline's outputs.
 
     Args:
-        pipeline: Sets :attr:`__pipeline`.
-        stage: Sets :attr:`__stage`.
-        inputs: Sets :attr:`__inputs`.
-        outputs: Sets :attr:`__outputs`.
-        slot_handler: Sets :attr:`__slot_handler` with `_prepare_slot_handler` method.
-        block_executor: Sets :attr:`__block_executor` with `_prepare_block_executor` method.
+        pipeline: Sets :attr:`pipeline`.
+        stage: Sets :attr:`stage`.
+        inputs: Sets :attr:`inputs`.
+        outputs: Sets :attr:`outputs`.
+        slot_handler: Sets :attr:`slot_handler` with `_prepare_slot_handler` method.
+        block_executor: Sets :attr:`block_executor` with `_prepare_block_executor` method.
 
     Raises:
         AssertionError: If it was unable to find some input in the pipeline.
         AssertionError: If it was unable to find some output in the pipeline.
+
     """
 
     __pipeline: BasePipeline
@@ -149,7 +167,7 @@ class BaseExecutor(ABC):
         else:
             self.__outputs = None
 
-    def _map_input_names_to_slots(self, input_values: Mapping[str, Data]) -> Dict[BlockInputSlot, Data]:
+    def _map_input_names_to_slots(self, input_values: Mapping[str, BaseData]) -> Dict[BlockInputSlot, BaseData]:
         """Method to translate dictionary, passed in :meth:`__call__`, to dictionary that is useful for evaluation.
         Args:
             input_values: Input data, passed to the :meth:`__call__` method.
@@ -164,7 +182,7 @@ class BaseExecutor(ABC):
             inp_slots_to_data_map[input_slot] = data
         return inp_slots_to_data_map
 
-    def _check_input_values(self, input_values: Mapping[str, Data]) -> None:
+    def _check_input_values(self, input_values: Mapping[str, BaseData]) -> None:
         """Method to check up the input values, passed in :meth:`__call__`.
         Raises:
             AssertionError: If the :attr:`inputs` are specified and the :arg:`input_values`

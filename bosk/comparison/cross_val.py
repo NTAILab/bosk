@@ -3,7 +3,7 @@ from .metric import BaseMetric
 from bosk.data import BaseData
 from bosk.block.base import BaseBlock
 from bosk.executor.base import BaseExecutor, DefaultBlockExecutor
-from bosk.executor.timer import TimerBlockHandler
+from bosk.executor.timer import TimerBlockExecutor
 from bosk.pipeline.base import BasePipeline
 from bosk.stages import Stage
 from bosk.executor.topological import TopologicalExecutor
@@ -24,13 +24,32 @@ class CVComparator(BaseComparator):
     your own iterator (based on sklearn's `BaseCrossValidator` class)
     that will define indexes, taken in each fold,
     or you can use predefined iterators from the `sklearn`.
+
+    Args:
+        pipelines: A pipeline or a list of pipelines to evaluate.
+        foreign_models: A foreign model or a list of foreign models to evaluate.
+        cv_strat: A cross-validation strategy to use.
+        exec_cls: The executor class to use.
+        exec_kw: The keyword arguments for the executor.
+        get_blocks_times: Whether to get block execution times.
+                          If True, the block executor will be changed to :py:class:`TimerBlockExecutor`.
+        suppress_exec_warn: Whether to suppress warnings when using the executor.
+        f_optimize_pipelines: Whether to optimize pipelines.
+        random_state: The random state.
+                      It will be used as a seed for generator tu further propagate seeds
+                      to every block.
+
     """
 
     def __init__(self, pipelines: Optional[BasePipeline | List[BasePipeline]],
                  foreign_models: Optional[BaseForeignModel | List[BaseForeignModel]],
-                 cv_strat: BaseCrossValidator, exec_cls: Type[BaseExecutor] = TopologicalExecutor,
-                 exec_kw=None, get_blocks_times: bool = False, suppress_exec_warn: bool = True,
-                 f_optimize_pipelines: bool = True, random_state: Optional[int] = None) -> None:
+                 cv_strat: BaseCrossValidator,
+                 exec_cls: Type[BaseExecutor] = TopologicalExecutor,
+                 exec_kw=None,
+                 get_blocks_times: bool = False,
+                 suppress_exec_warn: bool = True,
+                 f_optimize_pipelines: bool = True,
+                 random_state: Optional[int] = None) -> None:
         super().__init__(pipelines, foreign_models, f_optimize_pipelines, random_state)
         cv_strat.random_state = random_state
         self.cv_strat = cv_strat
@@ -44,7 +63,7 @@ class CVComparator(BaseComparator):
                     f"You mustn't specify following args for executor: {forbidden_exec_args}")
             self.exec_kw = exec_kw
         self.measure_blk_time = get_blocks_times
-        self.block_hlr_cls = TimerBlockHandler if get_blocks_times else DefaultBlockExecutor
+        self.block_hlr_cls = TimerBlockExecutor if get_blocks_times else DefaultBlockExecutor
         self.warn_context: Literal['ignore'] | Literal['default'] = 'ignore' if suppress_exec_warn else 'default'
 
     def _write_metrics_info_to_dict(self, df_dict, metrics,
@@ -142,14 +161,14 @@ class CVComparator(BaseComparator):
                     common_train_res, train_common_part_time = timer_wrap(
                         train_exec)(train_data_dict)
                     if self.measure_blk_time:
-                        assert isinstance(block_exec, TimerBlockHandler)
+                        assert isinstance(block_exec, TimerBlockExecutor)
                         common_block_train_times = block_exec.blocks_time
                     block_exec = self.block_hlr_cls()
                     test_exec = self.exec_cls(
                         self._common_pipeline, Stage.TRANSFORM, block_executor=block_exec, **self.exec_kw)
                     common_test_res, test_common_part_time = timer_wrap(test_exec)(test_data_dict)
                     if self.measure_blk_time:
-                        assert isinstance(block_exec, TimerBlockHandler)
+                        assert isinstance(block_exec, TimerBlockExecutor)
                         common_block_test_times = block_exec.blocks_time
 
             for j in range(len(self._optim_pipelines)):
@@ -168,7 +187,7 @@ class CVComparator(BaseComparator):
                     pip_train_res, train_time = timer_wrap(pip_tr_exec)(cur_train_dict)
                     dataframe_dict['time'].append(train_common_part_time + train_time)
                     if self.measure_blk_time:
-                        assert isinstance(block_exec, TimerBlockHandler)
+                        assert isinstance(block_exec, TimerBlockExecutor)
                         pip_block_train_times = block_exec.blocks_time
                     block_exec = self.block_hlr_cls()
                     pip_test_exec = self.exec_cls(
@@ -176,7 +195,7 @@ class CVComparator(BaseComparator):
                     pip_test_res, test_time = timer_wrap(pip_test_exec)(cur_test_dict)
                     dataframe_dict['time'].append(test_common_part_time + test_time)
                     if self.measure_blk_time:
-                        assert isinstance(block_exec, TimerBlockHandler)
+                        assert isinstance(block_exec, TimerBlockExecutor)
                         pip_block_test_times = block_exec.blocks_time
                         orig_pip_train_times = self._get_times_dict(
                             common_block_train_times, pip_block_train_times,
