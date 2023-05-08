@@ -1,0 +1,134 @@
+:py:mod:`bosk.auto.layers`
+==========================
+
+.. py:module:: bosk.auto.layers
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.auto.layers.Layer
+   bosk.auto.layers.MGSLayer
+   bosk.auto.layers.MGSRFLayer
+   bosk.auto.layers.ForestsLayer
+   bosk.auto.layers.StackingLayer
+   bosk.auto.layers.NativeStackingLayer
+
+
+
+
+.. py:class:: Layer(executor_cls, validator, layer_name = 'forests_layer', random_state = None)
+
+   Bases: :py:obj:`abc.ABC`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:property:: inputs
+      :abstractmethod:
+
+
+   .. py:method:: fit(inputs)
+      :abstractmethod:
+
+
+   .. py:method:: calc_metrics(data, pipeline, output, fit_outputs)
+
+
+
+.. py:class:: MGSLayer(input_shape, **kwargs)
+
+   Bases: :py:obj:`Layer`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:attribute:: inputs
+      :annotation: = ['X', 'y']
+
+      
+
+   .. py:method:: fit(data)
+
+
+
+.. py:class:: MGSRFLayer(input_shape, rf_params, kernel_size = 4, stride = 1, dilation = 1, padding = None, **kwargs)
+
+   Bases: :py:obj:`Layer`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:attribute:: inputs
+      :annotation: = ['X', 'y']
+
+      
+
+   .. py:method:: fit(data)
+
+
+
+.. py:class:: ForestsLayer(make_blocks, executor_cls, validator, layer_name = 'forests_layer', random_state = None)
+
+   Bases: :py:obj:`Layer`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:attribute:: inputs
+      :annotation: = ['X', 'embedding', 'y']
+
+      
+
+   .. py:method:: fit(data)
+
+
+
+.. py:class:: StackingLayer(make_blocks, executor_cls, validator, layer_name = 'stacking_layer', random_state = None)
+
+   Bases: :py:obj:`Layer`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:attribute:: inputs
+      :annotation: = ['X', 'embedding', 'y']
+
+      
+
+   .. py:method:: __custom_cross_validate(data, pipeline, blocks, rng)
+
+
+   .. py:method:: _make_fitter(pipeline, blocks, rng)
+
+
+   .. py:method:: fit(data)
+
+
+
+.. py:class:: NativeStackingLayer(make_blocks, executor_cls, validator, layer_name = 'stacking_layer', random_state = None)
+
+   Bases: :py:obj:`Layer`
+
+   Native Stacking Layer implements stacking (training different models on subsets of data)
+   using native BOSK blocks, instead of direct fitting.
+
+   The pipeline made by this layer can be retrained.
+   It gives reproducible results, i.e. it is guaranteed
+   that the results will not be changed after retraining on the same data.
+
+
+   .. py:attribute:: inputs
+      :annotation: = ['X', 'embedding', 'y']
+
+      
+
+   .. py:method:: fit(data)
+
+
+

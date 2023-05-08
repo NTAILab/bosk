@@ -1,0 +1,30 @@
+:py:mod:`bosk.block.zoo`
+========================
+
+.. py:module:: bosk.block.zoo
+
+.. autoapi-nested-parse::
+
+   Blocks zoo module, containing all the blocks incorporated into the library.
+
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   data_conversion/index.rst
+   data_weighting/index.rst
+   debugging/index.rst
+   gpu_blocks/index.rst
+   input_plugs/index.rst
+   metrics/index.rst
+   models/index.rst
+   multi_grained_scanning/index.rst
+   output_plugs/index.rst
+   preprocessing/index.rst
+   routing/index.rst
+
+

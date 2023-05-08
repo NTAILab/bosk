@@ -1,0 +1,217 @@
+:py:mod:`bosk.comparison`
+=========================
+
+.. py:module:: bosk.comparison
+
+.. autoapi-nested-parse::
+
+   Deep Forest based model comparison module.
+
+   It is useful for performance and quality evaluation and comparison of Deep Forest models
+   between each other and with third-party models.
+
+   Besides cross-validated evaluation, it can find and extract common part of different Deep Forest models
+   (defined with `bosk`) and precompute its result for each train-test split.
+   It allows to significantly speed up model comparison.
+
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   base/index.rst
+   cross_val/index.rst
+   metric/index.rst
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.comparison.BaseForeignModel
+   bosk.comparison.BaseComparator
+   bosk.comparison.CVComparator
+   bosk.comparison.BaseMetric
+   bosk.comparison.MetricWrapper
+
+
+
+
+.. py:class:: BaseForeignModel
+
+   Bases: :py:obj:`abc.ABC`
+
+   Adapter class for all models, defined outside
+   of the `bosk` framework. It is needed to make sure
+   that the model handles bosk's style of the data transmission.
+
+   .. py:method:: fit(data)
+      :abstractmethod:
+
+      Method to handle the data dictionary and fit the model.
+
+
+   .. py:method:: predict(data)
+      :abstractmethod:
+
+      Method for using the fitted model and obtain transformed
+      data dictionary.
+
+
+   .. py:method:: set_random_state(random_state)
+      :abstractmethod:
+
+      Set random state for the model.
+
+
+
+.. py:class:: BaseComparator(pipelines, foreign_models, f_optimize_pipelines = True, random_state = None)
+
+   Bases: :py:obj:`abc.ABC`
+
+   Class that performes comparison of different models.
+   The models, defined via `bosk` framework, marked as `pipelines`
+   and may have a common part in them to optimize calculations
+   (common part pipeline will be executed once and retreived
+   data will be used in other pipelines). The common part must be
+   a common begining of all pipelines.
+
+   The models, defined with others but `bosk` frameworks, are
+   marked as `models` and must be wrapped in `BaseForeignModel`
+   adapter to handle the `bosk` data transmission style.
+
+   .. py:attribute:: random_state
+      :annotation: :Optional[int]
+
+      
+
+   .. py:method:: _get_aj_lists(pipeline)
+
+
+   .. py:method:: _compare_blocks_conns(block_1, block_2, aj_list_1, aj_list_2, conns_iso_1, conns_iso_2)
+
+
+   .. py:method:: _set_random_state(random_state=None)
+
+
+   .. py:method:: _set_manual_state(pipeline, random_state)
+
+
+   .. py:method:: _get_common_inputs(pipelines)
+
+
+   .. py:method:: _find_next_block(cur_block, leading_conn_map, pipelines, conn_maps_list, queue_list, leading_slots_iso, slots_iso_list)
+
+
+   .. py:method:: _add_common_block(pipelines_blocks, conn_map_list, iso_blocks_list, iso_slots_list, common_blocks, common_conn_map)
+
+
+   .. py:method:: _continue_bfs(continue_blocks, queue_list, conn_maps_blocks)
+
+
+   .. py:method:: _get_input_plug(slot)
+
+
+   .. py:method:: _splice_pipelines(conns_to_append, conns_to_remove, inp_slot_pip, common_outputs, out_slot_cp, extra_inputs, extra_blocks)
+
+
+   .. py:method:: _get_common_input_dict(common_inp_names, inp_dict_pip, slots_iso)
+
+
+   .. py:method:: get_score(data, metrics)
+      :abstractmethod:
+
+      Function to obtain results of different metrics for the models.
+
+
+
+
+.. py:class:: CVComparator(pipelines, foreign_models, cv_strat, exec_cls = TopologicalExecutor, exec_kw=None, get_blocks_times = False, suppress_exec_warn = True, f_optimize_pipelines = True, random_state = None)
+
+   Bases: :py:obj:`bosk.comparison.base.BaseComparator`
+
+   Comparator that uses a cross-validation
+   strategy of checking model's performance. You can create
+   your own iterator (based on sklearn's `BaseCrossValidator` class)
+   that will define indexes, taken in each fold,
+   or you can use predefined iterators from the `sklearn`.
+
+   :param pipelines: A pipeline or a list of pipelines to evaluate.
+   :param foreign_models: A foreign model or a list of foreign models to evaluate.
+   :param cv_strat: A cross-validation strategy to use.
+   :param exec_cls: The executor class to use.
+   :param exec_kw: The keyword arguments for the executor.
+   :param get_blocks_times: Whether to get block execution times.
+                            If True, the block executor will be changed to :py:class:`TimerBlockExecutor`.
+   :param suppress_exec_warn: Whether to suppress warnings when using the executor.
+   :param f_optimize_pipelines: Whether to optimize pipelines.
+   :param random_state: The random state.
+                        It will be used as a seed for generator tu further propagate seeds
+                        to every block.
+
+   .. py:method:: _write_metrics_info_to_dict(df_dict, metrics, train_data_dict, train_pred_dict, test_data_dict, test_pred_dict, metrics_names)
+
+
+   .. py:method:: _get_copy_pipeline(pip_num)
+
+
+   .. py:method:: _get_times_dict(common_times, pip_times, common_part_iso, copy_iso)
+
+
+   .. py:method:: _get_pers_inp_dict(pipeline, common_output, input_dict)
+
+
+   .. py:method:: _get_metrics_names(metrics)
+
+
+   .. py:method:: _write_preamble(df_dict, model_name, fold_num)
+
+
+   .. py:method:: get_score(data, metrics)
+
+      Function to obtain results of different metrics for the models.
+
+
+
+
+.. py:class:: BaseMetric(name = None)
+
+   Bases: :py:obj:`abc.ABC`
+
+   Base class for all metrics, taking part in the
+   models' comparison process.
+
+   .. py:method:: get_score(data_true, data_pred)
+      :abstractmethod:
+
+      Method to obtain a metric score.
+
+
+
+.. py:class:: MetricWrapper(func, y_true_name = 'y', y_pred_name = 'output', name = None)
+
+   Bases: :py:obj:`BaseMetric`
+
+   Wrapper class for classic metric functions that
+   take `y_true` as the first argument and `y_pred` as the second.
+
+   :param func: Function that accepts `y_true` and `y_pred` as arguments and returns a score.
+   :param y_true_name: Name of the `y_true`.
+   :param y_pred_name: Name of the `y_pred`.
+
+   .. py:method:: get_score(data_true, data_pred)
+
+      Calculate the metric score given `y_true` and `y_pred`.
+
+      :param data_true: Dictionary containing the `y_true`.
+      :param data_pred: Dictionary containing the `y_pred`.
+
+
+

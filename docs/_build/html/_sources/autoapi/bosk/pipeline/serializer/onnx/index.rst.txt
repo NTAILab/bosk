@@ -1,0 +1,11 @@
+:py:mod:`bosk.pipeline.serializer.onnx`
+=======================================
+
+.. py:module:: bosk.pipeline.serializer.onnx
+
+.. autoapi-nested-parse::
+
+   ONNX-based serialization.
+
+
+

@@ -1,0 +1,123 @@
+:py:mod:`bosk.comparison.base`
+==============================
+
+.. py:module:: bosk.comparison.base
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.comparison.base.BaseForeignModel
+   bosk.comparison.base.BaseComparator
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.comparison.base.get_block_md5_hash
+
+
+
+.. py:class:: BaseForeignModel
+
+   Bases: :py:obj:`abc.ABC`
+
+   Adapter class for all models, defined outside
+   of the `bosk` framework. It is needed to make sure
+   that the model handles bosk's style of the data transmission.
+
+   .. py:method:: fit(data)
+      :abstractmethod:
+
+      Method to handle the data dictionary and fit the model.
+
+
+   .. py:method:: predict(data)
+      :abstractmethod:
+
+      Method for using the fitted model and obtain transformed
+      data dictionary.
+
+
+   .. py:method:: set_random_state(random_state)
+      :abstractmethod:
+
+      Set random state for the model.
+
+
+
+.. py:function:: get_block_md5_hash(block)
+
+   Helper function to obtain blocks' hashes
+   and cache them.
+
+
+.. py:class:: BaseComparator(pipelines, foreign_models, f_optimize_pipelines = True, random_state = None)
+
+   Bases: :py:obj:`abc.ABC`
+
+   Class that performes comparison of different models.
+   The models, defined via `bosk` framework, marked as `pipelines`
+   and may have a common part in them to optimize calculations
+   (common part pipeline will be executed once and retreived
+   data will be used in other pipelines). The common part must be
+   a common begining of all pipelines.
+
+   The models, defined with others but `bosk` frameworks, are
+   marked as `models` and must be wrapped in `BaseForeignModel`
+   adapter to handle the `bosk` data transmission style.
+
+   .. py:attribute:: random_state
+      :annotation: :Optional[int]
+
+      
+
+   .. py:method:: _get_aj_lists(pipeline)
+
+
+   .. py:method:: _compare_blocks_conns(block_1, block_2, aj_list_1, aj_list_2, conns_iso_1, conns_iso_2)
+
+
+   .. py:method:: _set_random_state(random_state=None)
+
+
+   .. py:method:: _set_manual_state(pipeline, random_state)
+
+
+   .. py:method:: _get_common_inputs(pipelines)
+
+
+   .. py:method:: _find_next_block(cur_block, leading_conn_map, pipelines, conn_maps_list, queue_list, leading_slots_iso, slots_iso_list)
+
+
+   .. py:method:: _add_common_block(pipelines_blocks, conn_map_list, iso_blocks_list, iso_slots_list, common_blocks, common_conn_map)
+
+
+   .. py:method:: _continue_bfs(continue_blocks, queue_list, conn_maps_blocks)
+
+
+   .. py:method:: _get_input_plug(slot)
+
+
+   .. py:method:: _splice_pipelines(conns_to_append, conns_to_remove, inp_slot_pip, common_outputs, out_slot_cp, extra_inputs, extra_blocks)
+
+
+   .. py:method:: _get_common_input_dict(common_inp_names, inp_dict_pip, slots_iso)
+
+
+   .. py:method:: get_score(data, metrics)
+      :abstractmethod:
+
+      Function to obtain results of different metrics for the models.
+
+
+
+

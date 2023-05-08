@@ -1,0 +1,87 @@
+:py:mod:`bosk.block.functional`
+===============================
+
+.. py:module:: bosk.block.functional
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.functional.FunctionalBlockWrapper
+
+
+
+
+.. py:class:: FunctionalBlockWrapper(block, output_name = None)
+
+   Block wrapper with functional interface.
+
+   It helps to implement passing of block result into another block
+   in functional style.
+
+   The block wrapper is based on block and its output name.
+   If a block has multiple output slots, each output can be used to
+   create distinct wrappers.
+
+   .. rubric:: Example
+
+   Assuming block `test_block` has multiple outputs:
+   "out_1" and "out_2", its wrapper can be used to create
+   new wrappers for each output separately:
+
+   >>> wrapper = FunctionalBlockWrapper(test_block)
+   >>> wrapper.get_output_slot()
+       RuntimeException('Block has more than one output')
+   >>> first_wrapper = wrapper['out_1']
+   >>> first_wrapper.get_output_slot()
+       BlockOutputSlot...  # 'out_1'
+   >>> second_wrapper = wrapper['out_2']
+   >>> second_wrapper.get_output_slot()
+       BlockOutputSlot...  # 'out_2'
+
+   .. py:method:: get_input_slot(slot_name = None)
+
+      Get block input slot by name.
+
+      :param slot_name: Input slot name.
+                        If block has only one input, the argument can be omitted.
+
+      :returns: Corresponding input slot.
+
+      :raises RuntimeError: If `slot_name` is None, but the block has multiple inputs.
+
+
+   .. py:method:: get_output_slot()
+
+      Get output slot.
+
+      If block has one output slot, it will be used even if
+      `output_name` was not specified at initialization.
+      If block has multiple output slots, the output slot name
+      should be specified at initialization by `output_name` argument,
+      or the block wrapper corresponding to concrete output slot name
+      can be obtained with `__getitem__` method.
+
+      :returns: The specified output slot.
+
+      :raises RuntimeError: If `output_name` was not specified at initialization,
+          and the block has more than one output.
+          To avoid it, use `wrapper[demanded_output_name]` to
+          get wrapper with specified slot output name.
+
+
+   .. py:method:: __getitem__(output_name)
+
+      Make functional block wrapper corresponding to the specified output slot name.
+
+      :param output_name: Output slot name.
+
+      :returns: New functional block wrapper for the given output slot name.
+
+
+

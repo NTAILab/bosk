@@ -1,0 +1,157 @@
+:py:mod:`bosk.block.zoo.routing.cv`
+===================================
+
+.. py:module:: bosk.block.zoo.routing.cv
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.routing.cv.CVTrainIndicesBlock
+   bosk.block.zoo.routing.cv.SubsetTrainWrapperBlock
+
+
+
+
+.. py:class:: CVTrainIndicesBlock(size, random_state)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Cross-validation Training Indices Block.
+
+   Generates training indices for `size` models.
+   The block has `size` outputs, each named as a number of model: `"0", "1", ...`.
+
+   Dynamically specifies the meta information.
+
+   :param size: Cross-validation size (number of splits).
+   :param random_state: Random state.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Features data array.
+       - y: Target variable array.
+
+   Output slots
+   ------------
+
+       - "0": Fold 0 training subset indices.
+       - ...
+       - "<n>": Fold n training subset indices.
+
+   .. attribute:: size
+
+      Cross-validation size (number of splits).
+
+   .. attribute:: random_state
+
+      Random state.
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.meta.BlockMeta
+
+      
+
+   .. py:method:: fit(inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: SubsetTrainWrapperBlock(block)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Block wrapper that fits the base block on the indices subset.
+
+   The base block may have an arbitrary number of inputs of any type,
+   but should not accept input named `"trainin_indices"`.
+
+   At FIT stage the wrapper extracts subsets of each input along the first dimension.
+
+   At TRANSFORM stage the wrapper bypasses inputs to the base block.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - All inputs from the underlying block `block`.
+       - training_indices: Training indices.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - All inputs from the underlying block `block`.
+
+   Output slots
+   ------------
+
+       - All outputs from the underlying block `block`.
+
+   .. attribute:: block
+
+      Underlying block.
+
+   .. py:attribute:: TRAINING_INDICES_NAME
+      :annotation: = training_indices
+
+      
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.meta.BlockMeta
+
+      
+
+   .. py:method:: _exclude_training_indices(inputs)
+
+
+   .. py:method:: fit(inputs)
+
+      Fit the block on the given input data.
+
+      :param inputs: Block input data for the fitting stage.
+
+      :returns: Self.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+   .. py:method:: set_random_state(seed)
+
+      Set random seed for the block using numpy
+      random generator or integer value.
+
+
+

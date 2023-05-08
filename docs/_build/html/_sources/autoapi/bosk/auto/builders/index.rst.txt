@@ -1,0 +1,69 @@
+:py:mod:`bosk.auto.builders`
+============================
+
+.. py:module:: bosk.auto.builders
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.auto.builders.SequentialPipelineBuilder
+
+
+
+
+.. py:class:: SequentialPipelineBuilder(executor_cls, growing_strategy, **inputs)
+
+   Sequential pipeline builder.
+
+   Allows to sequentially build a Deep Forest layer by layer.
+
+   :param executor_cls: Executor class.
+   :param growing_strategy: Growing strategy (stopping criterion).
+   :param \*\*inputs: Input data for layer training.
+
+   .. py:attribute:: base_input_names
+      :annotation: = ['X', 'y']
+
+      Base input names ("X" and "y" by default).
+
+   .. py:attribute:: pipelines
+      :annotation: :List[bosk.pipeline.base.BasePipeline]
+
+      List of built layer pipelines.
+
+   .. py:attribute:: history
+      :annotation: :Mapping[str, List[float]]
+
+      List of training metrics collected at each iteration.
+
+   .. py:method:: append(layer)
+
+      Fit and append the new layer `layer`.
+
+      :param layer: Layer to append.
+
+      :returns: True if the layer was appended successfully.
+
+
+   .. py:method:: _log_metrics(metrics)
+
+
+   .. py:method:: build(map_inputs)
+
+      Build the pipeline.
+
+      :param map_inputs: Mapping of inputs that are not given at a TRANSFORM stage.
+                         For example, if layers depend on `X` and `X_original`,
+                         the pipeline will have only `X` input, and the mapping should be
+                         `{"X_original": "X"}`.
+
+      :returns: Pipeline.
+
+
+

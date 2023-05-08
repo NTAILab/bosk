@@ -1,0 +1,36 @@
+:py:mod:`bosk.pipeline.builder.base`
+====================================
+
+.. py:module:: bosk.pipeline.builder.base
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.pipeline.builder.base.BasePipelineBuilder
+
+
+
+
+.. py:class:: BasePipelineBuilder
+
+   Bases: :py:obj:`abc.ABC`
+
+   Base pipeline builder, the parent of every pipeline builder.
+
+
+
+   .. py:method:: build()
+      :abstractmethod:
+
+      Get pipeline (optionally after building).
+
+      :returns: Build pipeline.
+
+
+

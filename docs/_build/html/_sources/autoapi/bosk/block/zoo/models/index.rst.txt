@@ -1,0 +1,21 @@
+:py:mod:`bosk.block.zoo.models`
+===============================
+
+.. py:module:: bosk.block.zoo.models
+
+.. autoapi-nested-parse::
+
+   Classification and regression base model blocks.
+
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   classification/index.rst
+   regression/index.rst
+
+

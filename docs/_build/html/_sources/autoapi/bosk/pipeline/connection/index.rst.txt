@@ -1,0 +1,45 @@
+:py:mod:`bosk.pipeline.connection`
+==================================
+
+.. py:module:: bosk.pipeline.connection
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.pipeline.connection.Connection
+
+
+
+
+.. py:class:: Connection
+
+   Connection between two blocks in a pipeline.
+
+   It connects the output slot of the source block
+   to the input slot of the destination block.
+
+
+   .. py:attribute:: src
+      :annotation: :bosk.block.base.BlockOutputSlot
+
+      The source block (output slot).
+
+   .. py:attribute:: dst
+      :annotation: :bosk.block.base.BlockInputSlot
+
+      The destination block (input slot).
+
+   .. py:method:: accept(visitor)
+
+      Accept the visitor.
+
+      :param visitor: The visitor which can visit connections.
+
+
+

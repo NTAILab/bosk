@@ -1,0 +1,117 @@
+:py:mod:`bosk.executor.sklearn_interface`
+=========================================
+
+.. py:module:: bosk.executor.sklearn_interface
+
+.. autoapi-nested-parse::
+
+   Scikit-learn wrappers for BOSK pipelines.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.executor.sklearn_interface.BaseBoskPipelineWrapper
+   bosk.executor.sklearn_interface.BoskPipelineClassifier
+   bosk.executor.sklearn_interface.BoskPipelineRegressor
+   bosk.executor.sklearn_interface.BoskPipelineTransformer
+
+
+
+
+.. py:class:: BaseBoskPipelineWrapper(pipeline, inputs_map = None, outputs_map = None, executor_cls = DEFAULT_EXECUTOR)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`
+
+   Base BOSK Pipeline Wrapper is a base pipeline execution wrapper for
+   matching scikit-learn interface.
+
+   The wrapper executes the given pipeline using two separate executors:
+   for FIT and TRANSFORM stages.
+
+
+   .. py:method:: __map_vars(keys, mapping)
+
+
+   .. py:method:: _prepare_executors()
+
+
+   .. py:method:: fit(X, y, sample_weight=None, **kwargs)
+
+
+   .. py:method:: _predict_all(X, **kwargs)
+
+
+   .. py:method:: _extract(key, result)
+
+      Extract the output value by key from execution result.
+
+
+
+
+.. py:class:: BoskPipelineClassifier(pipeline, inputs_map = None, outputs_map = None, executor_cls = DEFAULT_EXECUTOR)
+
+   Bases: :py:obj:`sklearn.base.ClassifierMixin`, :py:obj:`BaseBoskPipelineWrapper`
+
+   Classifier based on BOSK pipeline.
+
+
+   .. py:method:: _classifier_init(y)
+
+
+   .. py:method:: fit(X, y, sample_weight=None, **kwargs)
+
+
+   .. py:method:: predict_proba(X, **kwargs)
+
+
+   .. py:method:: predict(X, **kwargs)
+
+
+
+.. py:class:: BoskPipelineRegressor(pipeline, inputs_map = None, outputs_map = None, executor_cls = DEFAULT_EXECUTOR)
+
+   Bases: :py:obj:`sklearn.base.RegressorMixin`, :py:obj:`BaseBoskPipelineWrapper`
+
+   Regressor based on BOSK pipeline.
+
+
+   .. py:method:: predict(X, **kwargs)
+
+
+
+.. py:class:: BoskPipelineTransformer(pipeline, inputs_map = None, outputs_map = None, executor_cls = DEFAULT_EXECUTOR)
+
+   Bases: :py:obj:`sklearn.base.TransformerMixin`, :py:obj:`BaseBoskPipelineWrapper`
+
+   Transformer based on BOSK pipeline.
+
+
+   .. py:method:: fit_transform(X, y, sample_weight=None, **kwargs)
+
+      Fit to data, then transform it.
+
+      Fits transformer to `X` and `y` with optional parameters `fit_params`
+      and returns a transformed version of `X`.
+
+      :param X: Input samples.
+      :type X: array-like of shape (n_samples, n_features)
+      :param y: Target values (None for unsupervised transformations).
+      :type y: array-like of shape (n_samples,) or (n_samples, n_outputs),                 default=None
+      :param \*\*fit_params: Additional fit parameters.
+      :type \*\*fit_params: dict
+
+      :returns: **X_new** -- Transformed array.
+      :rtype: ndarray array of shape (n_samples, n_features_new)
+
+
+   .. py:method:: transform(X, **kwargs)
+
+
+

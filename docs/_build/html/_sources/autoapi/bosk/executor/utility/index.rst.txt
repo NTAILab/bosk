@@ -1,0 +1,33 @@
+:py:mod:`bosk.executor.utility`
+===============================
+
+.. py:module:: bosk.executor.utility
+
+.. autoapi-nested-parse::
+
+   Module containing useful utility functions, which
+   can be used by many executors.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.executor.utility.get_connection_map
+
+
+
+.. py:function:: get_connection_map(executor)
+
+   Method that creates :attr:`conn_dict` and checks if every input slot
+   has no more than one corresponding output slot.
+
+   :raises AssertionError: If some input slot has more than one corresponding output slot.
+
+

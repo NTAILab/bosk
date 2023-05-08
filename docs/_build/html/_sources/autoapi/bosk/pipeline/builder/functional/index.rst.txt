@@ -1,0 +1,119 @@
+:py:mod:`bosk.pipeline.builder.functional`
+==========================================
+
+.. py:module:: bosk.pipeline.builder.functional
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.pipeline.builder.functional.FunctionalPipelineBuilder
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.pipeline.builder.functional.SlotOrBlockWrapper
+
+
+.. py:data:: SlotOrBlockWrapper
+   
+
+   
+
+.. py:class:: FunctionalPipelineBuilder(block_repo = None)
+
+   Bases: :py:obj:`bosk.pipeline.builder.base.BasePipelineBuilder`
+
+   Pipeline builder with functional interface.
+
+   :param block_repo: Block class repository for resolving blocks by their names.
+                      Default is zoo scope repository, which means that
+                      all blocks defined in :py:mod:`bosk.block.zoo` will be available
+                      (without postfix "Block", for example:
+                      :py:class:`bosk.block.zoo.data_conversion.ArgmaxBlock`
+                      should be accessed as just "Argmax").
+
+   .. py:method:: __getattr__(name)
+
+
+   .. py:method:: _register_block(block)
+
+      Register block in the builder.
+
+      :param block: Block to register.
+
+
+   .. py:method:: _make_placeholder_fn(block)
+
+
+   .. py:method:: wrap(block)
+
+      Register the block in the builder and wrap it into a placeholder function.
+
+      :param block: Block to wrap.
+
+      :returns: Placeholder function.
+
+      .. rubric:: Examples
+
+      Assume some block `test_block` was created before builder initialization.
+      If we want to add the block into the pipeline,
+      it should be wrapped:
+
+      >>> test_block = RFCBlock()  # Random Forest Classifier
+      >>> b = FunctionalPipelineBuilder()
+      >>> rf = b.wrap(test_block)  # register the block in the builder
+      >>> x = b.Input()
+      >>> result = rf(X=x)
+
+
+   .. py:method:: _get_block_init(block_cls)
+
+      Get a new block initialization wrapper.
+
+      :param block_cls: Block class.
+
+      :returns: Block initialization wrapper.
+                It takes arguments for the block class, adds the block
+                to the pipeline and returns a placeholder function.
+                The placeholder function takes functional block wrappers
+                as inputs and returns functional block wrapper.
+
+
+   .. py:method:: new(block_cls, *args, **kwargs)
+
+      Make a new block wrapper of given block class.
+
+      Constructs block wrapper using given block class constructor
+      and provided arguments.
+      Can be used for custom block classes that can't be found by
+      block class repository (see `__init__`).
+
+      :param block_cls: Block class.
+      :param \*args: Arguments for the block constructor.
+      :param \*\*kwargs: Keyword arguments for the block constructor.
+
+      :returns: Placeholder function which will get constructed block arguments.
+
+
+   .. py:method:: build(inputs = 'auto', outputs = 'auto')
+
+      Build and get pipeline.
+
+      :param inputs: Dictionary containing the information about pipeline's inputs. See :attr:`BasePipeline.inputs`.
+      :param outputs: Dictionary containing the information about pipeline's outputs. See :attr:`BasePipeline.outputs`
+
+      :returns: Pipeline made from wrapped blocks.
+
+
+

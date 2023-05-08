@@ -1,0 +1,6 @@
+:py:mod:`bosk.block.zoo.multi_grained_scanning.mil`
+===================================================
+
+.. py:module:: bosk.block.zoo.multi_grained_scanning.mil
+
+

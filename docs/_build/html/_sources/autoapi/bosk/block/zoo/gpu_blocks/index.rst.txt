@@ -1,0 +1,312 @@
+:py:mod:`bosk.block.zoo.gpu_blocks`
+===================================
+
+.. py:module:: bosk.block.zoo.gpu_blocks
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.gpu_blocks.BaseBlock
+   bosk.block.zoo.gpu_blocks.BlockExecutionProperties
+   bosk.block.zoo.gpu_blocks.CPUData
+   bosk.block.zoo.gpu_blocks.GPUData
+   bosk.block.zoo.gpu_blocks.BaseData
+   bosk.block.zoo.gpu_blocks.MoveToBlock
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.gpu_blocks.make_simple_meta
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.gpu_blocks.TransformOutputData
+   bosk.block.zoo.gpu_blocks.BlockInputData
+
+
+.. py:class:: BaseBlock
+
+   Bases: :py:obj:`abc.ABC`
+
+   Base block, the parent of every computation block.
+
+   Block has meta information, that defines the inputs and outputs as well as block execution properties,
+   and slots which are unique for each block instance and can be used to connect different
+   block between each other.
+
+   Main block methods are: `fit(...)` and `transform(...)`.
+   Both accept dictionaries as input, `transform(...)` returns a dictionary with output data.
+
+   .. attribute:: meta
+
+      Meta information of the block.
+      May be shaped between different blocks.
+      If the meta information cannot be specified at the class definition step,
+      :py:class:`DynamicBlockMetaStub` should be used as a stub, and
+      then redefined at the initialization step.
+
+   .. attribute:: slots
+
+      Block slots of type :py:class:`BlockSlots`, made dynamically at the initialization.
+      Slots are unique for the block instance.
+
+   .. py:property:: meta
+      :type: bosk.block.meta.BlockMeta
+      :abstractmethod:
+
+      Meta information property getter.
+
+      Children classes must specify meta.
+      It can be implemented as an attribute without redefining a property, for example::
+
+          class StubBlock(BaseBlock):
+              meta = BlockMeta(...)
+
+   .. py:property:: default_output
+      :type: Optional[str]
+
+      Get default output name.
+
+      If the block has a single output, it will be used as a default.
+      Otherwise, the block can override this property to set a specific default output.
+      If the block can't have a single default output (its outputs have equal importance),
+      this method should return `None`.
+
+   .. py:method:: _make_slots()
+
+      Make slots
+
+
+   .. py:method:: fit(inputs)
+      :abstractmethod:
+
+      Fit the block on the given input data.
+
+      :param inputs: Block input data for the fitting stage.
+
+      :returns: Self.
+
+
+   .. py:method:: transform(inputs)
+      :abstractmethod:
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+   .. py:method:: wrap(output_values)
+
+      Wrap outputs dictionary into ``BlockOutputs`` object.
+
+      :param output_values: Dictionary of values indexed by slot names.
+
+      :returns: Block outputs object indexed by slots.
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+   .. py:method:: accept(visitor)
+
+      Accept the visitor.
+
+      :param visitor: The visitor which can visit blocks.
+
+
+   .. py:method:: set_random_state(seed)
+
+      Set random seed for the block using numpy
+      random generator or integer value.
+
+
+   .. py:method:: get_default_output()
+
+      Get the default block output slot.
+
+      :returns: The block output slot.
+
+
+
+.. py:data:: TransformOutputData
+   
+
+   Block transform output values container data type.
+
+   It is indexed by output slot names.
+
+.. py:data:: BlockInputData
+   
+
+   Block input values container data type.
+
+   It is indexed by input slot names.
+
+.. py:function:: make_simple_meta(input_names, output_names, **additional_params)
+
+   Make simple block meta from input and output slot names.
+
+   :param input_names: List of input slot names.
+   :param output_names: List of output slot names.
+   :param \*\*additional_params: Additional meta params.
+
+   :returns: Block meta with given inputs and outputs.
+
+
+.. py:class:: BlockExecutionProperties
+
+   Block execution properties.
+
+
+
+   .. py:attribute:: cpu
+      :annotation: :bool = True
+
+      Has CPU implementation that handles CPU data.
+
+   .. py:attribute:: gpu
+      :annotation: :bool = False
+
+      Has GPU implementation that handles GPU data.
+
+   .. py:attribute:: threadsafe
+      :annotation: :bool = False
+
+      CPU/GPU implementation is thread safe, can be executed in parallel.
+
+   .. py:attribute:: plain
+      :annotation: :bool = False
+
+      Block implementation is straightforward and not computantionally expensive,
+      it should not be parallelized (parallelization costs are larger than computation).
+
+
+.. py:class:: CPUData(data)
+
+   Bases: :py:obj:`BaseData`
+
+   CPU-based representation of data.
+
+
+   .. py:attribute:: data
+      :annotation: :numpy.ndarray
+
+      
+
+
+.. py:class:: GPUData(data)
+
+   Bases: :py:obj:`BaseData`
+
+   GPU-based (JAX) representation of data.
+
+
+   .. py:attribute:: data
+      :annotation: :jax.numpy.ndarray
+
+      
+
+   .. py:method:: to_cpu()
+
+      Transfers data to a CPU-based representation.
+
+
+
+.. py:class:: BaseData(data)
+
+   Base class for data which will be transferred between blocks.
+
+   .. attribute:: data
+
+      Underlying data.
+
+   .. py:method:: to_cpu()
+
+      Convert data to CPU representation.
+
+      :returns: CPU Data.
+
+
+   .. py:method:: to_gpu()
+
+      Converts data to a GPU-based representation.
+
+      :returns: GPU Data.
+
+
+   .. py:method:: __repr__()
+
+      Representation of data shape and type.
+
+      :returns: String data representation.
+
+
+
+.. py:class:: MoveToBlock(to = None)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Move-to block.
+
+   Moves the input data to the specified device.
+
+   :param to: Device to move to.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Feature data array.
+
+   Output slots
+   ------------
+
+       - X: The same array on the specified device.
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:method:: fit(inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+

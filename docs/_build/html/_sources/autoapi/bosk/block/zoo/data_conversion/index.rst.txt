@@ -1,0 +1,333 @@
+:py:mod:`bosk.block.zoo.data_conversion`
+========================================
+
+.. py:module:: bosk.block.zoo.data_conversion
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.data_conversion.ReshapeBlock
+   bosk.block.zoo.data_conversion.FlattenBlock
+   bosk.block.zoo.data_conversion.ConcatBlock
+   bosk.block.zoo.data_conversion.StackBlock
+   bosk.block.zoo.data_conversion.AverageBlock
+   bosk.block.zoo.data_conversion.ArgmaxBlock
+
+
+
+
+.. py:class:: ReshapeBlock(new_shape, input_name = 'X')
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Reshaping block.
+
+   Dynamically specifies the meta information.
+
+   :param new_shape: New data shape.
+   :param input_name: Input slot name.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - `input_name` (default="X"): Feature data.
+
+   Output slots
+   ------------
+
+       - `input_name` (default="X"): Reshaped feature data.
+
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.meta.BlockMeta
+
+      
+
+   .. py:method:: fit(_inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: FlattenBlock(input_name = 'X')
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Flattening block. Flattens all dimensions except the first one.
+
+   Dynamically specifies the meta information.
+
+   :param input_name: Input slot name.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - `input_name` (default="X"): Feature data.
+
+   Output slots
+   ------------
+
+       - `input_name` (default="X"): Flattened feature data.
+
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.meta.BlockMeta
+
+      
+
+   .. py:method:: fit(_inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: ConcatBlock(input_names, axis = -1)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Concatenation block.
+
+   Dynamically specifies the meta information.
+
+   :param input_names: List of input slot names.
+   :param axis: Axis along which to concatenate.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - `input_names[0]`: Data array 0.
+       - ...
+       - `input_names[n]`: Data array n.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - `input_names[0]`: Data array 0.
+       - ...
+       - `input_names[n]`: Data array n.
+
+   Output slots
+   ------------
+
+       - output: Concatenated data array.
+
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.meta.BlockMeta
+
+      
+
+   .. py:method:: fit(inputs)
+
+      Fit the block on the given input data.
+
+      :param inputs: Block input data for the fitting stage.
+
+      :returns: Self.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: StackBlock(input_names, axis = -1)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Stacking block.
+
+   Dynamically specifies the meta information.
+
+   :param input_names: List of input slot names.
+   :param axis: Axis along which to stack.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - `input_names[0]`: Data array 0.
+       - ...
+       - `input_names[n]`: Data array n.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - `input_names[0]`: Data array 0.
+       - ...
+       - `input_names[n]`: Data array n.
+
+   Output slots
+   ------------
+
+       - output: Stacked data array.
+
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.meta.BlockMeta
+
+      
+
+   .. py:method:: fit(inputs)
+
+      Fit the block on the given input data.
+
+      :param inputs: Block input data for the fitting stage.
+
+      :returns: Self.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: AverageBlock(axis = -1)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Averaging block.
+
+   :param axis: Axis along which to average.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Feature data array.
+
+   Output slots
+   ------------
+
+       - output: Averaged feature data array.
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:method:: fit(_inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: ArgmaxBlock(axis = -1)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Argmax block.
+
+   :param axis: Axis along which to calculate argmax.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Feature data array.
+
+   Output slots
+   ------------
+
+       - output: Argmax result.
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:method:: fit(_inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+

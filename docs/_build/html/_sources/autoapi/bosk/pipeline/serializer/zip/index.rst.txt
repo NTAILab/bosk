@@ -1,0 +1,101 @@
+:py:mod:`bosk.pipeline.serializer.zip`
+======================================
+
+.. py:module:: bosk.pipeline.serializer.zip
+
+.. autoapi-nested-parse::
+
+   Universal Pipeline Serializer parametrized by Block Serializer.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.pipeline.serializer.zip.SlotSerializer
+   bosk.pipeline.serializer.zip.ConnectionSerializer
+   bosk.pipeline.serializer.zip.ZipPipelineSerializer
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.pipeline.serializer.zip.STRUCTURE_FILENAME
+
+
+.. py:data:: STRUCTURE_FILENAME
+   :annotation: = structure.json
+
+   
+
+.. py:class:: SlotSerializer(ids_by_block=None, blocks_by_id=None)
+
+   .. py:method:: from_dict(dictionary)
+
+
+   .. py:method:: input_from_dict(dictionary)
+
+
+   .. py:method:: output_from_dict(dictionary)
+
+
+   .. py:method:: to_dict(slot)
+
+
+
+.. py:class:: ConnectionSerializer(slot_serializer)
+
+   .. py:method:: from_dict(dictionary)
+
+
+   .. py:method:: to_dict(connection)
+
+
+
+.. py:class:: ZipPipelineSerializer(block_serializer)
+
+   Bases: :py:obj:`bosk.pipeline.serializer.base.BasePipelineSerializer`
+
+   Zip-based pipeline serializer.
+
+   It is parametrized by block serializer, and
+   just serializes block separately, providing
+   additional information about connections (edges) between blocks
+   to be able to restore the pipeline structure.
+
+   :param block_serializer: Block serializer.
+
+   .. py:method:: _dump_block(block, out_file)
+
+
+   .. py:method:: _dump_all_blocks(ids_by_block, storage)
+
+
+   .. py:method:: _load_all_blocks(storage, block_names)
+
+
+   .. py:method:: dump(pipeline, out_file)
+
+      Serialize and dump the pipeline to the file.
+
+      :param pipeline: The pipeline to serialize.
+      :param out_file: Output file or stream.
+
+
+   .. py:method:: load(in_file)
+
+      Load and deserialize a pipeline from the file.
+
+      :param in_file: Input file or stream.
+
+
+

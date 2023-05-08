@@ -1,0 +1,69 @@
+:py:mod:`bosk.block.zoo.data_weighting`
+=======================================
+
+.. py:module:: bosk.block.zoo.data_weighting
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.data_weighting.WeightsBlock
+
+
+
+
+.. py:class:: WeightsBlock(ord = 1, device='CPU')
+
+   Data weighting block.
+
+   :param ord: Order of weighting function.
+   :param device: Device for weights storage.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - X: Feature data.
+       - y: Label data.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - _X: Ignored.
+
+   Output slots
+   ------------
+
+       - output: Sample weights.
+
+
+   .. py:attribute:: _weights
+      :annotation: :Optional[bosk.data.BaseData]
+
+      
+
+   .. py:method:: fit(X, y)
+
+      Fit the weights block.
+
+      :param X: Feature data.
+      :param y: Label data.
+
+      :returns: Self.
+
+
+   .. py:method:: transform(_X=None)
+
+      Transform: get the weights.
+
+      :returns: Weights.
+
+
+

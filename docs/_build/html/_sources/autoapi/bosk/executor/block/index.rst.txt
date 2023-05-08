@@ -1,0 +1,130 @@
+:py:mod:`bosk.executor.block`
+=============================
+
+.. py:module:: bosk.executor.block
+
+.. autoapi-nested-parse::
+
+   Block execution module.
+
+   When a pipeline is executed, block executors, derived from the :py:class:`BaseBlockExecutor`
+   are used to evaluate result of each block.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.executor.block.BaseBlockExecutor
+   bosk.executor.block.DefaultBlockExecutor
+   bosk.executor.block.GPUBlockExecutor
+   bosk.executor.block.CPUBlockExecutor
+   bosk.executor.block.FitBlacklistBlockExecutor
+
+
+
+
+.. py:class:: BaseBlockExecutor
+
+   Bases: :py:obj:`abc.ABC`
+
+   Determines a block execution.
+
+
+
+   .. py:method:: execute_block(stage, block, block_input_mapping)
+      :abstractmethod:
+
+      Execute the `block` at the `stage` given `block_input_mapping` data dictionary.
+
+      :param stage: The execution stage.
+      :param block: The computational block to execute.
+      :param block_input_mapping: The data for the block execution.
+
+
+
+.. py:class:: DefaultBlockExecutor
+
+   Bases: :py:obj:`BaseBlockExecutor`
+
+   Default block executor.
+
+   Prepares arguments and calls `transform` method at both `FIT` and `TRANSFORM` stages,
+   and before that `fit` method at `FIT` stage.
+
+
+   .. py:method:: execute_block(stage, block, block_input_mapping)
+
+      Execute the `block` at the `stage` given `block_input_mapping` data dictionary.
+
+      :param stage: The execution stage.
+      :param block: The computational block to execute.
+      :param block_input_mapping: The data for the block execution.
+
+
+
+.. py:class:: GPUBlockExecutor
+
+   Bases: :py:obj:`BaseBlockExecutor`
+
+   Block executor that tries to execute block on GPU, if it is possible.
+
+
+
+   .. py:method:: execute_block(stage, block, block_input_mapping)
+
+      Execute the `block` at the `stage` given `block_input_mapping` data dictionary.
+
+      :param stage: The execution stage.
+      :param block: The computational block to execute.
+      :param block_input_mapping: The data for the block execution.
+
+
+
+.. py:class:: CPUBlockExecutor
+
+   Bases: :py:obj:`BaseBlockExecutor`
+
+   Block executor that tries to execute block on CPU, if it is possible.
+
+
+
+   .. py:method:: execute_block(stage, block, block_input_mapping)
+
+      Execute the `block` at the `stage` given `block_input_mapping` data dictionary.
+
+      :param stage: The execution stage.
+      :param block: The computational block to execute.
+      :param block_input_mapping: The data for the block execution.
+
+
+
+.. py:class:: FitBlacklistBlockExecutor(ignore_blocks = None, ignore_groups = None)
+
+   Bases: :py:obj:`DefaultBlockExecutor`
+
+   Block executor that does not call `fit` method for the blocks that are in the black list.
+
+   It is used to be able to manually fit some blocks of the pipeline and avoid overriding of the state
+   when the whole pipeline is fitted.
+
+   :param ignore_blocks: List of blocks to ignore.
+   :param ignore_groups: List of block groups to ignore.
+                         If block belongs to at least one group from `ignore_groups`,
+                         it won't be fitted.
+
+   .. py:method:: execute_block(stage, block, block_input_mapping)
+
+      Execute the `block` at the `stage` given `block_input_mapping` data dictionary.
+
+      :param stage: The execution stage.
+      :param block: The computational block to execute.
+      :param block_input_mapping: The data for the block execution.
+
+
+

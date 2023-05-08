@@ -1,0 +1,88 @@
+:py:mod:`bosk.auto.validation`
+==============================
+
+.. py:module:: bosk.auto.validation
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.auto.validation.BasePipelineModelValidator
+   bosk.auto.validation.CVPipelineModelValidator
+   bosk.auto.validation.DumbPipelineModelValidator
+   bosk.auto.validation.TrainSetPipelineModelValidator
+
+
+
+
+.. py:class:: BasePipelineModelValidator(cv, metrics_cls)
+
+   Bases: :py:obj:`abc.ABC`
+
+   Pipeline model validator calculates metrics given dataset and fit, transform methods.
+
+
+   .. py:property:: need_refit
+      :type: bool
+      :abstractmethod:
+
+      Whether the model needs to be refitted after validation.
+
+   .. py:method:: calc_metrics(data, fitter, transformer, output = 'proba')
+      :abstractmethod:
+
+
+
+.. py:class:: CVPipelineModelValidator(cv, metrics_cls)
+
+   Bases: :py:obj:`BasePipelineModelValidator`
+
+   Pipeline model validator calculates metrics given dataset and fit, transform methods.
+
+
+   .. py:attribute:: need_refit
+      :annotation: = True
+
+      
+
+   .. py:method:: calc_metrics(data, fitter, transformer, output = 'proba')
+
+
+
+.. py:class:: DumbPipelineModelValidator(cv, metrics_cls)
+
+   Bases: :py:obj:`BasePipelineModelValidator`
+
+   Pipeline model validator calculates metrics given dataset and fit, transform methods.
+
+
+   .. py:attribute:: need_refit
+      :annotation: = True
+
+      
+
+   .. py:method:: calc_metrics(data, fitter, transformer, output = 'proba')
+
+
+
+.. py:class:: TrainSetPipelineModelValidator(cv, metrics_cls)
+
+   Bases: :py:obj:`BasePipelineModelValidator`
+
+   Pipeline model validator calculates metrics given dataset and fit, transform methods.
+
+
+   .. py:attribute:: need_refit
+      :annotation: = False
+
+      
+
+   .. py:method:: calc_metrics(data, fitter, transformer, output = 'proba')
+
+
+

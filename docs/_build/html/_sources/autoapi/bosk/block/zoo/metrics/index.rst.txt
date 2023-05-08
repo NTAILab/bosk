@@ -1,0 +1,265 @@
+:py:mod:`bosk.block.zoo.metrics`
+================================
+
+.. py:module:: bosk.block.zoo.metrics
+
+.. autoapi-nested-parse::
+
+   Metric blocks.
+
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.metrics.RocAucBlock
+   bosk.block.zoo.metrics.RocAucMultiLabelBlock
+   bosk.block.zoo.metrics.AccuracyBlock
+   bosk.block.zoo.metrics.F1ScoreBlock
+   bosk.block.zoo.metrics.R2ScoreBlock
+
+
+
+
+.. py:class:: RocAucBlock(**kwargs)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   ROC-AUC block.
+
+   :param \*\*kwargs: Arguments for `sklearn.metrics.roc_auc_score`.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - pred_probas: Predicted probabilities.
+       - gt_y: Ground truth labels.
+
+   Output slots
+   ------------
+
+       - roc-auc: ROC-AUC score.
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:method:: fit(_inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: RocAucMultiLabelBlock
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   ROC-AUC Multilabel block.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - pred_probas: Predicted probabilities.
+       - gt_y: Ground truth labels.
+
+   Output slots
+   ------------
+
+       - roc-auc: ROC-AUC score.
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:method:: fit(_inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: AccuracyBlock
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Accuracy block.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - pred: Predicted labels.
+       - gt_y: Ground truth labels.
+
+   Output slots
+   ------------
+
+       - accuracy: Accuracy score.
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:method:: fit(_inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: F1ScoreBlock(**kwargs)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   F1 metric block.
+
+   :param \*\*kwargs: Arguments for `sklearn.metrics.f1_score`.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - pred: Predicted labels.
+       - gt_y: Ground truth labels.
+
+   Output slots
+   ------------
+
+       - f1-score: F1 score.
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:method:: fit(_inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: R2ScoreBlock(**kwargs)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   R2 metric block.
+
+   :param \*\*kwargs: Arguments for `sklearn.metrics.r2_score`.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - pred: Predicted target estimation.
+       - gt_y: Ground truth target variable value.
+
+   Output slots
+   ------------
+
+       - r2-score: R2 score.
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:method:: fit(_inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+

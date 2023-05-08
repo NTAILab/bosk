@@ -1,0 +1,53 @@
+:py:mod:`bosk.visitor.group`
+============================
+
+.. py:module:: bosk.visitor.group
+
+.. autoapi-nested-parse::
+
+   Visitors for group modifications.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.visitor.group.ModifyGroupVisitor
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.visitor.group.ModificationAction
+
+
+.. py:data:: ModificationAction
+   
+
+   
+
+.. py:class:: ModifyGroupVisitor(action, group)
+
+   Bases: :py:obj:`bosk.visitor.base.BaseVisitor`
+
+   Visitor for block groups modification, given a group and action.
+
+   :param action: Action to perform (add block to group or remove from it).
+   :param group: The group to modify.
+
+   .. py:method:: visit(obj)
+
+
+   .. py:method:: _(block)
+
+
+

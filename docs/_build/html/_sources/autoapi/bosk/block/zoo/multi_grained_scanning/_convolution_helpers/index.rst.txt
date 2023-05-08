@@ -1,0 +1,175 @@
+:py:mod:`bosk.block.zoo.multi_grained_scanning._convolution_helpers`
+====================================================================
+
+.. py:module:: bosk.block.zoo.multi_grained_scanning._convolution_helpers
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.multi_grained_scanning._convolution_helpers._PoolingIndices
+   bosk.block.zoo.multi_grained_scanning._convolution_helpers._ConvolutionParams
+   bosk.block.zoo.multi_grained_scanning._convolution_helpers._ConvolutionHelper
+
+
+
+
+.. py:class:: _PoolingIndices
+
+   Bases: :py:obj:`NamedTuple`
+
+   .. attribute:: xs_shape
+
+      Input shape.
+
+   .. attribute:: full_index_tuple
+
+      Tuple of indices of each pixel for each group (corner position).
+
+   .. attribute:: n_corners
+
+      Number of corners.
+
+   .. attribute:: n_kernel_points
+
+      Number of points inside kernel.
+
+   .. attribute:: pooled_shape
+
+      Pooling result shape (excluding the n_sample dimension).
+
+   .. py:attribute:: xs_shape
+      :annotation: :Tuple[int, Ellipsis]
+
+      
+
+   .. py:attribute:: full_index_tuple
+      :annotation: :Tuple[numpy.ndarray, Ellipsis]
+
+      
+
+   .. py:attribute:: n_corners
+      :annotation: :int
+
+      
+
+   .. py:attribute:: n_kernel_points
+      :annotation: :int
+
+      
+
+   .. py:attribute:: pooled_shape
+      :annotation: :Tuple[int, Ellipsis]
+
+      
+
+
+.. py:class:: _ConvolutionParams
+
+   Bases: :py:obj:`NamedTuple`
+
+   .. py:attribute:: kernel_size
+      :annotation: :Union[int, Tuple[int, Ellipsis]] = 3
+
+      
+
+   .. py:attribute:: stride
+      :annotation: :Union[None, int, Tuple[int, Ellipsis]]
+
+      
+
+   .. py:attribute:: dilation
+      :annotation: :int = 1
+
+      
+
+   .. py:attribute:: padding
+      :annotation: :Optional[int]
+
+      
+
+   .. py:attribute:: chunk_size
+      :annotation: :int
+
+      
+
+
+.. py:class:: _ConvolutionHelper(params)
+
+   .. py:method:: check_stride(spatial_dims, kernel_size)
+
+      Check the stride and return a correct stride tuple.
+
+      :param spatial_dims: Spatial dimensions.
+      :param kernel_size: Kernel dimensions.
+
+      :returns: Stride tuple.
+
+
+   .. py:method:: get_pooled_shape(spatial_dims, kernel_size, stride)
+
+
+   .. py:method:: prepare_corner(spatial_dims, kernel_size)
+
+      Prepare sliding window corner ids.
+
+      :param spatial_dims: Spatial dimensions.
+      :param kernel_size: Kernel dimensions.
+
+      :returns: Sliding window corner indices.
+
+
+   .. py:method:: check_kernel_size(n_spatial_dims)
+
+      Check the kernel size and return a correct kernel size tuple.
+
+      :param n_spatial_dims: Number of spatial dimensions.
+
+      :returns: Kernel size tuple.
+
+
+   .. py:method:: prepare_kernel(n_spatial_dims)
+
+      Prepare kernel indices.
+
+      :param n_spatial_dims: Number of spatial dimensions.
+
+      :returns: Tuple (kernel size, kernel indices).
+
+
+   .. py:method:: pad(xs)
+
+      Add symmetric edge padding to the input array.
+
+      :param xs: Input data.
+
+      :returns: Padded input.
+
+
+   .. py:method:: prepare_pooling_indices(xs_shape)
+
+      Prepare pooling indices using convolution parameters and the input shape.
+
+      :param xs_shape: Input shape.
+
+      :returns: Pooling indices.
+
+
+   .. py:method:: slice(xs, pooling_indices)
+
+      Cut or slice the data into pieces.
+
+      :param xs: Input n-dimensional data of shape (N, C, F1, ..., Fk),
+                 where N is the number of samples,
+                 C is the number of channels,
+                 F1, ..., Fk are the spatial dimensions.
+
+      :returns: Tuple (sliced data, number of slices).
+
+
+

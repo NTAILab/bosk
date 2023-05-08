@@ -1,0 +1,573 @@
+:py:mod:`bosk.executor`
+=======================
+
+.. py:module:: bosk.executor
+
+.. autoapi-nested-parse::
+
+   Pipeline execution module.
+
+   Any executor can be initialized with a pipeline and a stage.
+   Optionally, input and output pipeline slots lists can be specified.
+
+   An initialized pipeline executor acts like a function and can be applied
+   to a dictionary of input values.
+
+   The output of the executor is a special dictionary of output values,
+   which contain wrapped data (:py:class:`bosk.data.BaseData`).
+   In order to obtain NumPy arrays as output, the `.numpy()` method should be called
+   on the result.
+
+   Example of usage:
+
+   .. code-block:: python
+
+       pipeline = make_pipeline()  # make a pipeline somehow
+       fitter = TopologicalExecutor(pipeline, stage=Stage.FIT)
+       fitter({'X': X_train, 'y': y_train})  # fit on dictionary of input numpy arrays
+       predictor = TopologicalExecutor(pipeline, stage=Stage.TRANSFORM)
+       predictions = predictor({'X': X_test}).numpy()  # result: dictionary of output numpy arrays
+
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   parallel/index.rst
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   base/index.rst
+   block/index.rst
+   recursive/index.rst
+   sklearn_interface/index.rst
+   timer/index.rst
+   topological/index.rst
+   utility/index.rst
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.executor.BaseSlotHandler
+   bosk.executor.DefaultSlotHandler
+   bosk.executor.BaseBlockExecutor
+   bosk.executor.DefaultBlockExecutor
+   bosk.executor.FitBlacklistBlockExecutor
+   bosk.executor.TimerBlockExecutor
+   bosk.executor.BaseBoskPipelineWrapper
+   bosk.executor.BoskPipelineClassifier
+   bosk.executor.BoskPipelineRegressor
+   bosk.executor.BoskPipelineTransformer
+   bosk.executor.RecursiveExecutor
+   bosk.executor.TopologicalExecutor
+   bosk.executor.GreedyParallelExecutor
+
+
+
+
+.. py:class:: BaseSlotHandler
+
+   Bases: :py:obj:`abc.ABC`
+
+   Determines slots' handling policy: checks whether a slot is required for the stage.
+
+
+   .. py:method:: is_slot_required(stage, slot)
+      :abstractmethod:
+
+      Method that determines if the slot is required during
+      the computational graph execution.
+
+      :param stage: The execution stage.
+      :param slot: The computational block's slot to check.
+
+
+
+.. py:class:: DefaultSlotHandler
+
+   Bases: :py:obj:`BaseSlotHandler`
+
+   Default slot handling policy.
+
+   At `FIT` stage requires preceding block execution
+   even if it will be required only for transforming data.
+
+   At `TRANSFORM` stage requires preceding block execution
+   only if it is needed for the given input slot.
+
+
+   .. py:method:: is_slot_required(stage, slot)
+
+      Method that determines if the slot is required during
+      the computational graph execution.
+
+      :param stage: The execution stage.
+      :param slot: The computational block's slot to check.
+
+
+
+.. py:class:: BaseBlockExecutor
+
+   Bases: :py:obj:`abc.ABC`
+
+   Determines a block execution.
+
+
+
+   .. py:method:: execute_block(stage, block, block_input_mapping)
+      :abstractmethod:
+
+      Execute the `block` at the `stage` given `block_input_mapping` data dictionary.
+
+      :param stage: The execution stage.
+      :param block: The computational block to execute.
+      :param block_input_mapping: The data for the block execution.
+
+
+
+.. py:class:: DefaultBlockExecutor
+
+   Bases: :py:obj:`BaseBlockExecutor`
+
+   Default block executor.
+
+   Prepares arguments and calls `transform` method at both `FIT` and `TRANSFORM` stages,
+   and before that `fit` method at `FIT` stage.
+
+
+   .. py:method:: execute_block(stage, block, block_input_mapping)
+
+      Execute the `block` at the `stage` given `block_input_mapping` data dictionary.
+
+      :param stage: The execution stage.
+      :param block: The computational block to execute.
+      :param block_input_mapping: The data for the block execution.
+
+
+
+.. py:class:: FitBlacklistBlockExecutor(ignore_blocks = None, ignore_groups = None)
+
+   Bases: :py:obj:`DefaultBlockExecutor`
+
+   Block executor that does not call `fit` method for the blocks that are in the black list.
+
+   It is used to be able to manually fit some blocks of the pipeline and avoid overriding of the state
+   when the whole pipeline is fitted.
+
+   :param ignore_blocks: List of blocks to ignore.
+   :param ignore_groups: List of block groups to ignore.
+                         If block belongs to at least one group from `ignore_groups`,
+                         it won't be fitted.
+
+   .. py:method:: execute_block(stage, block, block_input_mapping)
+
+      Execute the `block` at the `stage` given `block_input_mapping` data dictionary.
+
+      :param stage: The execution stage.
+      :param block: The computational block to execute.
+      :param block_input_mapping: The data for the block execution.
+
+
+
+.. py:class:: TimerBlockExecutor
+
+   Bases: :py:obj:`bosk.executor.base.BaseBlockExecutor`
+
+   Timer block executor.
+
+   Executes blocks like :py:class:`DefaultBlockExecutor` and additionally
+   measures performance.
+
+   The result times can be accessed through :py:attr:`blocks_time`.
+
+   .. attribute:: block_time
+
+      Dictionary that maps blocks to their fit-transform time.
+
+   .. py:property:: blocks_time
+      :type: Dict[bosk.executor.base.BaseBlock, float]
+
+
+   .. py:method:: execute_block(stage, block, block_input_mapping)
+
+      Execute the `block` at the `stage` given `block_input_mapping` data dictionary.
+
+      :param stage: The execution stage.
+      :param block: The computational block to execute.
+      :param block_input_mapping: The data for the block execution.
+
+
+
+.. py:class:: BaseBoskPipelineWrapper(pipeline, inputs_map = None, outputs_map = None, executor_cls = DEFAULT_EXECUTOR)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`
+
+   Base BOSK Pipeline Wrapper is a base pipeline execution wrapper for
+   matching scikit-learn interface.
+
+   The wrapper executes the given pipeline using two separate executors:
+   for FIT and TRANSFORM stages.
+
+
+   .. py:method:: __map_vars(keys, mapping)
+
+
+   .. py:method:: _prepare_executors()
+
+
+   .. py:method:: fit(X, y, sample_weight=None, **kwargs)
+
+
+   .. py:method:: _predict_all(X, **kwargs)
+
+
+   .. py:method:: _extract(key, result)
+
+      Extract the output value by key from execution result.
+
+
+
+
+.. py:class:: BoskPipelineClassifier(pipeline, inputs_map = None, outputs_map = None, executor_cls = DEFAULT_EXECUTOR)
+
+   Bases: :py:obj:`sklearn.base.ClassifierMixin`, :py:obj:`BaseBoskPipelineWrapper`
+
+   Classifier based on BOSK pipeline.
+
+
+   .. py:method:: _classifier_init(y)
+
+
+   .. py:method:: fit(X, y, sample_weight=None, **kwargs)
+
+
+   .. py:method:: predict_proba(X, **kwargs)
+
+
+   .. py:method:: predict(X, **kwargs)
+
+
+
+.. py:class:: BoskPipelineRegressor(pipeline, inputs_map = None, outputs_map = None, executor_cls = DEFAULT_EXECUTOR)
+
+   Bases: :py:obj:`sklearn.base.RegressorMixin`, :py:obj:`BaseBoskPipelineWrapper`
+
+   Regressor based on BOSK pipeline.
+
+
+   .. py:method:: predict(X, **kwargs)
+
+
+
+.. py:class:: BoskPipelineTransformer(pipeline, inputs_map = None, outputs_map = None, executor_cls = DEFAULT_EXECUTOR)
+
+   Bases: :py:obj:`sklearn.base.TransformerMixin`, :py:obj:`BaseBoskPipelineWrapper`
+
+   Transformer based on BOSK pipeline.
+
+
+   .. py:method:: fit_transform(X, y, sample_weight=None, **kwargs)
+
+      Fit to data, then transform it.
+
+      Fits transformer to `X` and `y` with optional parameters `fit_params`
+      and returns a transformed version of `X`.
+
+      :param X: Input samples.
+      :type X: array-like of shape (n_samples, n_features)
+      :param y: Target values (None for unsupervised transformations).
+      :type y: array-like of shape (n_samples,) or (n_samples, n_outputs),                 default=None
+      :param \*\*fit_params: Additional fit parameters.
+      :type \*\*fit_params: dict
+
+      :returns: **X_new** -- Transformed array.
+      :rtype: ndarray array of shape (n_samples, n_features_new)
+
+
+   .. py:method:: transform(X, **kwargs)
+
+
+
+.. py:class:: RecursiveExecutor(pipeline, stage, inputs = None, outputs = None, slot_handler = None, block_executor = None)
+
+   Bases: :py:obj:`bosk.executor.base.BaseExecutor`
+
+   The recursive executor implementation.
+
+   Considers only input-output slots information to match slots.
+
+   .. attribute:: _conn_map
+
+      Pipeline connections, represented as a hash map, the keys are blocks' input slots,
+      the values are output ones. Each input slot corresponds no more than one
+      output slot, so this representation is correct.
+
+   :param pipeline: Sets :attr:`.BaseExecutor.__pipeline`.
+   :param stage: Sets :attr:`.BaseExecutor.__stage`,
+   :param inputs: Sets :attr:`.BaseExecutor.__inputs`.
+   :param outputs: Sets :attr:`.BaseExecutor.__outputs`.
+   :param slot_handler: Sets :attr:`.BaseExecutor.__slot_handler` with `_prepare_slot_handler` method.
+   :param block_executor: Sets :attr:`.BaseExecutor.__block_executor` with `_prepare_block_executor` method.
+
+   .. py:attribute:: _conn_map
+      :annotation: :Mapping[bosk.block.base.BlockInputSlot, bosk.block.base.BlockOutputSlot]
+
+      
+
+   .. py:method:: execute(input_values)
+
+      Executes the pipeline given `BaseData` inputs and return `BaseData` output values.
+
+      :param input_values: Input data.
+
+      :returns: Calculated output data dictionary that maps output names to the data.
+
+
+
+.. py:class:: TopologicalExecutor(pipeline, stage, inputs = None, outputs = None, slot_handler = None, block_executor = None)
+
+   Bases: :py:obj:`bosk.executor.base.BaseExecutor`
+
+   Topological executor.
+
+   The optimization algoritm computes only blocks which are connected with the inputs and which outputs are needed
+   for the pipeline outputs calculation.
+
+   .. attribute:: _conn_dict
+
+      Pipeline connections, represented as a hash map, the keys are blocks' input slots,
+      the values are output ones. Each input slot corresponds no more than one
+      output slot, so this representation is correct. Also, the values can be input slots,
+      just to connect input blocks to their inputs.
+
+   :param pipeline: Sets :attr:`.BaseExecutor.__pipeline`.
+   :param stage: Sets :attr:`.BaseExecutor.__stage`,
+   :param inputs: Sets :attr:`.BaseExecutor.__inputs`.
+   :param outputs: Sets :attr:`.BaseExecutor.__outputs`.
+   :param slot_handler: Sets :attr:`.BaseExecutor.__slot_handler` with `_prepare_slot_handler` method.
+   :param block_executor: Sets :attr:`.BaseExecutor.__block_executor` with `_prepare_block_executor` method.
+
+   .. py:attribute:: _conn_dict
+      :annotation: :Dict[bosk.block.base.BlockInputSlot, Union[bosk.block.base.BlockInputSlot, bosk.block.base.BlockOutputSlot]]
+
+      
+
+   .. py:method:: _dfs(aj_list, begin_nodes)
+
+      Method that performs the deep first search algorithm in the computational graph.
+      The search begins from the nodes `begin_nodes`. The algorithm is written using iterative scheme.
+
+      :param aj_list: The graph adjacency list.
+      :param begin_nodes: The graph nodes, which will be used as the search start.
+
+      :returns: Set of the graph nodes, which were included in the traversal. Actually, the order is not saved.
+                This method is only for internal use, so this behaviour is chosen for the optimization.
+
+
+   .. py:method:: _topological_sort(aj_list, begin_nodes)
+
+      Method that performs the topological sort of the computational graph.
+      The algorithm begins its work from the nodes `begin_nodes`. The algorithm is written using recursive scheme.
+
+      :param aj_list: The graph adjacency list.
+      :param begin_nodes: The graph nodes, which will be used as the algorithm start.
+
+      :returns: List of the graph nodes in topological order.
+
+
+   .. py:method:: _get_backward_aj_list(feasible_set = None)
+
+      The internal helper method for making backwards adjacency list
+      (block to block, from the end to the start) of the pipeline.
+
+      :param feasible_set: The set of the blocks, which will be used in the adjacency list.
+                           Other blocks will not be included. If `None`, all blocks of the pipeline will be used.
+
+      :returns: The backwards adjacency list containing blocks from the ``feasible set``.
+
+
+   .. py:method:: _get_forward_aj_list(feasible_set = None)
+
+      The internal helper method for making adjacency list (block to block) of the pipeline.
+
+      :param feasible_set: The set of the blocks, which will be used in the adjacency list.
+                           Other blocks will not be included. If `None`, all blocks of the pipeline will be used.
+
+      :returns: The adjacency list containing blocks from the ``feasible set``.
+
+
+   .. py:method:: execute(input_values)
+
+      The main method for the processing of the computational graph.
+
+      :param input_values: The dictionary, containing the pipeline's inputs names as keys
+                           and coresponding to them :data:`Data` as values.
+
+      :returns: The dictionary, containing the pipeline's outputs names as keys
+                and coresponding to them :data:`Data` as values.
+
+      :raises AssertionError: If there are some incompatibility between pipeline's inputs and user's ones.
+
+
+
+.. py:class:: GreedyParallelExecutor(pipeline, stage, inputs = None, outputs = None, slot_handler = None, block_executor = None, parallel_engine = MultiprocessingParallelEngine())
+
+   Bases: :py:obj:`bosk.executor.base.BaseExecutor`
+
+   The recursive executor implementation.
+
+   Considers only input-output slots information to match slots.
+
+   .. attribute:: _conn_map
+
+      Pipeline connections, represented as a hash map, the keys are blocks' input slots,
+      the values are output ones. Each input slot corresponds no more than one
+      output slot, so this representation is correct.
+
+   :param pipeline: Sets :attr:`.BaseExecutor.__pipeline`.
+   :param stage: Sets :attr:`.BaseExecutor.__stage`,
+   :param inputs: Sets :attr:`.BaseExecutor.__inputs`.
+   :param outputs: Sets :attr:`.BaseExecutor.__outputs`.
+   :param slot_handler: Sets :attr:`.BaseExecutor.__slot_handler` with `_prepare_slot_handler` method.
+   :param block_executor: Sets :attr:`.BaseExecutor.__block_executor` with `_prepare_block_executor` method.
+
+   .. py:property:: outputs
+      :type: Optional[frozenset[str]]
+
+      Getter for the executor's ouputs set. `None` if there are
+      no restrictions on the pipeline's outputs.
+
+   .. py:attribute:: _conn_map
+      :annotation: :Mapping[bosk.block.base.BlockInputSlot, bosk.block.base.BlockOutputSlot]
+
+      
+
+   .. py:method:: _prepare_out_to_in_edges()
+
+      Prepare the mapping from output slots to list of input slots.
+
+      :returns: Dictionary with output slots as keys,
+                lists of the corresponding input slots as values.
+
+
+   .. py:method:: _get_blocks(output_slots)
+
+      Get all blocks that should be executed.
+
+      :param output_slots: Set of output slots.
+
+      :returns: Set of the pipeline blocks.
+
+
+   .. py:method:: _prepare_inputs_by_block()
+
+      Prepare the mapping from blocks to their inputs.
+
+      :returns: Dictionary with blocks as keys,
+                sets of the corresponding input slots as values.
+
+
+   .. py:method:: _prepare_inputs(block, input_slot_values)
+
+      Prepare the mapping of inputs needed for the block.
+
+      :param block: The block for which input values are needed.
+      :param input_slot_values: Mapping from input slots to the corresponding data.
+
+      :returns: Mapping from input slots to the corresponding data for the given block.
+
+
+   .. py:method:: _compute_all_plain(blocks, computed_values)
+
+      Filter plain blocks and compute them.
+
+      It is assumed that plain block execution is computationally effortless.
+
+      :param blocks: Blocks that potentially can be computed (not necessarily plain).
+
+      :returns: Mapping from `BlockOutputSlot` to `Data`.
+
+
+   .. py:method:: _compute_all_parallel(blocks, computed_values, parallel)
+
+      Filter blocks that can be computed in parallel and compute them.
+
+      :param blocks: All blocks that potentially can be computed.
+
+      :returns: Mapping from `BlockOutputSlot` to `Data`.
+
+
+   .. py:method:: _compute_all_non_threadsafe(blocks, computed_values)
+
+      Filter blocks that are not plain and cannot be computed in parallel, and compute them.
+
+      :param blocks: All blocks that potentially can be computed.
+
+      :returns: Mapping from `BlockOutputSlot` to `Data`.
+
+
+   .. py:method:: _clean_unnecessary_data(computed_values, remaining_blocks)
+
+      Remove the intermediate data (execution results) that will not be required in the future.
+
+      :param computed_values: Dictionary of already computed values.
+      :param remaining_blocks: Set of blocks that should be computed in the next steps.
+
+      Returns:
+
+
+
+   .. py:method:: _find_ready_blocks(computed_values, remaining_blocks)
+
+      Find the blocks for which required inputs are already computed.
+
+      :param computed_values: Mapping from input slots to the corresponding computed data.
+      :param remaining_blocks: Set of blocks which haven't been computed yet.
+
+      :returns: List of blocks which are ready to be computed.
+
+
+   .. py:method:: __append_outputs(output_values, computed_values, output_slots, new_outputs)
+
+      Append newly computed outputs.
+
+      :param output_values: Final output values (will be modified).
+      :param computed_values: Computed values required for following blocks computation (will be modified).
+      :param output_slots: Set of output slots.
+      :param new_outputs: Newly computed outputs.
+
+
+   .. py:method:: __execute_with_parallel(input_values, parallel)
+
+      Pipeline execution with given parallel engine instance.
+
+      :param input_values: Input values data mapping.
+      :param parallel: Parallel engine instance.
+
+      :returns: Dictionary with output slots as keys and computed data as values.
+
+
+   .. py:method:: execute(input_values)
+
+      Executes the pipeline given `BaseData` inputs and return `BaseData` output values.
+
+      :param input_values: Input data.
+
+      :returns: Calculated output data dictionary that maps output names to the data.
+
+
+

@@ -1,0 +1,116 @@
+:py:mod:`bosk.block.zoo.models.classification.mgs_ferns`
+========================================================
+
+.. py:module:: bosk.block.zoo.models.classification.mgs_ferns
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.models.classification.mgs_ferns.MGSRandomFernsBlock
+
+
+
+
+.. py:class:: MGSRandomFernsBlock(n_groups = 10, n_ferns_in_group = 20, fern_size = 7, kind = 'unary', bootstrap = False, n_jobs = None, random_state = None, kernel_size = 3, stride = None, dilation = 1, padding = None)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Multi-Grained Scanning Random Ferns Classifier Block.
+   It applies multiple tests to each sample across spatial dimensions.
+   The result is of the same shape as pooling result (with the same convolution parameters).
+
+   The implementation is based on idea that each patch can be considered as a separate training sample.
+
+   :param n_groups: Number of ferns groups (like a number of estimators).
+   :param n_ferns_in_group: Number of ferns in a group.
+   :param fern_size: Number of tests in fern.
+   :param kind: Kind of tests ('unary' or 'binary').
+   :param bootstrap: Apply data bootstrap or not.
+   :param n_jobs: Number of threads.
+   :param random_state: Random state.
+   :param kernel_size: Kernel size (int or tuple).
+   :param stride: Stride.
+   :param dilation: Dilation (kernel stride).
+   :param padding: Padding size (see `numpy.pad`);
+                   if None padding is disabled.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - X: Input features.
+       - y: Ground truth labels.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Input features.
+
+   Output slots
+   ------------
+
+       - probas: Predicted probabilities.
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:attribute:: pooling_indices_
+      
+
+      
+
+   .. py:method:: __getstate__()
+
+
+   .. py:method:: __setstate__(state)
+
+
+   .. py:method:: _classifier_init(y)
+
+
+   .. py:method:: _get_flattened_window_size(X)
+
+
+   .. py:method:: _make_ferns(X, prng_key)
+
+
+   .. py:method:: _apply_ferns(xs, ferns)
+
+
+   .. py:method:: __prepare_pooling_indices(xs_shape)
+
+
+   .. py:method:: _parallel_calc_bucket_stats(bucket_indices, y, group_data_indices)
+
+
+   .. py:method:: fit(inputs)
+
+      Fit the MGS Random Ferns Block.
+      The implementation is device-agnostic.
+
+
+
+   .. py:method:: _predict_proba(X)
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+

@@ -1,0 +1,228 @@
+:py:mod:`bosk.block.zoo.output_plugs`
+=====================================
+
+.. py:module:: bosk.block.zoo.output_plugs
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.output_plugs.BaseOutputBlock
+   bosk.block.zoo.output_plugs.BlockExecutionProperties
+   bosk.block.zoo.output_plugs.BlockMeta
+   bosk.block.zoo.output_plugs.DynamicBlockMetaStub
+   bosk.block.zoo.output_plugs.OutputBlock
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.output_plugs.make_simple_meta
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.output_plugs.BlockInputData
+   bosk.block.zoo.output_plugs.TransformOutputData
+
+
+.. py:class:: BaseOutputBlock
+
+   Bases: :py:obj:`BaseBlock`
+
+   Base output block. It is guaranteed that is has a single output and some name.
+
+   An output block can help to automatically determine pipeline outputs.
+   The name can be None, in this case the block is not considered as one of pipeline outputs.
+
+   .. py:property:: name
+      :type: Optional[str]
+      :abstractmethod:
+
+      Get the input name.
+
+      :returns: The block instance name or None if the block does not have name.
+
+   .. py:method:: _make_slots()
+
+      Make slots
+
+
+   .. py:method:: get_single_output()
+
+      Get the single block output slot.
+
+      :returns: The block output slot.
+
+
+
+.. py:data:: BlockInputData
+   
+
+   Block input values container data type.
+
+   It is indexed by input slot names.
+
+.. py:data:: TransformOutputData
+   
+
+   Block transform output values container data type.
+
+   It is indexed by output slot names.
+
+.. py:class:: BlockExecutionProperties
+
+   Block execution properties.
+
+
+
+   .. py:attribute:: cpu
+      :annotation: :bool = True
+
+      Has CPU implementation that handles CPU data.
+
+   .. py:attribute:: gpu
+      :annotation: :bool = False
+
+      Has GPU implementation that handles GPU data.
+
+   .. py:attribute:: threadsafe
+      :annotation: :bool = False
+
+      CPU/GPU implementation is thread safe, can be executed in parallel.
+
+   .. py:attribute:: plain
+      :annotation: :bool = False
+
+      Block implementation is straightforward and not computantionally expensive,
+      it should not be parallelized (parallelization costs are larger than computation).
+
+
+.. py:class:: BlockMeta(*, inputs=None, outputs=None, execution_props=None)
+
+   Block meta, containing input and output slots description.
+
+
+
+   .. py:attribute:: inputs
+      :annotation: :Mapping[str, InputSlotMeta]
+
+      Mapping from input slots names to their meta.
+
+   .. py:attribute:: outputs
+      :annotation: :Mapping[str, OutputSlotMeta]
+
+      Mapping from output slots names to their meta.
+
+   .. py:attribute:: execution_props
+      :annotation: :BlockExecutionProperties
+
+      Block execution properties.
+
+   .. py:method:: list_of_slots_meta_to_mapping(slots_meta_list)
+      :staticmethod:
+
+      Convert list of slots meta to mapping (name -> slot meta).
+
+      :param slots_meta_list: List of slots meta.
+
+      :returns: Mapping dict (name -> slot meta).
+
+
+
+.. py:class:: DynamicBlockMetaStub(*, inputs=None, outputs=None, execution_props=None)
+
+   Bases: :py:obj:`BlockMeta`
+
+   Meta stub for blocks with dynamic meta.
+
+   Usually blocks define static meta, but sometimes meta can be defined at
+   block initialization time.
+
+   In this case, the stub can be used to express that the meta is dynamic.
+
+
+.. py:function:: make_simple_meta(input_names, output_names, **additional_params)
+
+   Make simple block meta from input and output slot names.
+
+   :param input_names: List of input slot names.
+   :param output_names: List of output slot names.
+   :param \*\*additional_params: Additional meta params.
+
+   :returns: Block meta with given inputs and outputs.
+
+
+.. py:class:: OutputBlock(name = None)
+
+   Bases: :py:obj:`bosk.block.base.BaseOutputBlock`
+
+   Output block.
+
+   Bypasses its input. Can be used to mark outputs when building pipeline in functional style.
+
+   Dynamically specifies the meta information.
+
+   :param name: The output slot name. If None, the default name is used.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - `name` (default="out"): Output data array.
+
+   Output slots
+   ------------
+
+       - `name` (default="out"): Output data array.
+
+
+   .. py:attribute:: DEFAULT_OUTPUT_NAME
+      :annotation: = out
+
+      
+
+   .. py:attribute:: name
+      
+
+      
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.meta.BlockMeta
+
+      
+
+   .. py:method:: fit(_inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+

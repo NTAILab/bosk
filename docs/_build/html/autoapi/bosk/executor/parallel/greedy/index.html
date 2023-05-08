@@ -1,0 +1,955 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../../../../../genindex.html" /><link rel="search" title="Search" href="../../../../../search.html" />
+
+    <meta name="generator" content="sphinx-5.3.0, furo 2022.09.29"/>
+        <title>bosk.executor.parallel.greedy - bosk 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../../../index.html"><div class="brand">bosk 1.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../../../index.html">
+  
+  
+  <span class="sidebar-brand-text">bosk 1.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../../../search.html" role="search">
+  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../install.html">Installation guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started.html">Getting started</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../../examples.html">Bosk usage examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../basic_examples.html">Basic bosk usage user guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../notebooks/basic_forest.html">Making basic deep forest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../notebooks/executor_basics.html">Executors usage guide</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../architectures.html">Deep Forest architectures examples</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../notebooks/basic_forest.html">Basic deep forest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../notebooks/conf_screening.html">Confidence screening</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../notebooks/mg_scanning.html">Multigrained scanning</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../advanced_api.html">Advanced bosk usage examples</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../notebooks/autoblock.html">Autoblock usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../notebooks/comparison_example.html">Models comparison</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../notebooks/sklearn_interface.html">Scikit-learn interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../notebooks/serializing.html">Serialization guide</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../contribution.html">Contributing guidelines</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../../../../index.html">API Reference</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="../../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk</span></code></a><input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../auto/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../auto/builders/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.builders</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../auto/deep_forest/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.deep_forest</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../auto/growing_strategies/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.growing_strategies</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../auto/layers/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.layers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../auto/metrics/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.metrics</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../auto/validation/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.validation</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../block/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../../block/repo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../block/repo/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo.base</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../block/repo/scope/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo.scope</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../block/repo/zoo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo.zoo</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../../block/zoo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../block/zoo/data_conversion/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.data_conversion</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../block/zoo/data_weighting/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.data_weighting</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../block/zoo/debugging/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.debugging</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../block/zoo/gpu_blocks/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.gpu_blocks</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../block/zoo/input_plugs/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.input_plugs</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../block/zoo/metrics/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.metrics</span></code></a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../../../block/zoo/models/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l6 has-children"><a class="reference internal" href="../../../block/zoo/models/classification/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l7"><a class="reference internal" href="../../../block/zoo/models/classification/_jax_util/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification._jax_util</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="../../../block/zoo/models/classification/ferns/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification.ferns</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="../../../block/zoo/models/classification/jax/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification.jax</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="../../../block/zoo/models/classification/mgs_ferns/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification.mgs_ferns</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../../../block/zoo/models/regression/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.regression</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../../../block/zoo/multi_grained_scanning/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../../../block/zoo/multi_grained_scanning/_convolution_helpers/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning._convolution_helpers</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../../../block/zoo/multi_grained_scanning/_pooling_impl/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning._pooling_impl</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../../../block/zoo/multi_grained_scanning/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.base</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../../../block/zoo/multi_grained_scanning/mil/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.mil</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../../../block/zoo/multi_grained_scanning/multi_grained_scanning_1d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_1d</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../../../block/zoo/multi_grained_scanning/multi_grained_scanning_2d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_2d</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../../../block/zoo/multi_grained_scanning/multi_grained_scanning_nd/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_nd</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../../../block/zoo/multi_grained_scanning/pooling/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.pooling</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../../../block/zoo/output_plugs/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.output_plugs</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../block/zoo/preprocessing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.preprocessing</span></code></a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../../../block/zoo/routing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.routing</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../../../block/zoo/routing/cs/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.routing.cs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../../../block/zoo/routing/cv/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.routing.cv</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../block/auto/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.auto</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../block/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../block/functional/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.functional</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../block/meta/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.meta</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../comparison/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../comparison/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../comparison/cross_val/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison.cross_val</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../comparison/metric/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison.metric</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 current has-children"><a class="reference internal" href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor</span></code></a><input checked="" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l4 current has-children"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel</span></code></a><input checked="" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l5"><a class="reference internal" href="../dask/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.dask</span></code></a></li>
+<li class="toctree-l5 current current-page"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.greedy</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../networkx/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.networkx</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../topsort/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.topsort</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../block/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.block</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../recursive/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.recursive</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../sklearn_interface/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.sklearn_interface</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../timer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.timer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../topological/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.topological</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../utility/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.utility</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../painter/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../painter/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../painter/graphviz/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter.graphviz</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../painter/topological/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter.topological</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../pipeline/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../../pipeline/builder/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.builder</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../pipeline/builder/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.builder.base</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../pipeline/builder/functional/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.builder.functional</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../../pipeline/converter/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.converter</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../pipeline/converter/dask/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.converter.dask</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../pipeline/converter/nx/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.converter.nx</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../../pipeline/serializer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../pipeline/serializer/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.base</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../pipeline/serializer/joblib/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.joblib</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../pipeline/serializer/onnx/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.onnx</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../pipeline/serializer/skops/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.skops</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../pipeline/serializer/zip/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.zip</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../pipeline/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../pipeline/connection/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.connection</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../pipeline/dynamic/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.dynamic</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../visitor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.visitor</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../visitor/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.visitor.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../visitor/group/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.visitor.group</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../data/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../exceptions/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.exceptions</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stages/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.stages</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../utility/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.utility</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="module-bosk.executor.parallel.greedy">
+<span id="bosk-executor-parallel-greedy"></span><h1><a class="reference internal" href="#module-bosk.executor.parallel.greedy" title="bosk.executor.parallel.greedy"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.greedy</span></code></a><a class="headerlink" href="#module-bosk.executor.parallel.greedy" title="Permalink to this heading">#</a></h1>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this heading">#</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this heading">#</a></h3>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine" title="bosk.executor.parallel.greedy.ParallelEngine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParallelEngine</span></code></a></p></td>
+<td><p>Parallel execution engine interface.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#bosk.executor.parallel.greedy.JoblibParallelEngine" title="bosk.executor.parallel.greedy.JoblibParallelEngine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">JoblibParallelEngine</span></code></a></p></td>
+<td><p>Joblib-based Parallel Engine.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine" title="bosk.executor.parallel.greedy.MultiprocessingParallelEngine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultiprocessingParallelEngine</span></code></a></p></td>
+<td><p>Multiprocessing-based thread pool execution engine.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor" title="bosk.executor.parallel.greedy.GreedyParallelExecutor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GreedyParallelExecutor</span></code></a></p></td>
+<td><p>The recursive executor implementation.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading">#</a></h3>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#bosk.executor.parallel.greedy.ResultT" title="bosk.executor.parallel.greedy.ResultT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ResultT</span></code></a></p></td>
+<td><p>Execution result generic typevar.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py data">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.ResultT">
+<span class="sig-prename descclassname"><span class="pre">bosk.executor.parallel.greedy.</span></span><span class="sig-name descname"><span class="pre">ResultT</span></span><a class="headerlink" href="#bosk.executor.parallel.greedy.ResultT" title="Permalink to this definition">#</a></dt>
+<dd><p>Execution result generic typevar.</p>
+<p>Required to constrain <cite>ParallelEngine.Instance.staramap</cite> result.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.ParallelEngine">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bosk.executor.parallel.greedy.</span></span><span class="sig-name descname"><span class="pre">ParallelEngine</span></span><a class="headerlink" href="#bosk.executor.parallel.greedy.ParallelEngine" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Parallel execution engine interface.</p>
+<p>Implements a context manager interface, returning execution engine instance.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.ParallelEngine.Instance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Instance</span></span><a class="headerlink" href="#bosk.executor.parallel.greedy.ParallelEngine.Instance" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Execution engine instance interface.</p>
+<p>Can somehow execute <a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine.Instance.starmap" title="bosk.executor.parallel.greedy.ParallelEngine.Instance.starmap"><code class="xref py py-func docutils literal notranslate"><span class="pre">starmap()</span></code></a> function in parallel.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.ParallelEngine.Instance.starmap">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">starmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.ParallelEngine.Instance.starmap" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>func</strong> (<em>Callable</em><em>[</em><em>Ellipsis</em><em>, </em><em>ResultT</em><em>]</em>) – </p></li>
+<li><p><strong>iterable</strong> (<em>Iterable</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[ResultT]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.ParallelEngine.__enter__">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__enter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.ParallelEngine.__enter__" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine" title="bosk.executor.parallel.greedy.ParallelEngine">ParallelEngine</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.ParallelEngine.__exit__">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__exit__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_traceback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.ParallelEngine.__exit__" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.JoblibParallelEngine">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bosk.executor.parallel.greedy.</span></span><span class="sig-name descname"><span class="pre">JoblibParallelEngine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'threads'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.JoblibParallelEngine" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine" title="bosk.executor.parallel.greedy.ParallelEngine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParallelEngine</span></code></a></p>
+<p>Joblib-based Parallel Engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_threads</strong> (<em>int</em>) – Number of threads.</p></li>
+<li><p><strong>backend</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Joblib backend to use.</p></li>
+<li><p><strong>prefer</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Soft hint what to prefer (threads or processes).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.JoblibParallelEngine.JoblibInstance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JoblibInstance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parallel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.JoblibParallelEngine.JoblibInstance" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine" title="bosk.executor.parallel.greedy.ParallelEngine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParallelEngine</span></code></a></p>
+<p>Execution engine instance interface.</p>
+<p>Can somehow execute <a class="reference internal" href="#bosk.executor.parallel.greedy.JoblibParallelEngine.JoblibInstance.starmap" title="bosk.executor.parallel.greedy.JoblibParallelEngine.JoblibInstance.starmap"><code class="xref py py-func docutils literal notranslate"><span class="pre">starmap()</span></code></a> function in parallel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>parallel</strong> (<em>joblib.Parallel</em>) – </p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.JoblibParallelEngine.JoblibInstance.starmap">
+<span class="sig-name descname"><span class="pre">starmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.JoblibParallelEngine.JoblibInstance.starmap" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.JoblibParallelEngine.__enter__">
+<span class="sig-name descname"><span class="pre">__enter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.JoblibParallelEngine.__enter__" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#bosk.executor.parallel.greedy.JoblibParallelEngine" title="bosk.executor.parallel.greedy.JoblibParallelEngine">JoblibParallelEngine</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.JoblibParallelEngine.__exit__">
+<span class="sig-name descname"><span class="pre">__exit__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_traceback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.JoblibParallelEngine.__exit__" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.MultiprocessingParallelEngine">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bosk.executor.parallel.greedy.</span></span><span class="sig-name descname"><span class="pre">MultiprocessingParallelEngine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine" title="bosk.executor.parallel.greedy.ParallelEngine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParallelEngine</span></code></a></p>
+<p>Multiprocessing-based thread pool execution engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>n_threads</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Number of threads.</p>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.MultiprocessingParallelEngine.MPInstance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MPInstance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine.MPInstance" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine" title="bosk.executor.parallel.greedy.ParallelEngine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParallelEngine</span></code></a></p>
+<p>Execution engine instance interface.</p>
+<p>Can somehow execute <a class="reference internal" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine.MPInstance.starmap" title="bosk.executor.parallel.greedy.MultiprocessingParallelEngine.MPInstance.starmap"><code class="xref py py-func docutils literal notranslate"><span class="pre">starmap()</span></code></a> function in parallel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pool</strong> (<em>multiprocessing.pool.ThreadPool</em>) – </p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.MultiprocessingParallelEngine.MPInstance.starmap">
+<span class="sig-name descname"><span class="pre">starmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine.MPInstance.starmap" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.MultiprocessingParallelEngine.__enter__">
+<span class="sig-name descname"><span class="pre">__enter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine.__enter__" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine" title="bosk.executor.parallel.greedy.MultiprocessingParallelEngine">MultiprocessingParallelEngine</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.MultiprocessingParallelEngine.__exit__">
+<span class="sig-name descname"><span class="pre">__exit__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_traceback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine.__exit__" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.GreedyParallelExecutor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bosk.executor.parallel.greedy.</span></span><span class="sig-name descname"><span class="pre">GreedyParallelExecutor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pipeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slot_handler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_executor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel_engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">MultiprocessingParallelEngine()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../base/index.html#bosk.executor.base.BaseExecutor" title="bosk.executor.base.BaseExecutor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bosk.executor.base.BaseExecutor</span></code></a></p>
+<p>The recursive executor implementation.</p>
+<p>Considers only input-output slots information to match slots.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.GreedyParallelExecutor._conn_map">
+<span class="sig-name descname"><span class="pre">_conn_map</span></span><a class="headerlink" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._conn_map" title="Permalink to this definition">#</a></dt>
+<dd><p>Pipeline connections, represented as a hash map, the keys are blocks’ input slots,
+the values are output ones. Each input slot corresponds no more than one
+output slot, so this representation is correct.</p>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pipeline</strong> (<a class="reference internal" href="../../../pipeline/index.html#bosk.pipeline.BasePipeline" title="bosk.pipeline.BasePipeline"><em>bosk.pipeline.BasePipeline</em></a>) – Sets <a class="reference internal" href="../../base/index.html#bosk.executor.base.BaseExecutor.__pipeline" title="bosk.executor.base.BaseExecutor.__pipeline"><code class="xref py py-attr docutils literal notranslate"><span class="pre">BaseExecutor.__pipeline</span></code></a>.</p></li>
+<li><p><strong>stage</strong> (<em>bosk.executor.base.Stage</em>) – Sets <a class="reference internal" href="../../base/index.html#bosk.executor.base.BaseExecutor.__stage" title="bosk.executor.base.BaseExecutor.__stage"><code class="xref py py-attr docutils literal notranslate"><span class="pre">BaseExecutor.__stage</span></code></a>,</p></li>
+<li><p><strong>inputs</strong> (<em>Optional</em><em>[</em><em>Sequence</em><em>[</em><em>str</em><em>]</em><em>]</em>) – Sets <a class="reference internal" href="../../base/index.html#bosk.executor.base.BaseExecutor.__inputs" title="bosk.executor.base.BaseExecutor.__inputs"><code class="xref py py-attr docutils literal notranslate"><span class="pre">BaseExecutor.__inputs</span></code></a>.</p></li>
+<li><p><strong>outputs</strong> (<em>Optional</em><em>[</em><em>Sequence</em><em>[</em><em>str</em><em>]</em><em>]</em>) – Sets <a class="reference internal" href="../../base/index.html#bosk.executor.base.BaseExecutor.__outputs" title="bosk.executor.base.BaseExecutor.__outputs"><code class="xref py py-attr docutils literal notranslate"><span class="pre">BaseExecutor.__outputs</span></code></a>.</p></li>
+<li><p><strong>slot_handler</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="../../base/index.html#bosk.executor.base.BaseSlotHandler" title="bosk.executor.base.BaseSlotHandler"><em>bosk.executor.base.BaseSlotHandler</em></a><em>]</em>) – Sets <a class="reference internal" href="../../base/index.html#bosk.executor.base.BaseExecutor.__slot_handler" title="bosk.executor.base.BaseExecutor.__slot_handler"><code class="xref py py-attr docutils literal notranslate"><span class="pre">BaseExecutor.__slot_handler</span></code></a> with <cite>_prepare_slot_handler</cite> method.</p></li>
+<li><p><strong>block_executor</strong> (<em>Optional</em><em>[</em><em>bosk.executor.base.BaseBlockExecutor</em><em>]</em>) – Sets <a class="reference internal" href="../../base/index.html#bosk.executor.base.BaseExecutor.__block_executor" title="bosk.executor.base.BaseExecutor.__block_executor"><code class="xref py py-attr docutils literal notranslate"><span class="pre">BaseExecutor.__block_executor</span></code></a> with <cite>_prepare_block_executor</cite> method.</p></li>
+<li><p><strong>parallel_engine</strong> (<a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine" title="bosk.executor.parallel.greedy.ParallelEngine"><em>ParallelEngine</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.GreedyParallelExecutor.outputs">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">outputs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">frozenset</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor.outputs" title="Permalink to this definition">#</a></dt>
+<dd><p>Getter for the executor’s ouputs set. <cite>None</cite> if there are
+no restrictions on the pipeline’s outputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[frozenset[str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">_conn_map</span></span><em class="property"><span class="w"> </span><span class="pre">:Mapping[bosk.block.base.BlockInputSlot,</span> <span class="pre">bosk.block.base.BlockOutputSlot]</span></em><a class="headerlink" href="#id0" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.GreedyParallelExecutor._prepare_out_to_in_edges">
+<span class="sig-name descname"><span class="pre">_prepare_out_to_in_edges</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._prepare_out_to_in_edges" title="Permalink to this definition">#</a></dt>
+<dd><p>Prepare the mapping from output slots to list of input slots.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with output slots as keys,
+lists of the corresponding input slots as values.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[<a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockOutputSlot" title="bosk.block.base.BlockOutputSlot">bosk.block.base.BlockOutputSlot</a>, List[<a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockInputSlot" title="bosk.block.base.BlockInputSlot">bosk.block.base.BlockInputSlot</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.GreedyParallelExecutor._get_blocks">
+<span class="sig-name descname"><span class="pre">_get_blocks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_slots</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._get_blocks" title="Permalink to this definition">#</a></dt>
+<dd><p>Get all blocks that should be executed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>output_slots</strong> (<em>Set</em><em>[</em><a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockOutputSlot" title="bosk.block.base.BlockOutputSlot"><em>bosk.block.base.BlockOutputSlot</em></a><em>]</em>) – Set of output slots.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Set of the pipeline blocks.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Set[<a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BaseBlock" title="bosk.block.base.BaseBlock">bosk.block.base.BaseBlock</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.GreedyParallelExecutor._prepare_inputs_by_block">
+<span class="sig-name descname"><span class="pre">_prepare_inputs_by_block</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._prepare_inputs_by_block" title="Permalink to this definition">#</a></dt>
+<dd><p>Prepare the mapping from blocks to their inputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with blocks as keys,
+sets of the corresponding input slots as values.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[<a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BaseBlock" title="bosk.block.base.BaseBlock">bosk.block.base.BaseBlock</a>, Set[<a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockInputSlot" title="bosk.block.base.BlockInputSlot">bosk.block.base.BlockInputSlot</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.GreedyParallelExecutor._prepare_inputs">
+<span class="sig-name descname"><span class="pre">_prepare_inputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_slot_values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._prepare_inputs" title="Permalink to this definition">#</a></dt>
+<dd><p>Prepare the mapping of inputs needed for the block.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>block</strong> – The block for which input values are needed.</p></li>
+<li><p><strong>input_slot_values</strong> (<em>Mapping</em><em>[</em><a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockInputSlot" title="bosk.block.base.BlockInputSlot"><em>bosk.block.base.BlockInputSlot</em></a><em>, </em><a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData"><em>bosk.data.BaseData</em></a><em>]</em>) – Mapping from input slots to the corresponding data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mapping from input slots to the corresponding data for the given block.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping[<a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockInputSlot" title="bosk.block.base.BlockInputSlot">bosk.block.base.BlockInputSlot</a>, <a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData">bosk.data.BaseData</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.GreedyParallelExecutor._compute_all_plain">
+<span class="sig-name descname"><span class="pre">_compute_all_plain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computed_values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._compute_all_plain" title="Permalink to this definition">#</a></dt>
+<dd><p>Filter plain blocks and compute them.</p>
+<p>It is assumed that plain block execution is computationally effortless.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>blocks</strong> (<em>Sequence</em><em>[</em><a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BaseBlock" title="bosk.block.base.BaseBlock"><em>bosk.block.base.BaseBlock</em></a><em>]</em>) – Blocks that potentially can be computed (not necessarily plain).</p></li>
+<li><p><strong>computed_values</strong> (<em>Mapping</em><em>[</em><a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockInputSlot" title="bosk.block.base.BlockInputSlot"><em>bosk.block.base.BlockInputSlot</em></a><em>, </em><a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData"><em>bosk.data.BaseData</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mapping from <cite>BlockOutputSlot</cite> to <cite>Data</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping[<a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockOutputSlot" title="bosk.block.base.BlockOutputSlot">bosk.block.base.BlockOutputSlot</a>, <a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData">bosk.data.BaseData</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.GreedyParallelExecutor._compute_all_parallel">
+<span class="sig-name descname"><span class="pre">_compute_all_parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computed_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._compute_all_parallel" title="Permalink to this definition">#</a></dt>
+<dd><p>Filter blocks that can be computed in parallel and compute them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>blocks</strong> (<em>Sequence</em><em>[</em><a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BaseBlock" title="bosk.block.base.BaseBlock"><em>bosk.block.base.BaseBlock</em></a><em>]</em>) – All blocks that potentially can be computed.</p></li>
+<li><p><strong>computed_values</strong> (<em>Mapping</em><em>[</em><a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockInputSlot" title="bosk.block.base.BlockInputSlot"><em>bosk.block.base.BlockInputSlot</em></a><em>, </em><a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData"><em>bosk.data.BaseData</em></a><em>]</em>) – </p></li>
+<li><p><strong>parallel</strong> (<a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine" title="bosk.executor.parallel.greedy.ParallelEngine"><em>ParallelEngine</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mapping from <cite>BlockOutputSlot</cite> to <cite>Data</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping[<a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockOutputSlot" title="bosk.block.base.BlockOutputSlot">bosk.block.base.BlockOutputSlot</a>, <a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData">bosk.data.BaseData</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.GreedyParallelExecutor._compute_all_non_threadsafe">
+<span class="sig-name descname"><span class="pre">_compute_all_non_threadsafe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computed_values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._compute_all_non_threadsafe" title="Permalink to this definition">#</a></dt>
+<dd><p>Filter blocks that are not plain and cannot be computed in parallel, and compute them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>blocks</strong> (<em>Sequence</em><em>[</em><a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BaseBlock" title="bosk.block.base.BaseBlock"><em>bosk.block.base.BaseBlock</em></a><em>]</em>) – All blocks that potentially can be computed.</p></li>
+<li><p><strong>computed_values</strong> (<em>Mapping</em><em>[</em><a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockInputSlot" title="bosk.block.base.BlockInputSlot"><em>bosk.block.base.BlockInputSlot</em></a><em>, </em><a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData"><em>bosk.data.BaseData</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mapping from <cite>BlockOutputSlot</cite> to <cite>Data</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping[<a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockOutputSlot" title="bosk.block.base.BlockOutputSlot">bosk.block.base.BlockOutputSlot</a>, <a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData">bosk.data.BaseData</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.GreedyParallelExecutor._clean_unnecessary_data">
+<span class="sig-name descname"><span class="pre">_clean_unnecessary_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">computed_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remaining_blocks</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._clean_unnecessary_data" title="Permalink to this definition">#</a></dt>
+<dd><p>Remove the intermediate data (execution results) that will not be required in the future.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>computed_values</strong> (<em>Dict</em><em>[</em><a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockInputSlot" title="bosk.block.base.BlockInputSlot"><em>bosk.block.base.BlockInputSlot</em></a><em>, </em><a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData"><em>bosk.data.BaseData</em></a><em>]</em>) – Dictionary of already computed values.</p></li>
+<li><p><strong>remaining_blocks</strong> (<em>Set</em><em>[</em><a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BaseBlock" title="bosk.block.base.BaseBlock"><em>bosk.block.base.BaseBlock</em></a><em>]</em>) – Set of blocks that should be computed in the next steps.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.GreedyParallelExecutor._find_ready_blocks">
+<span class="sig-name descname"><span class="pre">_find_ready_blocks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">computed_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remaining_blocks</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._find_ready_blocks" title="Permalink to this definition">#</a></dt>
+<dd><p>Find the blocks for which required inputs are already computed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>computed_values</strong> (<em>Dict</em><em>[</em><a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockInputSlot" title="bosk.block.base.BlockInputSlot"><em>bosk.block.base.BlockInputSlot</em></a><em>, </em><a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData"><em>bosk.data.BaseData</em></a><em>]</em>) – Mapping from input slots to the corresponding computed data.</p></li>
+<li><p><strong>remaining_blocks</strong> (<em>Set</em><em>[</em><a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BaseBlock" title="bosk.block.base.BaseBlock"><em>bosk.block.base.BaseBlock</em></a><em>]</em>) – Set of blocks which haven’t been computed yet.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of blocks which are ready to be computed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BaseBlock" title="bosk.block.base.BaseBlock">bosk.block.base.BaseBlock</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.GreedyParallelExecutor.__append_outputs">
+<span class="sig-name descname"><span class="pre">__append_outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computed_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_slots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_outputs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor.__append_outputs" title="Permalink to this definition">#</a></dt>
+<dd><p>Append newly computed outputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_values</strong> (<em>Dict</em><em>[</em><a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockOutputSlot" title="bosk.block.base.BlockOutputSlot"><em>bosk.block.base.BlockOutputSlot</em></a><em>, </em><a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData"><em>bosk.data.BaseData</em></a><em>]</em>) – Final output values (will be modified).</p></li>
+<li><p><strong>computed_values</strong> (<em>Dict</em><em>[</em><a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockInputSlot" title="bosk.block.base.BlockInputSlot"><em>bosk.block.base.BlockInputSlot</em></a><em>, </em><a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData"><em>bosk.data.BaseData</em></a><em>]</em>) – Computed values required for following blocks computation (will be modified).</p></li>
+<li><p><strong>output_slots</strong> (<em>Set</em><em>[</em><a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockOutputSlot" title="bosk.block.base.BlockOutputSlot"><em>bosk.block.base.BlockOutputSlot</em></a><em>]</em>) – Set of output slots.</p></li>
+<li><p><strong>new_outputs</strong> (<em>bosk.block.base.BlockOutputData</em>) – Newly computed outputs.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.GreedyParallelExecutor.__execute_with_parallel">
+<span class="sig-name descname"><span class="pre">__execute_with_parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor.__execute_with_parallel" title="Permalink to this definition">#</a></dt>
+<dd><p>Pipeline execution with given parallel engine instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_values</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData"><em>bosk.data.BaseData</em></a><em>]</em>) – Input values data mapping.</p></li>
+<li><p><strong>parallel</strong> (<a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine" title="bosk.executor.parallel.greedy.ParallelEngine"><em>ParallelEngine</em></a>) – Parallel engine instance.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with output slots as keys and computed data as values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[<a class="reference internal" href="../../../block/base/index.html#bosk.block.base.BlockOutputSlot" title="bosk.block.base.BlockOutputSlot">bosk.block.base.BlockOutputSlot</a>, <a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData">bosk.data.BaseData</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.executor.parallel.greedy.GreedyParallelExecutor.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor.execute" title="Permalink to this definition">#</a></dt>
+<dd><p>Executes the pipeline given <cite>BaseData</cite> inputs and return <cite>BaseData</cite> output values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_values</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData"><em>bosk.data.BaseData</em></a><em>]</em>) – Input data.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Calculated output data dictionary that maps output names to the data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, <a class="reference internal" href="../../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData">bosk.data.BaseData</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022-2023, NTAILab
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.greedy</span></code></a><ul>
+<li><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+<li><a class="reference internal" href="#attributes">Attributes</a><ul>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.ResultT"><code class="docutils literal notranslate"><span class="pre">ResultT</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine"><code class="docutils literal notranslate"><span class="pre">ParallelEngine</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine.Instance"><code class="docutils literal notranslate"><span class="pre">ParallelEngine.Instance</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine.Instance.starmap"><code class="docutils literal notranslate"><span class="pre">ParallelEngine.Instance.starmap()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine.__enter__"><code class="docutils literal notranslate"><span class="pre">ParallelEngine.__enter__()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine.__exit__"><code class="docutils literal notranslate"><span class="pre">ParallelEngine.__exit__()</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine.Instance.starmap">starmap</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.JoblibParallelEngine"><code class="docutils literal notranslate"><span class="pre">JoblibParallelEngine</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.JoblibParallelEngine.JoblibInstance"><code class="docutils literal notranslate"><span class="pre">JoblibParallelEngine.JoblibInstance</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.JoblibParallelEngine.JoblibInstance.starmap"><code class="docutils literal notranslate"><span class="pre">JoblibParallelEngine.JoblibInstance.starmap()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.JoblibParallelEngine.__enter__"><code class="docutils literal notranslate"><span class="pre">JoblibParallelEngine.__enter__()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.JoblibParallelEngine.__exit__"><code class="docutils literal notranslate"><span class="pre">JoblibParallelEngine.__exit__()</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.JoblibParallelEngine.JoblibInstance.starmap">starmap</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine"><code class="docutils literal notranslate"><span class="pre">MultiprocessingParallelEngine</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine.MPInstance"><code class="docutils literal notranslate"><span class="pre">MultiprocessingParallelEngine.MPInstance</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine.MPInstance.starmap"><code class="docutils literal notranslate"><span class="pre">MultiprocessingParallelEngine.MPInstance.starmap()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine.__enter__"><code class="docutils literal notranslate"><span class="pre">MultiprocessingParallelEngine.__enter__()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine.__exit__"><code class="docutils literal notranslate"><span class="pre">MultiprocessingParallelEngine.__exit__()</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine.MPInstance.starmap">starmap</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._conn_map"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor._conn_map</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor.outputs"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor.outputs</span></code></a></li>
+<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor._conn_map</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._prepare_out_to_in_edges"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor._prepare_out_to_in_edges()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._get_blocks"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor._get_blocks()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._prepare_inputs_by_block"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor._prepare_inputs_by_block()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._prepare_inputs"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor._prepare_inputs()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._compute_all_plain"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor._compute_all_plain()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._compute_all_parallel"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor._compute_all_parallel()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._compute_all_non_threadsafe"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor._compute_all_non_threadsafe()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._clean_unnecessary_data"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor._clean_unnecessary_data()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._find_ready_blocks"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor._find_ready_blocks()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor.__append_outputs"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor.__append_outputs()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor.__execute_with_parallel"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor.__execute_with_parallel()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor.execute"><code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor.execute()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.ResultT">ResultT</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine">ParallelEngine</a><ul>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine.Instance">Instance</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine.__enter__">__enter__</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.ParallelEngine.__exit__">__exit__</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.JoblibParallelEngine">JoblibParallelEngine</a><ul>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.JoblibParallelEngine.JoblibInstance">JoblibInstance</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.JoblibParallelEngine.__enter__">__enter__</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.JoblibParallelEngine.__exit__">__exit__</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine">MultiprocessingParallelEngine</a><ul>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine.MPInstance">MPInstance</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine.__enter__">__enter__</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.MultiprocessingParallelEngine.__exit__">__exit__</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor">GreedyParallelExecutor</a><ul>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._conn_map">_conn_map</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor.outputs">outputs</a></li>
+<li><a class="reference internal" href="#id0">_conn_map</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._prepare_out_to_in_edges">_prepare_out_to_in_edges</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._get_blocks">_get_blocks</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._prepare_inputs_by_block">_prepare_inputs_by_block</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._prepare_inputs">_prepare_inputs</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._compute_all_plain">_compute_all_plain</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._compute_all_parallel">_compute_all_parallel</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._compute_all_non_threadsafe">_compute_all_non_threadsafe</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._clean_unnecessary_data">_clean_unnecessary_data</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor._find_ready_blocks">_find_ready_blocks</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor.__append_outputs">__append_outputs</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor.__execute_with_parallel">__execute_with_parallel</a></li>
+<li><a class="reference internal" href="#bosk.executor.parallel.greedy.GreedyParallelExecutor.execute">execute</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../../../_static/scripts/furo.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

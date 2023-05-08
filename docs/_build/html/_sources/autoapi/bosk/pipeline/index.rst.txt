@@ -1,0 +1,158 @@
+:py:mod:`bosk.pipeline`
+=======================
+
+.. py:module:: bosk.pipeline
+
+.. autoapi-nested-parse::
+
+   Pipeline that defines a Deep Forest structure.
+
+   Pipelines are represented as sets of nodes (blocks) and connections between them.
+
+   There are two ways to define a pipeline:
+
+   1. Manually, by defining a list of nodes and connections.
+   2. Using the builder in functional style.
+
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   builder/index.rst
+   converter/index.rst
+   serializer/index.rst
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   base/index.rst
+   connection/index.rst
+   dynamic/index.rst
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.pipeline.BasePipeline
+   bosk.pipeline.BaseDynamicPipeline
+   bosk.pipeline.Connection
+
+
+
+
+.. py:class:: BasePipeline
+
+   The computational graph itself.
+
+   .. attribute:: nodes
+
+      Nodes of the computational graph,
+      which are blocks of the deep forest.
+
+   .. attribute:: connections
+
+      Edges of the computational graph,
+      head is the BlockOutputSlot and tail is BlockInputSlot.
+
+   .. attribute:: inputs
+
+      Inputs of the computational graph.
+      Executors, proceeding the pipeline, can use some of them.
+
+   .. attribute:: outputs
+
+      Outputs of the computational graph.
+      Executors, proceeding the pipeline, can use some of them.
+
+   .. py:attribute:: nodes
+      :annotation: :List[bosk.block.base.BaseBlock]
+
+      
+
+   .. py:attribute:: connections
+      :annotation: :List[bosk.pipeline.connection.Connection]
+
+      
+
+   .. py:attribute:: inputs
+      :annotation: :Dict[str, bosk.block.base.BlockInputSlot]
+
+      
+
+   .. py:attribute:: outputs
+      :annotation: :Dict[str, bosk.block.base.BlockOutputSlot]
+
+      
+
+   .. py:method:: accept(visitor)
+
+      Accept the visitor.
+
+      :param visitor: The visitor which can visit pipelines, nodes and connections.
+
+
+   .. py:method:: set_random_state(seed)
+
+      Set random seed for each block in the pipeline.
+
+
+
+.. py:class:: BaseDynamicPipeline
+
+   Bases: :py:obj:`bosk.pipeline.base.BasePipeline`
+
+   Dynamic pipeline.
+
+   It is a pipeline that can be extended with other pipeline
+   and connections between self and the other pipelien nodes.
+
+
+   .. py:method:: extend(other, connections_extension = None)
+
+      Extend current pipeline with other pipeline inplace.
+
+      :param other: Other pipeline.
+      :param connections_extension: List of connections between
+                                    current and `other` pipeline.
+
+
+
+.. py:class:: Connection
+
+   Connection between two blocks in a pipeline.
+
+   It connects the output slot of the source block
+   to the input slot of the destination block.
+
+
+   .. py:attribute:: src
+      :annotation: :bosk.block.base.BlockOutputSlot
+
+      The source block (output slot).
+
+   .. py:attribute:: dst
+      :annotation: :bosk.block.base.BlockInputSlot
+
+      The destination block (input slot).
+
+   .. py:method:: accept(visitor)
+
+      Accept the visitor.
+
+      :param visitor: The visitor which can visit connections.
+
+
+

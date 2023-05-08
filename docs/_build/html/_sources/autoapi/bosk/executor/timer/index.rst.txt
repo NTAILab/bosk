@@ -1,0 +1,48 @@
+:py:mod:`bosk.executor.timer`
+=============================
+
+.. py:module:: bosk.executor.timer
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.executor.timer.TimerBlockExecutor
+
+
+
+
+.. py:class:: TimerBlockExecutor
+
+   Bases: :py:obj:`bosk.executor.base.BaseBlockExecutor`
+
+   Timer block executor.
+
+   Executes blocks like :py:class:`DefaultBlockExecutor` and additionally
+   measures performance.
+
+   The result times can be accessed through :py:attr:`blocks_time`.
+
+   .. attribute:: block_time
+
+      Dictionary that maps blocks to their fit-transform time.
+
+   .. py:property:: blocks_time
+      :type: Dict[bosk.executor.base.BaseBlock, float]
+
+
+   .. py:method:: execute_block(stage, block, block_input_mapping)
+
+      Execute the `block` at the `stage` given `block_input_mapping` data dictionary.
+
+      :param stage: The execution stage.
+      :param block: The computational block to execute.
+      :param block_input_mapping: The data for the block execution.
+
+
+

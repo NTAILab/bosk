@@ -1,0 +1,139 @@
+:py:mod:`bosk.pipeline.converter.dask`
+======================================
+
+.. py:module:: bosk.pipeline.converter.dask
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.pipeline.converter.dask.DaskOperatorSet
+   bosk.pipeline.converter.dask.TransformDaskOperatorSet
+   bosk.pipeline.converter.dask.FitDaskOperatorSet
+   bosk.pipeline.converter.dask.DaskConverter
+
+
+
+
+.. py:class:: DaskOperatorSet
+
+   Bases: :py:obj:`abc.ABC`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:method:: bypass(value)
+      :staticmethod:
+      :abstractmethod:
+
+
+   .. py:method:: extract(block_output, _output_key = None)
+      :staticmethod:
+      :abstractmethod:
+
+
+   .. py:method:: compute(*inputs, _block = None, _input_keys = None)
+      :staticmethod:
+      :abstractmethod:
+
+
+
+.. py:class:: TransformDaskOperatorSet
+
+   Bases: :py:obj:`DaskOperatorSet`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:method:: bypass(value)
+      :staticmethod:
+
+
+   .. py:method:: extract(block_output, _output_key = None)
+      :staticmethod:
+
+
+   .. py:method:: compute(*inputs, _block = None, _input_keys = None)
+      :staticmethod:
+
+
+
+.. py:class:: FitDaskOperatorSet
+
+   Bases: :py:obj:`DaskOperatorSet`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:method:: bypass(value)
+      :staticmethod:
+
+
+   .. py:method:: extract(block_output, _output_key = None)
+      :staticmethod:
+
+
+   .. py:method:: compute(*inputs, _block = None, _input_keys = None)
+      :staticmethod:
+
+
+
+.. py:class:: DaskConverter(stage, operator_set = TransformDaskOperatorSet())
+
+   Converts a pipeline to a Dask computational graph.
+
+   Since Dask does not support multi-output blocks by default,
+   we split each block into multiple nodes:
+
+       - Node that computes the block;
+       - A number of nodes that extract data corresponding to outputs.
+
+
+   .. py:class:: Visitor(parent)
+
+      Bases: :py:obj:`bosk.visitor.base.BaseVisitor`
+
+      Base Visitor interface.
+
+      Visitor can be used to process any entity of a computational pipeline,
+      such as: block, connection, or even the whole pipeline.
+
+      It is important to implement dispatching for all entity types or
+      to make some default method which will not raise ``NotImplementedError``
+      for unknown entity types.
+
+
+      .. py:method:: visit(obj)
+
+
+      .. py:method:: _(block)
+
+         Enumerate blocks.
+
+
+
+      .. py:method:: _(connection)
+
+
+      .. py:method:: _(pipeline)
+
+
+
+   .. py:method:: _mangle_block(block)
+
+
+   .. py:method:: _mangle_output_slot(output_slot)
+
+
+   .. py:method:: _mangle_input_slot(input_slot)
+
+
+   .. py:method:: __call__(pipeline)
+
+
+

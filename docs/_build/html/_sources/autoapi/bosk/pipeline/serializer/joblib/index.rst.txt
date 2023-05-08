@@ -1,0 +1,78 @@
+:py:mod:`bosk.pipeline.serializer.joblib`
+=========================================
+
+.. py:module:: bosk.pipeline.serializer.joblib
+
+.. autoapi-nested-parse::
+
+   Joblib-based serialization.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.pipeline.serializer.joblib.JoblibBlockSerializer
+   bosk.pipeline.serializer.joblib.JoblibPipelineSerializer
+
+
+
+
+.. py:class:: JoblibBlockSerializer(compress = 0, protocol = None)
+
+   Bases: :py:obj:`bosk.pipeline.serializer.base.BaseBlockSerializer`
+
+   Joblib-based block serialization.
+
+   :param compress: Compression level (see :py:func:`joblib.dump`).
+   :param protocol: Pickle protocol (see :py:func:`joblib.dump`).
+
+   .. py:method:: dump(block, out_file)
+
+      Serialize and dump the pipeline to the file.
+
+      :param pipeline: The pipeline to serialize.
+      :param out_file: Output file or stream.
+
+
+   .. py:method:: load(in_file)
+
+      Load and deserialize a block from the file.
+
+      :param in_file: Input file or stream.
+
+
+
+.. py:class:: JoblibPipelineSerializer(compress = 0, protocol = None)
+
+   Bases: :py:obj:`bosk.pipeline.serializer.base.BasePipelineSerializer`
+
+   Joblib-based pipeline serialization.
+
+   Consider using :py:class:`bosk.pipeline.serializer.ZipPipelineSerializer` instead
+   if there will be any issues.
+
+   :param compress: Compression level (see :py:func:`joblib.dump`).
+   :param protocol: Pickle protocol (see :py:func:`joblib.dump`).
+
+   .. py:method:: dump(pipeline, out_file)
+
+      Serialize and dump the pipeline to the file.
+
+      :param pipeline: The pipeline to serialize.
+      :param out_file: Output file or stream.
+
+
+   .. py:method:: load(in_file)
+
+      Load and deserialize a pipeline from the file.
+
+      :param in_file: Input file or stream.
+
+
+

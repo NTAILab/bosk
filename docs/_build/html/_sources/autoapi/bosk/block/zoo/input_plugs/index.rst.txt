@@ -1,0 +1,324 @@
+:py:mod:`bosk.block.zoo.input_plugs`
+====================================
+
+.. py:module:: bosk.block.zoo.input_plugs
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.input_plugs.BaseInputBlock
+   bosk.block.zoo.input_plugs.Stages
+   bosk.block.zoo.input_plugs.BlockMeta
+   bosk.block.zoo.input_plugs.BlockExecutionProperties
+   bosk.block.zoo.input_plugs.DynamicBlockMetaStub
+   bosk.block.zoo.input_plugs.InputBlock
+   bosk.block.zoo.input_plugs.TargetInputBlock
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.input_plugs.make_simple_meta
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.input_plugs.BlockInputData
+   bosk.block.zoo.input_plugs.TransformOutputData
+
+
+.. py:class:: BaseInputBlock
+
+   Bases: :py:obj:`BaseBlock`
+
+   Base input block. It is guaranteed that is has a single input and some name.
+
+   An input block can help to automatically determine pipeline inputs.
+   The name can be None, in this case the block is not considered as one of pipeline inputs.
+
+   .. py:property:: name
+      :type: Optional[str]
+      :abstractmethod:
+
+      Get the input name.
+
+      :returns: The block instance name.
+
+   .. py:method:: _make_slots()
+
+      Make slots
+
+
+   .. py:method:: get_single_input()
+
+      Get the single block input slot.
+
+      :returns: The block input slot.
+
+
+
+.. py:data:: BlockInputData
+   
+
+   Block input values container data type.
+
+   It is indexed by input slot names.
+
+.. py:data:: TransformOutputData
+   
+
+   Block transform output values container data type.
+
+   It is indexed by output slot names.
+
+.. py:class:: Stages
+
+   At which stages of pipeline execution slot value is required
+   and should be passed to the block.
+
+   .. attribute:: fit
+
+      Slot value is needed for the fit method.
+
+   .. attribute:: transform
+
+      Slot value is needed for the transform method.
+
+   .. attribute:: transform_on_fit
+
+      Slot value is needed for the transform method only at the `FIT` stage.
+
+   .. py:attribute:: fit
+      :annotation: :bool = True
+
+      
+
+   .. py:attribute:: transform
+      :annotation: :bool = True
+
+      
+
+   .. py:attribute:: transform_on_fit
+      :annotation: :bool = False
+
+      
+
+
+.. py:class:: BlockMeta(*, inputs=None, outputs=None, execution_props=None)
+
+   Block meta, containing input and output slots description.
+
+
+
+   .. py:attribute:: inputs
+      :annotation: :Mapping[str, InputSlotMeta]
+
+      Mapping from input slots names to their meta.
+
+   .. py:attribute:: outputs
+      :annotation: :Mapping[str, OutputSlotMeta]
+
+      Mapping from output slots names to their meta.
+
+   .. py:attribute:: execution_props
+      :annotation: :BlockExecutionProperties
+
+      Block execution properties.
+
+   .. py:method:: list_of_slots_meta_to_mapping(slots_meta_list)
+      :staticmethod:
+
+      Convert list of slots meta to mapping (name -> slot meta).
+
+      :param slots_meta_list: List of slots meta.
+
+      :returns: Mapping dict (name -> slot meta).
+
+
+
+.. py:class:: BlockExecutionProperties
+
+   Block execution properties.
+
+
+
+   .. py:attribute:: cpu
+      :annotation: :bool = True
+
+      Has CPU implementation that handles CPU data.
+
+   .. py:attribute:: gpu
+      :annotation: :bool = False
+
+      Has GPU implementation that handles GPU data.
+
+   .. py:attribute:: threadsafe
+      :annotation: :bool = False
+
+      CPU/GPU implementation is thread safe, can be executed in parallel.
+
+   .. py:attribute:: plain
+      :annotation: :bool = False
+
+      Block implementation is straightforward and not computantionally expensive,
+      it should not be parallelized (parallelization costs are larger than computation).
+
+
+.. py:class:: DynamicBlockMetaStub(*, inputs=None, outputs=None, execution_props=None)
+
+   Bases: :py:obj:`BlockMeta`
+
+   Meta stub for blocks with dynamic meta.
+
+   Usually blocks define static meta, but sometimes meta can be defined at
+   block initialization time.
+
+   In this case, the stub can be used to express that the meta is dynamic.
+
+
+.. py:function:: make_simple_meta(input_names, output_names, **additional_params)
+
+   Make simple block meta from input and output slot names.
+
+   :param input_names: List of input slot names.
+   :param output_names: List of output slot names.
+   :param \*\*additional_params: Additional meta params.
+
+   :returns: Block meta with given inputs and outputs.
+
+
+.. py:class:: InputBlock(name = None)
+
+   Bases: :py:obj:`bosk.block.base.BaseInputBlock`
+
+   Input block.
+
+   Bypasses the input. Can be used to make pipeline in functional style.
+
+   Dynamically specifies the meta information.
+
+   :param name: The input slot name. If None, the default name is used.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - `name` (default="X"): Feature data array.
+
+   Output slots
+   ------------
+
+       - `name` (default="X"): Feature data array.
+
+
+   .. py:attribute:: DEFAULT_INPUT_NAME
+      :annotation: = X
+
+      
+
+   .. py:attribute:: name
+      :annotation: :Optional[str]
+
+      
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.meta.BlockMeta
+
+      
+
+   .. py:method:: fit(_inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: TargetInputBlock(name = None)
+
+   Bases: :py:obj:`bosk.block.base.BaseInputBlock`
+
+   Target input block.
+
+   Bypasses the input. Can be used to make pipeline in a functional style.
+
+   Dynamically specifies the meta information.
+
+   :param name: The target input slot name. If None, the default name is used.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - `name` (default="y"): Target data array.
+
+   Output slots
+   ------------
+
+       - `name` (default="y"): Target data array.
+
+
+   .. py:attribute:: DEFAULT_TARGET_NAME
+      :annotation: = y
+
+      
+
+   .. py:attribute:: name
+      :annotation: :Optional[str]
+
+      
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.meta.BlockMeta
+
+      
+
+   .. py:method:: fit(_inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+

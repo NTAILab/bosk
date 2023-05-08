@@ -1,0 +1,59 @@
+:py:mod:`bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_1d`
+=========================================================================
+
+.. py:module:: bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_1d
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_1d.MultiGrainedScanning1DBlock
+
+
+
+
+.. py:class:: MultiGrainedScanning1DBlock(models, window_size, stride, shape_sample = None)
+
+   Bases: :py:obj:`bosk.block.zoo.multi_grained_scanning.base.MultiGrainedScanningBlock`
+
+   1-dimensional Multi Grained Scanning Block.
+
+   Main use case is to process data with one spatial dimension, like sequences.
+
+   It takes `X` of shape `(n_samples, n_channels)`
+   as an input and returns the tensor of shape `(n_samples, n_out_channels)`.
+
+   :param models: Tuple of underlying models.
+   :param window_size: Size of the sliding window.
+   :param stride: Stride of the sliding window.
+   :param shape_sample: Input data spatial dimensions (shape).
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - X: Data tensor of shape `(n_samples, n_channels)`.
+       - y: Target variable values of shape `(n_samples, [n_outputs])`.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Data tensor of shape `(n_samples, n_channels)`.
+
+   Output slots
+   ------------
+
+       - output: Prediction tensor of shape `(n_samples, n_out_channels)`.
+
+
+   .. py:method:: _window_slicing_data(X, y=None)
+
+
+

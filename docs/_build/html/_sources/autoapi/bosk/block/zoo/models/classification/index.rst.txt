@@ -1,0 +1,504 @@
+:py:mod:`bosk.block.zoo.models.classification`
+==============================================
+
+.. py:module:: bosk.block.zoo.models.classification
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   _jax_util/index.rst
+   ferns/index.rst
+   jax/index.rst
+   mgs_ferns/index.rst
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.models.classification.RandomFernsBlock
+   bosk.block.zoo.models.classification.MGSRandomFernsBlock
+   bosk.block.zoo.models.classification.RFCGBlock
+   bosk.block.zoo.models.classification.ETCGBlock
+   bosk.block.zoo.models.classification.RFCBlock
+   bosk.block.zoo.models.classification.ETCBlock
+   bosk.block.zoo.models.classification.CatBoostClassifierBlock
+   bosk.block.zoo.models.classification.XGBClassifierBlock
+
+
+
+
+.. py:class:: RandomFernsBlock(n_groups = 10, n_ferns_in_group = 20, fern_size = 7, kind = 'unary', bootstrap = False, n_jobs = None, random_state = None)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Random Ferns Classifier Block.
+
+   :param n_groups: Number of ferns groups (like a number of estimators).
+   :param n_ferns_in_group: Number of ferns in a group.
+   :param fern_size: Number of tests in fern.
+   :param kind: Kind of tests ('unary' or 'binary').
+   :param bootstrap: Apply data bootstrap or not.
+   :param n_jobs: Number of threads.
+   :param random_state: Random state.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - X: Input features.
+       - y: Ground truth labels.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Input features.
+
+   Output slots
+   ------------
+
+       - probas: Predicted probabilities.
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:method:: __getstate__()
+
+
+   .. py:method:: __setstate__(state)
+
+
+   .. py:method:: _classifier_init(y)
+
+
+   .. py:method:: _parallel_calc_bucket_stats(bucket_indices, y, group_data_indices)
+
+
+   .. py:method:: _make_ferns(X, prng_key)
+
+
+   .. py:method:: _apply_ferns(X, ferns)
+
+
+   .. py:method:: fit(inputs)
+
+      Fit the Random Ferns Block.
+      The implementation is device-agnostic.
+
+
+
+   .. py:method:: _predict_proba(X)
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: MGSRandomFernsBlock(n_groups = 10, n_ferns_in_group = 20, fern_size = 7, kind = 'unary', bootstrap = False, n_jobs = None, random_state = None, kernel_size = 3, stride = None, dilation = 1, padding = None)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Multi-Grained Scanning Random Ferns Classifier Block.
+   It applies multiple tests to each sample across spatial dimensions.
+   The result is of the same shape as pooling result (with the same convolution parameters).
+
+   The implementation is based on idea that each patch can be considered as a separate training sample.
+
+   :param n_groups: Number of ferns groups (like a number of estimators).
+   :param n_ferns_in_group: Number of ferns in a group.
+   :param fern_size: Number of tests in fern.
+   :param kind: Kind of tests ('unary' or 'binary').
+   :param bootstrap: Apply data bootstrap or not.
+   :param n_jobs: Number of threads.
+   :param random_state: Random state.
+   :param kernel_size: Kernel size (int or tuple).
+   :param stride: Stride.
+   :param dilation: Dilation (kernel stride).
+   :param padding: Padding size (see `numpy.pad`);
+                   if None padding is disabled.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - X: Input features.
+       - y: Ground truth labels.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Input features.
+
+   Output slots
+   ------------
+
+       - probas: Predicted probabilities.
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:attribute:: pooling_indices_
+      
+
+      
+
+   .. py:method:: __getstate__()
+
+
+   .. py:method:: __setstate__(state)
+
+
+   .. py:method:: _classifier_init(y)
+
+
+   .. py:method:: _get_flattened_window_size(X)
+
+
+   .. py:method:: _make_ferns(X, prng_key)
+
+
+   .. py:method:: _apply_ferns(xs, ferns)
+
+
+   .. py:method:: __prepare_pooling_indices(xs_shape)
+
+
+   .. py:method:: _parallel_calc_bucket_stats(bucket_indices, y, group_data_indices)
+
+
+   .. py:method:: fit(inputs)
+
+      Fit the MGS Random Ferns Block.
+      The implementation is device-agnostic.
+
+
+
+   .. py:method:: _predict_proba(X)
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: RFCGBlock(n_classes, n_estimators = 100, min_samples = 2, max_depth = 4, max_splits = 25, **kwargs)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   JAX implementation of Random Forest Classifier for GPU.
+
+   :param n_classes: Number of classes.
+   :param n_estimators: Number of estimators (trees).
+   :param min_samples: Minimum number of samples.
+   :param max_depth: Maximum depth.
+   :param max_splits: Maximum number of splits.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - X: Input features.
+       - y: Ground truth labels.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Input features.
+
+   Output slots
+   ------------
+
+       - probas: Predicted probabilities.
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:method:: tree_flatten()
+
+
+   .. py:method:: tree_unflatten(aux_data, children)
+      :classmethod:
+
+
+   .. py:method:: fit(inputs)
+
+      Fit the block on the given input data.
+
+      :param inputs: Block input data for the fitting stage.
+
+      :returns: Self.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+   .. py:method:: predict(X)
+
+
+
+.. py:class:: ETCGBlock(n_classes, n_estimators = 100, min_samples = 2, max_depth = 4, max_splits = 25, **kwargs)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   JAX implementation of Extremely Randomized Trees Classifier for GPU.
+
+   :param n_classes: Number of classes.
+   :param n_estimators: Number of estimators (trees).
+   :param min_samples: Minimum number of samples.
+   :param max_depth: Maximum depth.
+   :param max_splits: Maximum number of splits.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - X: Input features.
+       - y: Ground truth labels.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Input features.
+
+   Output slots
+   ------------
+
+       - probas: Predicted probabilities.
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:method:: tree_flatten()
+
+
+   .. py:method:: tree_unflatten(aux_data, children)
+      :classmethod:
+
+
+   .. py:method:: fit(inputs)
+
+      Fit the block on the given input data.
+
+      :param inputs: Block input data for the fitting stage.
+
+      :returns: Self.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+   .. py:method:: predict(X)
+
+
+
+.. py:class:: RFCBlock(n_estimators=100, *, criterion='gini', max_depth=None, min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features='sqrt', max_leaf_nodes=None, min_impurity_decrease=0.0, bootstrap=True, oob_score=False, n_jobs=None, random_state=None, verbose=0, warm_start=False, class_weight=None, ccp_alpha=0.0, max_samples=None)
+
+   Bases: :py:obj:`sklearn.ensemble.RandomForestClassifier`
+
+   Random Forest Classifier.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - X: Input features.
+       - y: Ground truth labels.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Input features.
+
+   Output slots
+   ------------
+
+       - output: Predicted probabilities.
+
+
+   .. py:method:: transform(X)
+
+
+
+.. py:class:: ETCBlock(n_estimators=100, *, criterion='gini', max_depth=None, min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features='sqrt', max_leaf_nodes=None, min_impurity_decrease=0.0, bootstrap=False, oob_score=False, n_jobs=None, random_state=None, verbose=0, warm_start=False, class_weight=None, ccp_alpha=0.0, max_samples=None)
+
+   Bases: :py:obj:`sklearn.ensemble.ExtraTreesClassifier`
+
+   Extremely Randomized Trees Classifier.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - X: Input features.
+       - y: Ground truth labels.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Input features.
+
+   Output slots
+   ------------
+
+       - output: Predicted probabilities.
+
+
+   .. py:method:: transform(X)
+
+
+
+.. py:class:: CatBoostClassifierBlock(iterations=None, learning_rate=None, depth=None, l2_leaf_reg=None, model_size_reg=None, rsm=None, loss_function=None, border_count=None, feature_border_type=None, per_float_feature_quantization=None, input_borders=None, output_borders=None, fold_permutation_block=None, od_pval=None, od_wait=None, od_type=None, nan_mode=None, counter_calc_method=None, leaf_estimation_iterations=None, leaf_estimation_method=None, thread_count=None, random_seed=None, use_best_model=None, best_model_min_trees=None, verbose=None, silent=None, logging_level=None, metric_period=None, ctr_leaf_count_limit=None, store_all_simple_ctr=None, max_ctr_complexity=None, has_time=None, allow_const_label=None, target_border=None, classes_count=None, class_weights=None, auto_class_weights=None, class_names=None, one_hot_max_size=None, random_strength=None, name=None, ignored_features=None, train_dir=None, custom_loss=None, custom_metric=None, eval_metric=None, bagging_temperature=None, save_snapshot=None, snapshot_file=None, snapshot_interval=None, fold_len_multiplier=None, used_ram_limit=None, gpu_ram_part=None, pinned_memory_size=None, allow_writing_files=None, final_ctr_computation_mode=None, approx_on_full_history=None, boosting_type=None, simple_ctr=None, combinations_ctr=None, per_feature_ctr=None, ctr_description=None, ctr_target_border_count=None, task_type=None, device_config=None, devices=None, bootstrap_type=None, subsample=None, mvs_reg=None, sampling_unit=None, sampling_frequency=None, dev_score_calc_obj_block_size=None, dev_efb_max_buckets=None, sparse_features_conflict_fraction=None, max_depth=None, n_estimators=None, num_boost_round=None, num_trees=None, colsample_bylevel=None, random_state=None, reg_lambda=None, objective=None, eta=None, max_bin=None, scale_pos_weight=None, gpu_cat_features_storage=None, data_partition=None, metadata=None, early_stopping_rounds=None, cat_features=None, grow_policy=None, min_data_in_leaf=None, min_child_samples=None, max_leaves=None, num_leaves=None, score_function=None, leaf_estimation_backtracking=None, ctr_history_unit=None, monotone_constraints=None, feature_weights=None, penalties_coefficient=None, first_feature_use_penalties=None, per_object_feature_penalties=None, model_shrink_rate=None, model_shrink_mode=None, langevin=None, diffusion_temperature=None, posterior_sampling=None, boost_from_average=None, text_features=None, tokenizers=None, dictionaries=None, feature_calcers=None, text_processing=None, embedding_features=None, callback=None, eval_fraction=None)
+
+   Bases: :py:obj:`catboost.CatBoostClassifier`
+
+   CatBoost Classifier.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - X: Input features.
+       - y: Ground truth labels.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Input features.
+
+   Output slots
+   ------------
+
+       - output: Predicted probabilities.
+
+
+   .. py:method:: transform(X)
+
+
+
+.. py:class:: XGBClassifierBlock(*, objective = 'binary:logistic', use_label_encoder = False, **kwargs)
+
+   Bases: :py:obj:`xgboost.XGBClassifier`
+
+   XGBoost Classifier.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - X: Input features.
+       - y: Ground truth labels.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Input features.
+
+   Output slots
+   ------------
+
+       - output: Predicted probabilities.
+
+
+   .. py:method:: fit(X, y)
+
+      Fit gradient boosting model.
+
+      Note that calling ``fit()`` multiple times will cause the model object to be
+      re-fit from scratch. To resume training from a previous checkpoint, explicitly
+      pass ``xgb_model`` argument.
+
+      :param X: Feature matrix
+      :param y: Labels
+      :param sample_weight: instance weights
+      :param base_margin: global bias for each instance.
+      :param eval_set: A list of (X, y) tuple pairs to use as validation sets, for which
+                       metrics will be computed.
+                       Validation metrics will help us track the performance of the model.
+      :param eval_metric:
+                          .. deprecated:: 1.6.0
+                              Use `eval_metric` in :py:meth:`__init__` or :py:meth:`set_params` instead.
+      :type eval_metric: str, list of str, or callable, optional
+      :param early_stopping_rounds:
+                                    .. deprecated:: 1.6.0
+                                        Use `early_stopping_rounds` in :py:meth:`__init__` or
+                                        :py:meth:`set_params` instead.
+      :type early_stopping_rounds: int
+      :param verbose: If `verbose` and an evaluation set is used, writes the evaluation metric
+                      measured on the validation set to stderr.
+      :param xgb_model: file name of stored XGBoost model or 'Booster' instance XGBoost model to be
+                        loaded before training (allows training continuation).
+      :param sample_weight_eval_set: A list of the form [L_1, L_2, ..., L_n], where each L_i is an array like
+                                     object storing instance weights for the i-th validation set.
+      :param base_margin_eval_set: A list of the form [M_1, M_2, ..., M_n], where each M_i is an array like
+                                   object storing base margin for the i-th validation set.
+      :param feature_weights: Weight for each feature, defines the probability of each feature being
+                              selected when colsample is being used.  All values must be greater than 0,
+                              otherwise a `ValueError` is thrown.
+      :param callbacks:
+                        .. deprecated:: 1.6.0
+                            Use `callbacks` in :py:meth:`__init__` or :py:meth:`set_params` instead.
+
+
+   .. py:method:: transform(X)
+
+
+

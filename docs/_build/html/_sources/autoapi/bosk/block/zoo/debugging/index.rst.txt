@@ -1,0 +1,130 @@
+:py:mod:`bosk.block.zoo.debugging`
+==================================
+
+.. py:module:: bosk.block.zoo.debugging
+
+.. autoapi-nested-parse::
+
+   Blocks for pipeline debugging.
+
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.debugging.FitLambdaBlock
+   bosk.block.zoo.debugging.TransformLambdaBlock
+
+
+
+
+.. py:class:: FitLambdaBlock(function, inputs)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Base block, the parent of every computation block.
+
+   Block has meta information, that defines the inputs and outputs as well as block execution properties,
+   and slots which are unique for each block instance and can be used to connect different
+   block between each other.
+
+   Main block methods are: `fit(...)` and `transform(...)`.
+   Both accept dictionaries as input, `transform(...)` returns a dictionary with output data.
+
+   .. attribute:: meta
+
+      Meta information of the block.
+      May be shaped between different blocks.
+      If the meta information cannot be specified at the class definition step,
+      :py:class:`DynamicBlockMetaStub` should be used as a stub, and
+      then redefined at the initialization step.
+
+   .. attribute:: slots
+
+      Block slots of type :py:class:`BlockSlots`, made dynamically at the initialization.
+      Slots are unique for the block instance.
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.base.BlockMeta
+
+      
+
+   .. py:method:: fit(inputs)
+
+      Fit the block on the given input data.
+
+      :param inputs: Block input data for the fitting stage.
+
+      :returns: Self.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: TransformLambdaBlock(function, inputs)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Transform-Lambda Block that executes some function at the fit stage
+   and bypasses input ad the transform stage.
+
+   Dynamically specifies the meta information.
+
+   :param function: Function to execute at the transform stage.
+   :param inputs: List of input slot names.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - `inputs[0]`: Data array 0.
+       - ...
+       - `inputs[n]`: Data array n.
+
+   Output slots
+   ------------
+
+       - `inputs[0]`: Data array 0.
+       - ...
+       - `inputs[n]`: Data array n.
+
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.base.BlockMeta
+
+      
+
+   .. py:method:: fit(_inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+

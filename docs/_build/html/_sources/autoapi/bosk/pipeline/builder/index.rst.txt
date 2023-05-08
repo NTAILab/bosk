@@ -1,0 +1,208 @@
+:py:mod:`bosk.pipeline.builder`
+===============================
+
+.. py:module:: bosk.pipeline.builder
+
+.. autoapi-nested-parse::
+
+   Pipeline builders can be used to construct pipelines.
+
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   base/index.rst
+   functional/index.rst
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.pipeline.builder.BasePipelineBuilder
+   bosk.pipeline.builder.FunctionalBlockWrapper
+   bosk.pipeline.builder.FunctionalPipelineBuilder
+
+
+
+
+.. py:class:: BasePipelineBuilder
+
+   Bases: :py:obj:`abc.ABC`
+
+   Base pipeline builder, the parent of every pipeline builder.
+
+
+
+   .. py:method:: build()
+      :abstractmethod:
+
+      Get pipeline (optionally after building).
+
+      :returns: Build pipeline.
+
+
+
+.. py:class:: FunctionalBlockWrapper(block, output_name = None)
+
+   Block wrapper with functional interface.
+
+   It helps to implement passing of block result into another block
+   in functional style.
+
+   The block wrapper is based on block and its output name.
+   If a block has multiple output slots, each output can be used to
+   create distinct wrappers.
+
+   .. rubric:: Example
+
+   Assuming block `test_block` has multiple outputs:
+   "out_1" and "out_2", its wrapper can be used to create
+   new wrappers for each output separately:
+
+   >>> wrapper = FunctionalBlockWrapper(test_block)
+   >>> wrapper.get_output_slot()
+       RuntimeException('Block has more than one output')
+   >>> first_wrapper = wrapper['out_1']
+   >>> first_wrapper.get_output_slot()
+       BlockOutputSlot...  # 'out_1'
+   >>> second_wrapper = wrapper['out_2']
+   >>> second_wrapper.get_output_slot()
+       BlockOutputSlot...  # 'out_2'
+
+   .. py:method:: get_input_slot(slot_name = None)
+
+      Get block input slot by name.
+
+      :param slot_name: Input slot name.
+                        If block has only one input, the argument can be omitted.
+
+      :returns: Corresponding input slot.
+
+      :raises RuntimeError: If `slot_name` is None, but the block has multiple inputs.
+
+
+   .. py:method:: get_output_slot()
+
+      Get output slot.
+
+      If block has one output slot, it will be used even if
+      `output_name` was not specified at initialization.
+      If block has multiple output slots, the output slot name
+      should be specified at initialization by `output_name` argument,
+      or the block wrapper corresponding to concrete output slot name
+      can be obtained with `__getitem__` method.
+
+      :returns: The specified output slot.
+
+      :raises RuntimeError: If `output_name` was not specified at initialization,
+          and the block has more than one output.
+          To avoid it, use `wrapper[demanded_output_name]` to
+          get wrapper with specified slot output name.
+
+
+   .. py:method:: __getitem__(output_name)
+
+      Make functional block wrapper corresponding to the specified output slot name.
+
+      :param output_name: Output slot name.
+
+      :returns: New functional block wrapper for the given output slot name.
+
+
+
+.. py:class:: FunctionalPipelineBuilder(block_repo = None)
+
+   Bases: :py:obj:`bosk.pipeline.builder.base.BasePipelineBuilder`
+
+   Pipeline builder with functional interface.
+
+   :param block_repo: Block class repository for resolving blocks by their names.
+                      Default is zoo scope repository, which means that
+                      all blocks defined in :py:mod:`bosk.block.zoo` will be available
+                      (without postfix "Block", for example:
+                      :py:class:`bosk.block.zoo.data_conversion.ArgmaxBlock`
+                      should be accessed as just "Argmax").
+
+   .. py:method:: __getattr__(name)
+
+
+   .. py:method:: _register_block(block)
+
+      Register block in the builder.
+
+      :param block: Block to register.
+
+
+   .. py:method:: _make_placeholder_fn(block)
+
+
+   .. py:method:: wrap(block)
+
+      Register the block in the builder and wrap it into a placeholder function.
+
+      :param block: Block to wrap.
+
+      :returns: Placeholder function.
+
+      .. rubric:: Examples
+
+      Assume some block `test_block` was created before builder initialization.
+      If we want to add the block into the pipeline,
+      it should be wrapped:
+
+      >>> test_block = RFCBlock()  # Random Forest Classifier
+      >>> b = FunctionalPipelineBuilder()
+      >>> rf = b.wrap(test_block)  # register the block in the builder
+      >>> x = b.Input()
+      >>> result = rf(X=x)
+
+
+   .. py:method:: _get_block_init(block_cls)
+
+      Get a new block initialization wrapper.
+
+      :param block_cls: Block class.
+
+      :returns: Block initialization wrapper.
+                It takes arguments for the block class, adds the block
+                to the pipeline and returns a placeholder function.
+                The placeholder function takes functional block wrappers
+                as inputs and returns functional block wrapper.
+
+
+   .. py:method:: new(block_cls, *args, **kwargs)
+
+      Make a new block wrapper of given block class.
+
+      Constructs block wrapper using given block class constructor
+      and provided arguments.
+      Can be used for custom block classes that can't be found by
+      block class repository (see `__init__`).
+
+      :param block_cls: Block class.
+      :param \*args: Arguments for the block constructor.
+      :param \*\*kwargs: Keyword arguments for the block constructor.
+
+      :returns: Placeholder function which will get constructed block arguments.
+
+
+   .. py:method:: build(inputs = 'auto', outputs = 'auto')
+
+      Build and get pipeline.
+
+      :param inputs: Dictionary containing the information about pipeline's inputs. See :attr:`BasePipeline.inputs`.
+      :param outputs: Dictionary containing the information about pipeline's outputs. See :attr:`BasePipeline.outputs`
+
+      :returns: Pipeline made from wrapped blocks.
+
+
+

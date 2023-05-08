@@ -1,0 +1,46 @@
+:py:mod:`bosk.exceptions`
+=========================
+
+.. py:module:: bosk.exceptions
+
+.. autoapi-nested-parse::
+
+   All custom exceptions for the module.
+
+
+
+Module Contents
+---------------
+
+.. py:exception:: NoDefaultBlockOutputError(block)
+
+   Bases: :py:obj:`ValueError`
+
+   Raised when no default block output is found for a block, but one is requested.
+
+
+
+.. py:exception:: MultipleBlockSlotsError(block, slot)
+
+   Bases: :py:obj:`ValueError`
+
+   Raised when multiple block slots are found for a block, while single is required.
+
+
+
+.. py:exception:: MultipleBlockInputsError(block)
+
+   Bases: :py:obj:`MultipleBlockSlotsError`
+
+   Raised when multiple block inputs are found for a block, while single is required.
+
+
+
+.. py:exception:: MultipleBlockOutputsError(block)
+
+   Bases: :py:obj:`MultipleBlockSlotsError`
+
+   Raised when multiple block outputs are found for a block, while single is required.
+
+
+

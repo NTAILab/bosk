@@ -1,0 +1,39 @@
+:py:mod:`bosk.pipeline.dynamic`
+===============================
+
+.. py:module:: bosk.pipeline.dynamic
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.pipeline.dynamic.BaseDynamicPipeline
+
+
+
+
+.. py:class:: BaseDynamicPipeline
+
+   Bases: :py:obj:`bosk.pipeline.base.BasePipeline`
+
+   Dynamic pipeline.
+
+   It is a pipeline that can be extended with other pipeline
+   and connections between self and the other pipelien nodes.
+
+
+   .. py:method:: extend(other, connections_extension = None)
+
+      Extend current pipeline with other pipeline inplace.
+
+      :param other: Other pipeline.
+      :param connections_extension: List of connections between
+                                    current and `other` pipeline.
+
+
+

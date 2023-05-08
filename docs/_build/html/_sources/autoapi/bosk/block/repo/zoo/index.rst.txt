@@ -1,0 +1,47 @@
+:py:mod:`bosk.block.repo.zoo`
+=============================
+
+.. py:module:: bosk.block.repo.zoo
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.repo.zoo.ZooBlockClassRepository
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.repo.zoo.import_submodules_contents
+
+
+
+.. py:function:: import_submodules_contents(module)
+
+   Import contents of all submodules.
+
+   Source:
+
+   :param module: Module.
+
+   :returns: Dictionary of imported submodules contents.
+
+
+.. py:class:: ZooBlockClassRepository
+
+   Bases: :py:obj:`bosk.block.repo.scope.ScopeBlockClassRepository`
+
+   Block class repository that extracts block classes from
+   `block.zoo` submodule.
+
+
+

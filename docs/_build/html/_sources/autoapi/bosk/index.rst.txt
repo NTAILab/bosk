@@ -1,0 +1,251 @@
+:py:mod:`bosk`
+==============
+
+.. py:module:: bosk
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   auto/index.rst
+   block/index.rst
+   comparison/index.rst
+   executor/index.rst
+   painter/index.rst
+   pipeline/index.rst
+   visitor/index.rst
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   data/index.rst
+   exceptions/index.rst
+   stages/index.rst
+   utility/index.rst
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.BaseData
+   bosk.CPUData
+   bosk.GPUData
+   bosk.BaseSlot
+   bosk.Stages
+   bosk.Stage
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.get_random_generator
+   bosk.get_rand_int
+   bosk.timer_wrap
+
+
+
+.. py:class:: BaseData(data)
+
+   Base class for data which will be transferred between blocks.
+
+   .. attribute:: data
+
+      Underlying data.
+
+   .. py:method:: to_cpu()
+
+      Convert data to CPU representation.
+
+      :returns: CPU Data.
+
+
+   .. py:method:: to_gpu()
+
+      Converts data to a GPU-based representation.
+
+      :returns: GPU Data.
+
+
+   .. py:method:: __repr__()
+
+      Representation of data shape and type.
+
+      :returns: String data representation.
+
+
+
+.. py:class:: CPUData(data)
+
+   Bases: :py:obj:`BaseData`
+
+   CPU-based representation of data.
+
+
+   .. py:attribute:: data
+      :annotation: :numpy.ndarray
+
+      
+
+
+.. py:class:: GPUData(data)
+
+   Bases: :py:obj:`BaseData`
+
+   GPU-based (JAX) representation of data.
+
+
+   .. py:attribute:: data
+      :annotation: :jax.numpy.ndarray
+
+      
+
+   .. py:method:: to_cpu()
+
+      Transfers data to a CPU-based representation.
+
+
+
+.. py:class:: BaseSlot
+
+   Base slot.
+
+   Slot is a named placeholder for data.
+
+   .. attribute:: name
+
+      Slot name.
+
+   .. attribute:: stages
+
+      At which stages slot value is needed.
+
+   .. attribute:: debug_info
+
+      Debugging info.
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.meta.BaseSlotMeta
+
+      
+
+   .. py:attribute:: parent_block
+      :annotation: :BaseBlock
+
+      
+
+   .. py:attribute:: debug_info
+      :annotation: :str = 
+
+      
+
+   .. py:method:: __hash__()
+
+      Return hash(self).
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+
+.. py:class:: Stages
+
+   At which stages of pipeline execution slot value is required
+   and should be passed to the block.
+
+   .. attribute:: fit
+
+      Slot value is needed for the fit method.
+
+   .. attribute:: transform
+
+      Slot value is needed for the transform method.
+
+   .. attribute:: transform_on_fit
+
+      Slot value is needed for the transform method only at the `FIT` stage.
+
+   .. py:attribute:: fit
+      :annotation: :bool = True
+
+      
+
+   .. py:attribute:: transform
+      :annotation: :bool = True
+
+      
+
+   .. py:attribute:: transform_on_fit
+      :annotation: :bool = False
+
+      
+
+
+.. py:class:: Stage
+
+   Bases: :py:obj:`enum.Enum`
+
+   Stage of pipeline execution: `FIT` or `TRANSFORM`.
+
+   At the `FIT` stage the blocks are fitted to the data given by preceding blocks
+   and then applied to transform the given data (predict).
+
+   At the `TRANSFORM` stage the blocks are only used to transform
+   the given by preceding blocks data.
+
+
+   .. py:attribute:: FIT
+      
+
+      
+
+   .. py:attribute:: TRANSFORM
+      
+
+      
+
+
+.. py:function:: get_random_generator(seed)
+
+   Utility function to obtain random generator from a seed number.
+
+   :param seed: Random seed.
+
+   :returns: Random number generator.
+
+
+.. py:function:: get_rand_int(generator)
+
+   Utility function to obtain pseudo-random non-negative 32 bit integer value.
+
+   :param generator: Random number generator.
+
+   :returns: Non-negative 32 bit integer value.
+
+
+.. py:function:: timer_wrap(func)
+
+   Decorator that returns execution CPU-time for a callable object.
+
+   :param func: Function to wrap.
+
+   :returns: Wrapped function.
+             It will return a tuple of wrapped function result and execution time.
+
+

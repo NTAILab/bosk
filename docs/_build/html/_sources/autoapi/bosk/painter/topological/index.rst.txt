@@ -1,0 +1,58 @@
+:py:mod:`bosk.painter.topological`
+==================================
+
+.. py:module:: bosk.painter.topological
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.painter.topological.TopologicalPainter
+
+
+
+
+.. py:class:: TopologicalPainter(graph_levels_sep = 1, figure_dpi = 150, figure_rankdir = 'LR')
+
+   Bases: :py:obj:`bosk.painter.graphviz.GraphvizPainter`
+
+   Painter that performes the computational graph drawing in accordance with :class:`TopologicalExecutor`.
+   Based on the :class:`GraphvizPainter`.
+
+   .. attribute:: levels_sep
+
+      The painter's parameter, which determines the distance between the computational graph's levels.
+      See http://graphviz.org/docs/attrs/ranksep/.
+
+   .. attribute:: dpi
+
+      The dpi of the output computational graph images, formated in raster graphics (.png, .jpeg, etc.).
+
+   .. attribute:: rankdir
+
+      The direction of the computational graph edges. See https://graphviz.org/docs/attrs/rankdir/.
+
+   :param graph_levels_sep: Sets :attr:`levels_sep`.
+   :param figure_dpi: Sets :attr:`dpi`.
+   :param figure_rankdir: Sets :attr:`rankdir`.
+
+   .. py:method:: from_executor(executor)
+
+      Method that parses a :class:`TopologicalExecutor` and make internal representation
+      of the computational graph to render its image in the :meth:`render` method.
+
+      * The solid black edges and nodes are the ones that will be used during calculations.
+      * The dashed will be skipped during the optimization.
+      * The red colored nodes mean used inputs and outputs, the red colored edges signalize that
+        type of the block's input slot was misspecified: according to the :attr:`stage` metainformation
+        the connection should be used, but the corresponding block won't be used because of the optimization.
+      * The blue colored nodes mean skipped inputs and outputs. They were specified in the pipeline,
+          but not in the executor.
+
+
+

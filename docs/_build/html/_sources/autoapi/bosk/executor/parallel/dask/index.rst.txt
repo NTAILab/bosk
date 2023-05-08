@@ -1,0 +1,6 @@
+:py:mod:`bosk.executor.parallel.dask`
+=====================================
+
+.. py:module:: bosk.executor.parallel.dask
+
+

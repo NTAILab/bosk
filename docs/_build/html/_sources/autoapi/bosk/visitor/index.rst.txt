@@ -1,0 +1,55 @@
+:py:mod:`bosk.visitor`
+======================
+
+.. py:module:: bosk.visitor
+
+.. autoapi-nested-parse::
+
+   Visitors module.
+
+   Pipelines, blocks and connections support visitors that have interface :py:class:`BaseVisitor`.
+
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   base/index.rst
+   group/index.rst
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.visitor.BaseVisitor
+
+
+
+
+.. py:class:: BaseVisitor
+
+   Bases: :py:obj:`abc.ABC`
+
+   Base Visitor interface.
+
+   Visitor can be used to process any entity of a computational pipeline,
+   such as: block, connection, or even the whole pipeline.
+
+   It is important to implement dispatching for all entity types or
+   to make some default method which will not raise ``NotImplementedError``
+   for unknown entity types.
+
+
+   .. py:method:: visit(obj)
+      :abstractmethod:
+
+
+

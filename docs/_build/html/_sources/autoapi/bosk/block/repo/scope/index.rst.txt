@@ -1,0 +1,41 @@
+:py:mod:`bosk.block.repo.scope`
+===============================
+
+.. py:module:: bosk.block.repo.scope
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.repo.scope.ScopeBlockClassRepository
+
+
+
+
+.. py:class:: ScopeBlockClassRepository(scope)
+
+   Bases: :py:obj:`bosk.block.repo.base.BaseBlockClassRepository`
+
+   Scope block class repository.
+
+   Helps to get access to all blocks in a scope.
+
+   :param scope: Scope dictionary.
+                 Pass `locals()` or `globals()` to use the caller's scope.
+   :type scope: dict
+
+   .. py:method:: get(name)
+
+      Get block class by name.
+
+      :param name: Block name.
+
+      :returns: Demanded block class.
+
+
+

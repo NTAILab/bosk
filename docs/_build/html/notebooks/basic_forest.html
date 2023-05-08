@@ -1,0 +1,767 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="User guide of the pipeline executors usage" href="executor_basics.html" /><link rel="prev" title="Basic bosk usage user guide" href="../basic_examples.html" />
+
+    <meta name="generator" content="sphinx-5.3.0, furo 2022.09.29"/>
+        <title>Example of the basic bosk usage - bosk 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">bosk 1.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">bosk 1.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting started</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../examples.html">Bosk usage examples</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="../basic_examples.html">Basic bosk usage user guide</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Making basic deep forest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="executor_basics.html">Executors usage guide</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current has-children"><a class="reference internal" href="../architectures.html">Deep Forest architectures examples</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">Basic deep forest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="conf_screening.html">Confidence screening</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mg_scanning.html">Multigrained scanning</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../advanced_api.html">Advanced bosk usage examples</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoblock.html">Autoblock usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="comparison_example.html">Models comparison</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sklearn_interface.html">Scikit-learn interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="serializing.html">Serialization guide</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contribution.html">Contributing guidelines</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../autoapi/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../autoapi/bosk/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/bosk/auto/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/auto/builders/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.builders</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/auto/deep_forest/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.deep_forest</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/auto/growing_strategies/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.growing_strategies</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/auto/layers/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.layers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/auto/metrics/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.metrics</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/auto/validation/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.validation</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/bosk/block/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/bosk/block/repo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/repo/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo.base</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/repo/scope/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo.scope</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/repo/zoo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo.zoo</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/bosk/block/zoo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/data_conversion/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.data_conversion</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/data_weighting/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.data_weighting</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/debugging/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.debugging</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/gpu_blocks/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.gpu_blocks</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/input_plugs/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.input_plugs</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/metrics/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.metrics</span></code></a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/bosk/block/zoo/models/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l6 has-children"><a class="reference internal" href="../autoapi/bosk/block/zoo/models/classification/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l7"><a class="reference internal" href="../autoapi/bosk/block/zoo/models/classification/_jax_util/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification._jax_util</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="../autoapi/bosk/block/zoo/models/classification/ferns/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification.ferns</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="../autoapi/bosk/block/zoo/models/classification/jax/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification.jax</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="../autoapi/bosk/block/zoo/models/classification/mgs_ferns/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification.mgs_ferns</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/models/regression/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.regression</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/_convolution_helpers/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning._convolution_helpers</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/_pooling_impl/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning._pooling_impl</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.base</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/mil/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.mil</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/multi_grained_scanning_1d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_1d</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/multi_grained_scanning_2d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_2d</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/multi_grained_scanning_nd/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_nd</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/pooling/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.pooling</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/output_plugs/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.output_plugs</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/preprocessing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.preprocessing</span></code></a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/bosk/block/zoo/routing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.routing</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/routing/cs/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.routing.cs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/routing/cv/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.routing.cv</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/block/auto/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.auto</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/block/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/block/functional/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.functional</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/block/meta/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.meta</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/bosk/comparison/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/comparison/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/comparison/cross_val/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison.cross_val</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/comparison/metric/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison.metric</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/bosk/executor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/bosk/executor/parallel/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/executor/parallel/dask/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.dask</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/executor/parallel/greedy/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.greedy</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/executor/parallel/networkx/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.networkx</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/executor/parallel/topsort/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.topsort</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/executor/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/executor/block/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.block</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/executor/recursive/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.recursive</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/executor/sklearn_interface/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.sklearn_interface</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/executor/timer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.timer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/executor/topological/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.topological</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/executor/utility/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.utility</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/bosk/painter/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/painter/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/painter/graphviz/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter.graphviz</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/painter/topological/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter.topological</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/bosk/pipeline/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/bosk/pipeline/builder/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.builder</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/builder/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.builder.base</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/builder/functional/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.builder.functional</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/bosk/pipeline/converter/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.converter</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/converter/dask/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.converter.dask</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/converter/nx/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.converter.nx</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/bosk/pipeline/serializer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/serializer/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.base</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/serializer/joblib/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.joblib</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/serializer/onnx/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.onnx</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/serializer/skops/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.skops</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/serializer/zip/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.zip</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/pipeline/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/pipeline/connection/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.connection</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/pipeline/dynamic/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.dynamic</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/bosk/visitor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.visitor</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/visitor/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.visitor.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/visitor/group/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.visitor.group</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/bosk/data/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/bosk/exceptions/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.exceptions</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/bosk/stages/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.stages</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/bosk/utility/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.utility</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="Example-of-the-basic-bosk-usage">
+<h1>Example of the basic bosk usage<a class="headerlink" href="#Example-of-the-basic-bosk-usage" title="Permalink to this heading">#</a></h1>
+<p>In this example we will see how to implement classic deep forest using bosk predefined arsenal.</p>
+<section id="A-note-about-pipelines">
+<h2>A note about pipelines<a class="headerlink" href="#A-note-about-pipelines" title="Permalink to this heading">#</a></h2>
+<p>Pipeline is a computational graph in the bosk framework. Currently our framework has only one pipeline type: <code class="docutils literal notranslate"><span class="pre">BasePipeline</span></code>. <code class="docutils literal notranslate"><span class="pre">BasePipeline</span></code> is a dataclass that contatins graph nodes (i.e. compute blocks) and edges (i.e. connections). As the computational graph is directed and acyclic, <code class="docutils literal notranslate"><span class="pre">BasePipeline</span></code> also contains static information about inputs and outputs (their names and location). Nevertheless there wasn’t implemented a check for the injection, we strongly recommend to mark inputs and
+outputs correctly: different slots should correspond to the different names.</p>
+<p>To route a data across a pipeline we decided to add the <em>slots</em> concept. Each block has list of input and output slots with the unique (for the particular block) names, where the data can be routed. Usually the output slot is one, but it’s not a rule. Thus the bosk pipeline can be described either in terms of blocks or - of slots, as each slot has a link to his parent block. However, to build the pipeline you must operate only in terms of slots and route a data from an output block slot to an
+input one.</p>
+</section>
+<section id="A-note-about-executors">
+<h2>A note about executors<a class="headerlink" href="#A-note-about-executors" title="Permalink to this heading">#</a></h2>
+<p>Executor is a manager that performes a computational graph (i.e. pipeline) processing. One pipeline can behave differently depending on the computational stage. For example, to fit the classical deep forest model, we need to pass predictors and outcomes, but after the fit process we only need to pass new predictors. For each of those stages user should create individual executor.</p>
+<p>Pipelines can be executed in serial or parallel mode (in terms of number of compute blocks executed concurently; each block can require several workers in both cases). We recommend to run pipelines in serial mode with giving as much workers for each block as it’s possible and use parallel pipeline execution only if you have several devices for different blocks processing (for example, some blocks in the pipeline run on the cpu and some - on the gpu). For serial execution we suggest to use
+<code class="docutils literal notranslate"><span class="pre">TopologicalExecutor</span></code>, for parallel - <code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor</span></code>. In this example we will use <code class="docutils literal notranslate"><span class="pre">RecursiveExecutor</span></code> as the built pipelines will be simple.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from bosk.pipeline.base import BasePipeline, Connection
+from bosk.painter.graphviz import GraphvizPainter
+from bosk.executor.recursive import RecursiveExecutor
+from bosk.stages import Stage
+from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
+from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
+from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
+from bosk.block.zoo.metrics import RocAucBlock
+from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
+from sklearn.datasets import make_moons, load_digits
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score
+import numpy as np
+from IPython.display import Image
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>random_state = 42
+n_estimators = 7
+EXEC_CLS = RecursiveExecutor
+
+
+def get_plain_dataset():
+    all_X, all_y = make_moons(noise=1, random_state=random_state)
+    train_X, test_X, train_y, test_y = train_test_split(
+        all_X, all_y, test_size=0.2, random_state=random_state)
+    return train_X, test_X, train_y, test_y
+
+
+def get_image_dataset():
+    digits = load_digits()
+    all_X = digits.data
+    all_y = digits.target
+    train_X, test_X, train_y, test_y = train_test_split(
+        all_X, all_y, test_size=0.2, random_state=random_state)
+    return train_X, test_X, train_y, test_y
+
+
+def draw_pipeline(pipeline: BasePipeline, rankdir: str = &#39;LR&#39;):
+    GraphvizPainter(figure_dpi=100, figure_rankdir=rankdir).from_pipeline(pipeline).render(&#39;deep_forest.jpeg&#39;)
+    display(Image(filename=&#39;deep_forest.jpeg&#39;))
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Usual-deep-forest">
+<h2>Usual deep forest<a class="headerlink" href="#Usual-deep-forest" title="Permalink to this heading">#</a></h2>
+<p>In this section we will implement classical deep forest with two ways: manually connecting computational blocks and with the functional API.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># using manual connections
+# firstly we need to create blocks of the pipeline
+# we&#39;ve got input plugs for predictors and labels
+input_x = InputBlock()
+input_y = TargetInputBlock()
+# some deep forest&#39;s layers with random forests and extra trees classifiers
+rf_1 = RFCBlock(n_estimators=n_estimators)
+et_1 = ETCBlock(n_estimators=n_estimators)
+concat_1 = ConcatBlock([&#39;rf_1&#39;, &#39;et_1&#39;, &#39;X&#39;], axis=1)
+rf_2 = RFCBlock(n_estimators=n_estimators)
+et_2 = ETCBlock(n_estimators=n_estimators)
+stack = StackBlock([&#39;rf_2&#39;, &#39;et_2&#39;], axis=1)
+# blocks for results calcalating (probas and classes)
+average = AverageBlock(axis=1)
+argmax = ArgmaxBlock(axis=1)
+# and some metrics: total roc-auc and for the particular random forest
+roc_auc = RocAucBlock()
+roc_auc_rf_1 = RocAucBlock()
+# we need to manually declare our pipeline: set of blocks,
+# connections between them, input slots and output ones
+pipeline = BasePipeline(
+    nodes=[
+        input_x,
+        input_y,
+        rf_1,
+        et_1,
+        concat_1,
+        rf_2,
+        et_2,
+        stack,
+        average,
+        argmax,
+        roc_auc,
+        roc_auc_rf_1
+    ],
+    connections=[
+        # input X
+        Connection(input_x.slots.outputs[&#39;X&#39;], rf_1.slots.inputs[&#39;X&#39;]),
+        Connection(input_x.slots.outputs[&#39;X&#39;], et_1.slots.inputs[&#39;X&#39;]),
+        Connection(input_x.slots.outputs[&#39;X&#39;], concat_1.slots.inputs[&#39;X&#39;]),
+        # input y
+        Connection(input_y.slots.outputs[&#39;y&#39;], rf_1.slots.inputs[&#39;y&#39;]),
+        Connection(input_y.slots.outputs[&#39;y&#39;], et_1.slots.inputs[&#39;y&#39;]),
+        Connection(input_y.slots.outputs[&#39;y&#39;], rf_2.slots.inputs[&#39;y&#39;]),
+        Connection(input_y.slots.outputs[&#39;y&#39;], et_2.slots.inputs[&#39;y&#39;]),
+        # layers connection
+        Connection(rf_1.slots.outputs[&#39;output&#39;], concat_1.slots.inputs[&#39;rf_1&#39;]),
+        Connection(et_1.slots.outputs[&#39;output&#39;], concat_1.slots.inputs[&#39;et_1&#39;]),
+        Connection(concat_1.slots.outputs[&#39;output&#39;], rf_2.slots.inputs[&#39;X&#39;]),
+        Connection(concat_1.slots.outputs[&#39;output&#39;], et_2.slots.inputs[&#39;X&#39;]),
+        Connection(rf_2.slots.outputs[&#39;output&#39;], stack.slots.inputs[&#39;rf_2&#39;]),
+        Connection(et_2.slots.outputs[&#39;output&#39;], stack.slots.inputs[&#39;et_2&#39;]),
+        Connection(stack.slots.outputs[&#39;output&#39;], average.slots.inputs[&#39;X&#39;]),
+        Connection(average.slots.outputs[&#39;output&#39;], argmax.slots.inputs[&#39;X&#39;]),
+        Connection(average.slots.outputs[&#39;output&#39;], roc_auc.slots.inputs[&#39;pred_probas&#39;]),
+        Connection(input_y.slots.outputs[&#39;y&#39;], roc_auc.slots.inputs[&#39;gt_y&#39;]),
+        Connection(rf_1.slots.outputs[&#39;output&#39;], roc_auc_rf_1.slots.inputs[&#39;pred_probas&#39;]),
+        Connection(input_y.slots.outputs[&#39;y&#39;], roc_auc_rf_1.slots.inputs[&#39;gt_y&#39;]),
+    ],
+    inputs={
+        &#39;X&#39;: input_x.slots.inputs[&#39;X&#39;],
+        &#39;y&#39;: input_y.slots.inputs[&#39;y&#39;],
+    },
+    outputs={
+        &#39;probas&#39;: average.slots.outputs[&#39;output&#39;],
+        &#39;rf_1_roc-auc&#39;: roc_auc_rf_1.slots.outputs[&#39;roc-auc&#39;],
+        &#39;roc-auc&#39;: roc_auc.slots.outputs[&#39;roc-auc&#39;],
+        &#39;labels&#39;: argmax.slots.outputs[&#39;output&#39;]
+    }
+)
+pipeline.set_random_state(random_state)
+# let&#39;s draw our pipeline to see, what we&#39;ve got
+GraphvizPainter(figure_dpi=100).from_pipeline(pipeline).render(&#39;deep_forest.jpeg&#39;)
+display(Image(filename=&#39;deep_forest.jpeg&#39;))
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_basic_forest_6_0.jpg" src="../_images/notebooks_basic_forest_6_0.jpg" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># now let&#39;s fit and test our deep forest
+# we can define inputs and outputs which we will use
+# during execution process. In TopologicalExecutor
+# it is not necessary.
+fit_executor = EXEC_CLS(
+    pipeline,
+    stage=Stage.FIT,
+    inputs=[&#39;X&#39;, &#39;y&#39;],
+    outputs=[&#39;probas&#39;, &#39;rf_1_roc-auc&#39;, &#39;roc-auc&#39;]
+)
+transform_executor = EXEC_CLS(
+    pipeline,
+    stage=Stage.TRANSFORM,
+    inputs=[&#39;X&#39;],
+    outputs=[&#39;probas&#39;, &#39;labels&#39;]
+)
+train_X, test_X, train_y, test_y = get_plain_dataset()
+# To run the executor we must build a dictionary
+# with input names as keys and data as values.
+# Result of the executor call is a dictionary with
+# output names as keys and BaseData as values,
+# we shall convert BaseData to a usual numpy array
+fit_result = fit_executor({&#39;X&#39;: train_X, &#39;y&#39;: train_y}).numpy()
+# To fit next layer we must obtain outcomes on the current one,
+# thus the fit executor must simply give transformed training data
+# on the output. Let&#39;s check it
+train_result = transform_executor({&#39;X&#39;: train_X}).numpy()
+print(&quot;Fit probas == probas on train:&quot;, np.allclose(fit_result[&#39;probas&#39;], train_result[&#39;probas&#39;]))
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Fit probas == probas on train: True
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Now let&#39;s look at roc-auc scores we&#39;ve got.
+# Obviously, the external score must be the same with the
+# obtained during the fit process.
+print(&quot;Train ROC-AUC:&quot;, roc_auc_score(train_y, train_result[&#39;probas&#39;][:, 1]))
+print(
+    &quot;Train ROC-AUC calculated by fit executor:&quot;,
+    fit_result[&#39;roc-auc&#39;]
+)
+print(
+    &quot;Train ROC-AUC for RF_1:&quot;,
+    fit_result[&#39;rf_1_roc-auc&#39;]
+)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Train ROC-AUC: 1.0
+Train ROC-AUC calculated by fit executor: 1.0
+Train ROC-AUC for RF_1: 0.9892676767676768
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># And, finally, we can calculate the roc-auc for the test data
+test_result = transform_executor({&#39;X&#39;: test_X}).numpy()
+print(&quot;Test ROC-AUC:&quot;, roc_auc_score(test_y, test_result[&#39;probas&#39;][:, 1]))
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Test ROC-AUC: 0.8571428571428572
+</pre></div></div>
+</div>
+<p>Now let’s do the same thing, but with the functional API. This instrument makes connections creating process concise. Than we simply create blocks and in the call method we specify which slots of the block we want to connect with other blocks. Argument names correspond to the slots, values indicate, which block we want to use as the input for the slot. Pay attention that in this example all the blocks have only one output slot, so we don’t have to specify what output slot to use.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># firstly we must obtain the functional builder object
+b = FunctionalPipelineBuilder()
+# that we do as it was described above
+X, y = b.Input()(), b.TargetInput()()
+rf_1 = b.RFC(n_estimators=n_estimators)(X=X, y=y)
+et_1 = b.ETC(n_estimators=n_estimators)(X=X, y=y)
+concat_1 = b.Concat([&#39;X&#39;, &#39;rf_1&#39;, &#39;et_1&#39;])(X=X, rf_1=rf_1, et_1=et_1)
+rf_2 = b.RFC(n_estimators=n_estimators)(X=concat_1, y=y)
+et_2 = b.ETC(n_estimators=n_estimators)(X=concat_1, y=y)
+stack = b.Stack([&#39;rf_2&#39;, &#39;et_2&#39;], axis=1)(rf_2=rf_2, et_2=et_2)
+average = b.Average(axis=1)(X=stack)
+argmax = b.Argmax(axis=1)(X=average)
+rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
+roc_auc = b.RocAuc()(gt_y=y, pred_probas=average)
+pipeline = b.build(
+    {&#39;X&#39;: X, &#39;y&#39;: y},
+    {&#39;labels&#39;: argmax, &#39;probas&#39;: average, &#39;rf_1_roc-auc&#39;: rf_1_roc_auc, &#39;roc-auc&#39;: roc_auc}
+)
+pipeline.set_random_state(random_state)
+# let&#39;s draw our pipeline to see, what we&#39;ve got
+draw_pipeline(pipeline)
+# as we can see, the code became much shorter
+# with the same result
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_basic_forest_11_0.jpg" src="../_images/notebooks_basic_forest_11_0.jpg" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># to end this example, let&#39;s do the same tests as above
+# and ensure ourselves that the results are the same
+fit_executor = EXEC_CLS(
+    pipeline,
+    stage=Stage.FIT,
+    inputs=[&#39;X&#39;, &#39;y&#39;],
+    outputs=[&#39;probas&#39;, &#39;rf_1_roc-auc&#39;, &#39;roc-auc&#39;]
+)
+transform_executor = EXEC_CLS(
+    pipeline,
+    stage=Stage.TRANSFORM,
+    inputs=[&#39;X&#39;],
+    outputs=[&#39;probas&#39;, &#39;labels&#39;]
+)
+train_X, test_X, train_y, test_y = get_plain_dataset()
+fit_result = fit_executor({&#39;X&#39;: train_X, &#39;y&#39;: train_y}).numpy()
+train_result = transform_executor({&#39;X&#39;: train_X}).numpy()
+print(&quot;Fit probas == probas on train:&quot;, np.allclose(fit_result[&#39;probas&#39;], train_result[&#39;probas&#39;]))
+print(&quot;Train ROC-AUC:&quot;, roc_auc_score(train_y, train_result[&#39;probas&#39;][:, 1]))
+print(
+    &quot;Train ROC-AUC calculated by fit executor:&quot;,
+    fit_result[&#39;roc-auc&#39;]
+)
+print(
+    &quot;Train ROC-AUC for RF_1:&quot;,
+    fit_result[&#39;rf_1_roc-auc&#39;]
+)
+test_result = transform_executor({&#39;X&#39;: test_X}).numpy()
+print(&quot;Test ROC-AUC:&quot;, roc_auc_score(test_y, test_result[&#39;probas&#39;][:, 1]))
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Fit probas == probas on train: True
+Train ROC-AUC: 1.0
+Train ROC-AUC calculated by fit executor: 1.0
+Train ROC-AUC for RF_1: 0.9892676767676768
+Test ROC-AUC: 0.8571428571428572
+</pre></div></div>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="executor_basics.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">User guide of the pipeline executors usage</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="../basic_examples.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Basic bosk usage user guide</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022-2023, NTAILab
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Example of the basic bosk usage</a><ul>
+<li><a class="reference internal" href="#A-note-about-pipelines">A note about pipelines</a></li>
+<li><a class="reference internal" href="#A-note-about-executors">A note about executors</a></li>
+<li><a class="reference internal" href="#Usual-deep-forest">Usual deep forest</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/scripts/furo.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>

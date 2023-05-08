@@ -1,0 +1,38 @@
+:py:mod:`bosk.visitor.base`
+===========================
+
+.. py:module:: bosk.visitor.base
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.visitor.base.BaseVisitor
+
+
+
+
+.. py:class:: BaseVisitor
+
+   Bases: :py:obj:`abc.ABC`
+
+   Base Visitor interface.
+
+   Visitor can be used to process any entity of a computational pipeline,
+   such as: block, connection, or even the whole pipeline.
+
+   It is important to implement dispatching for all entity types or
+   to make some default method which will not raise ``NotImplementedError``
+   for unknown entity types.
+
+
+   .. py:method:: visit(obj)
+      :abstractmethod:
+
+
+

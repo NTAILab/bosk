@@ -1,0 +1,54 @@
+:py:mod:`bosk.comparison.metric`
+================================
+
+.. py:module:: bosk.comparison.metric
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.comparison.metric.BaseMetric
+   bosk.comparison.metric.MetricWrapper
+
+
+
+
+.. py:class:: BaseMetric(name = None)
+
+   Bases: :py:obj:`abc.ABC`
+
+   Base class for all metrics, taking part in the
+   models' comparison process.
+
+   .. py:method:: get_score(data_true, data_pred)
+      :abstractmethod:
+
+      Method to obtain a metric score.
+
+
+
+.. py:class:: MetricWrapper(func, y_true_name = 'y', y_pred_name = 'output', name = None)
+
+   Bases: :py:obj:`BaseMetric`
+
+   Wrapper class for classic metric functions that
+   take `y_true` as the first argument and `y_pred` as the second.
+
+   :param func: Function that accepts `y_true` and `y_pred` as arguments and returns a score.
+   :param y_true_name: Name of the `y_true`.
+   :param y_pred_name: Name of the `y_pred`.
+
+   .. py:method:: get_score(data_true, data_pred)
+
+      Calculate the metric score given `y_true` and `y_pred`.
+
+      :param data_true: Dictionary containing the `y_true`.
+      :param data_pred: Dictionary containing the `y_pred`.
+
+
+

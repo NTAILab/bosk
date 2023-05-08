@@ -1,0 +1,111 @@
+:py:mod:`bosk.painter.graphviz`
+===============================
+
+.. py:module:: bosk.painter.graphviz
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.painter.graphviz.GraphvizPainter
+
+
+
+
+.. py:class:: GraphvizPainter(graph_levels_sep = 1.0, figure_dpi = 150, figure_rankdir = 'LR', render_groups = True)
+
+   Bases: :py:obj:`bosk.painter.base.BasePainter`
+
+   Painter that uses Graphviz library to draw the computational graph of a pipeline.
+
+   .. attribute:: levels_sep
+
+      The painter's parameter, which determines the distance between the computational graph's levels.
+      See http://graphviz.org/docs/attrs/ranksep/.
+
+   .. attribute:: dpi
+
+      The dpi of the output computational graph images, formated in raster graphics (.png, .jpeg, etc.).
+
+   .. attribute:: rankdir
+
+      The direction of the computational graph edges. See https://graphviz.org/docs/attrs/rankdir/.
+
+   :param graph_levels_sep: Sets :attr:`levels_sep`.
+   :param figure_dpi: Sets :attr:`dpi`.
+   :param figure_rankdir: Sets :attr:`rankdir`.
+
+   .. py:property:: rankdir
+      :type: str
+
+      //graphviz.org/docs/attrs/rankdir/.
+
+      :type: The direction of the computational graph edges. See https
+
+   .. py:property:: levels_sep
+      :type: float
+
+      The painter's parameter, which determines the distance between the computational graph's levels.
+      See http://graphviz.org/docs/attrs/ranksep/.
+
+   .. py:property:: dpi
+      :type: int
+
+      The dpi of the output computational graph images, formated in raster graphics (.png, .jpeg, etc.).
+
+   .. py:method:: _add_node(block, style = 'solid', color = 'black')
+
+      Method that adds a node to the graph.
+
+
+
+   .. py:method:: _add_edge(connection, style = 'solid', color = 'black')
+
+      Method that adds an edge to the graph.
+
+
+
+   .. py:method:: _add_input(name, input_slot, style = 'solid', color = 'red')
+
+      Method that adds pipeline's input to the graph.
+
+
+
+   .. py:method:: _add_output(name, output_slot, style = 'solid', color = 'red')
+
+      Method that adds pipeline's output to the graph.
+
+
+
+   .. py:method:: from_pipeline(pipeline)
+
+      Method that parses a pipeline and make internal representation
+      of the computational graph to render its image in the :meth:`render` method.
+
+
+   .. py:method:: from_executor(executor)
+      :abstractmethod:
+
+      Method for drawing the pipeline connected with the `executor`
+      and saving the result into internal representation. The drawn
+      graph should represent executor's behaviour.
+
+
+   .. py:method:: render(output_filename, format = None)
+
+      Method that renders the computational graph's image.
+
+
+
+   .. py:method:: available_formats()
+
+      List of the available formats to render the
+      computational graph into.
+
+
+

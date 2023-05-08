@@ -1,0 +1,266 @@
+:py:mod:`bosk.executor.base`
+============================
+
+.. py:module:: bosk.executor.base
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.executor.base.BaseSlotHandler
+   bosk.executor.base.DefaultSlotHandler
+   bosk.executor.base.ExecutionResult
+   bosk.executor.base.BaseExecutor
+
+
+
+
+.. py:class:: BaseSlotHandler
+
+   Bases: :py:obj:`abc.ABC`
+
+   Determines slots' handling policy: checks whether a slot is required for the stage.
+
+
+   .. py:method:: is_slot_required(stage, slot)
+      :abstractmethod:
+
+      Method that determines if the slot is required during
+      the computational graph execution.
+
+      :param stage: The execution stage.
+      :param slot: The computational block's slot to check.
+
+
+
+.. py:class:: DefaultSlotHandler
+
+   Bases: :py:obj:`BaseSlotHandler`
+
+   Default slot handling policy.
+
+   At `FIT` stage requires preceding block execution
+   even if it will be required only for transforming data.
+
+   At `TRANSFORM` stage requires preceding block execution
+   only if it is needed for the given input slot.
+
+
+   .. py:method:: is_slot_required(stage, slot)
+
+      Method that determines if the slot is required during
+      the computational graph execution.
+
+      :param stage: The execution stage.
+      :param slot: The computational block's slot to check.
+
+
+
+.. py:class:: ExecutionResult(result)
+
+   Bases: :py:obj:`Dict`\ [\ :py:obj:`str`\ , :py:obj:`bosk.data.BaseData`\ ]
+
+   Pipeline execution result. Basically behaves as a dictionary of `BaseData` objects.
+
+   Wraps a dictionary of `BaseData` objects and provides method to obtain dictionary of NumPy arrays.
+   Rationale: frequently expected result of the pipeline execution is a dictionary of NumPy arrays.
+
+
+   .. py:method:: numpy()
+
+      Convert execution result to dictionary of NumPy arrays.
+
+      :returns: Dictionary of NumPy arrays.
+
+
+
+.. py:class:: BaseExecutor(pipeline, stage, inputs = None, outputs = None, slot_handler = None, block_executor = None)
+
+   Bases: :py:obj:`abc.ABC`
+
+   Base pipeline executor.
+
+   *Note*, that all properties are stored as fields with "__" predix,
+   for example `pipeline` property corresponds to the underlying field `__pipeline`.
+   This allows a derived class to override property getter, preserving the original field,
+   probably used internally by the framework.
+
+   .. attribute:: pipeline
+
+      The pipeline (computational graph). Contains blocks as nodes
+      and connections between output and input blocks' slots as edges.
+
+   .. attribute:: stage
+
+      The computational mode, which will be performed by the executor.
+
+   .. attribute:: slot_handler
+
+      Object defining the executor's behaviour during slots processing.
+
+   .. attribute:: block_executor
+
+      Object defining the executor's behaviour during blocks processing.
+
+   .. attribute:: inputs
+
+      Set of the inputs to process. Passing it, you set up the hard requirement
+      for the input values to execute the computational graph. Keep it `None` to
+      use any of the pipeline's inputs during the execution process.
+
+   .. attribute:: outputs
+
+      Set of the outputs to process. Keep it `None` to handle all of the
+      pipeline's outputs.
+
+   :param pipeline: Sets :attr:`pipeline`.
+   :param stage: Sets :attr:`stage`.
+   :param inputs: Sets :attr:`inputs`.
+   :param outputs: Sets :attr:`outputs`.
+   :param slot_handler: Sets :attr:`slot_handler` with `_prepare_slot_handler` method.
+   :param block_executor: Sets :attr:`block_executor` with `_prepare_block_executor` method.
+
+   :raises AssertionError: If it was unable to find some input in the pipeline.
+   :raises AssertionError: If it was unable to find some output in the pipeline.
+
+   .. py:property:: pipeline
+      :type: bosk.pipeline.BasePipeline
+
+      Getter for the executor's pipeline.
+
+   .. py:property:: inputs
+      :type: Optional[FrozenSet[str]]
+
+      Getter for the executor's inputs set. `None` if there are
+      no restrictions on the pipeline's inputs.
+
+   .. py:property:: outputs
+      :type: Optional[FrozenSet[str]]
+
+      Getter for the executor's ouputs set. `None` if there are
+      no restrictions on the pipeline's outputs.
+
+   .. py:property:: slot_handler
+      :type: BaseSlotHandler
+
+      Getter for the executor's slots handler.
+
+   .. py:property:: block_executor
+      :type: bosk.executor.block.BaseBlockExecutor
+
+      Getter for the executor's block executor.
+
+   .. py:property:: stage
+      :type: bosk.stages.Stage
+
+      Getter for the executor's computational stage.
+
+   .. py:attribute:: __pipeline
+      :annotation: :bosk.pipeline.BasePipeline
+
+      
+
+   .. py:attribute:: __slot_handler
+      :annotation: :BaseSlotHandler
+
+      
+
+   .. py:attribute:: __block_executor
+      :annotation: :bosk.executor.block.BaseBlockExecutor
+
+      
+
+   .. py:attribute:: __stage
+      :annotation: :bosk.stages.Stage
+
+      
+
+   .. py:attribute:: __inputs
+      :annotation: :None | FrozenSet[str]
+
+      
+
+   .. py:attribute:: __outputs
+      :annotation: :None | FrozenSet[str]
+
+      
+
+   .. py:method:: _prepare_slot_handler(slot_handler)
+
+      The default slot handler can be changed in a child class by overriding this method.
+
+      :param slot_handler: Slot handler passed by user or None.
+
+      :returns: Slot handler.
+
+
+   .. py:method:: _prepare_block_executor(block_executor)
+
+      The default block executor can be changed in a child class by overriding this method.
+
+      :param block_executor: Slot handler passed by user or None.
+
+      :returns: Block executor.
+
+
+   .. py:method:: __process_inputs_outputs(inputs, outputs)
+
+
+   .. py:method:: _map_input_names_to_slots(input_values)
+
+      Method to translate dictionary, passed in :meth:`__call__`, to dictionary that is useful for evaluation.
+      :param input_values: Input data, passed to the :meth:`__call__` method.
+
+      :returns: Remapped input data.
+
+
+   .. py:method:: _check_input_values(input_values)
+
+      Method to check up the input values, passed in :meth:`__call__`.
+      :raises AssertionError: If the :attr:`inputs` are specified and the :arg:`input_values`
+          do not correspond to them.
+
+
+   .. py:method:: _is_slot_required(slot)
+
+      Method that determines if the slot is required during
+      the computational graph execution. Added for additional debugging (and polymorphism)
+      features and to make the code shorter.
+
+      :param slot: The computational block's slot to check.
+
+
+   .. py:method:: _execute_block(block, block_input_mapping)
+
+      Method that executes the block. Added for additional debugging (and polymorphism)
+      features and to make the code shorter.
+
+      :param block: The computational block to execute.
+      :param block_input_mapping: The data for the block execution.
+
+
+   .. py:method:: __call__(input_values)
+
+      Executes the pipeline given `BaseData` or just NumPy arrays and returns results dictionary.
+
+      :param input_values: Input data.
+
+      :returns: Calculated output data.
+
+
+   .. py:method:: execute(input_values)
+      :abstractmethod:
+
+      Executes the pipeline given `BaseData` inputs and return `BaseData` output values.
+
+      :param input_values: Input data.
+
+      :returns: Calculated output data dictionary that maps output names to the data.
+
+
+

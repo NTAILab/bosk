@@ -1,0 +1,67 @@
+:py:mod:`bosk.auto.metrics`
+===========================
+
+.. py:module:: bosk.auto.metrics
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.auto.metrics.MetricsEvaluator
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.auto.metrics.MetricsResults
+
+
+.. py:data:: MetricsResults
+   
+
+   
+
+.. py:class:: MetricsEvaluator(names)
+
+   Calculates, collects and aggregates the specified metrics.
+
+   Any metric follows the rule "the higher is better", i.e.
+   if originally metric decreases when quality increases, it is multiplied by (-1).
+
+   :param names: A list of metric names to be evaluated.
+
+   .. py:attribute:: names
+      :annotation: :set[str]
+
+      A list of metric names to be evaluated.
+
+   .. py:attribute:: results
+      :annotation: :collections.defaultdict[str, List[float]]
+
+      A mapping (dictionary) of metric names to lists of metric values.
+
+   .. py:method:: append_eval(y_true, y_pred)
+
+      Evaluate and append the evaluation results.
+
+      :param y_true: Ground truth values.
+      :param y_pred: Predicted values.
+
+
+   .. py:method:: average()
+
+      Averages the evaluation results.
+
+      :returns: A mapping (dictionary) of metric names to average metric values.
+
+
+

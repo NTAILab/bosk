@@ -1,0 +1,254 @@
+:py:mod:`bosk.auto.deep_forest`
+===============================
+
+.. py:module:: bosk.auto.deep_forest
+
+.. autoapi-nested-parse::
+
+   Auto Deep Forest Construction.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.auto.deep_forest.BaseAutoDeepForestConstructor
+   bosk.auto.deep_forest.ClassicalDeepForestConstructor
+   bosk.auto.deep_forest.HyperparamSearchDeepForestConstructor
+   bosk.auto.deep_forest.MGSDeepForestConstructor
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.auto.deep_forest.DEFAULT_MAKE_METRICS
+   bosk.auto.deep_forest._make_base_df_blocks
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.auto.deep_forest.DEFAULT_EXECUTOR_CLS
+
+
+.. py:function:: DEFAULT_MAKE_METRICS()
+
+
+.. py:data:: DEFAULT_EXECUTOR_CLS
+   
+
+   
+
+.. py:class:: BaseAutoDeepForestConstructor(executor_cls, max_iter = 10, cv = 5, make_metrics = None, growing_strategy = None, block_classes = None, random_state = None)
+
+   Bases: :py:obj:`abc.ABC`
+
+   Base Auto Deep Forest Construction Algorithm.
+
+   Sequentially constructs a pipeline using given data set.
+   Construction is splitted into *steps*, where each step is subdivided into
+   *iterations*:
+
+       - At different *steps* the algorithm makes principally different blocks;
+       - At different *iterations* the algorithm generates layers of the same structure.
+
+   :param executor_cls: Executor class (see :py:mod:`bosk.executor`).
+   :param max_iter: Maximum number of iterations.
+   :param cv: Number of cross-validation folds. If `None` the cross-validation is not performed.
+   :param make_metrics: Function that makes metrics evaluator.
+   :param growing_strategy: Growing strategy.
+   :param block_classes: List of block classes used in layers.
+   :param random_state: Random state.
+
+   .. py:property:: n_steps
+      :type: Optional[int]
+      :abstractmethod:
+
+      Number of implemented steps.
+
+      The steps with number < `n_steps` will be passed to `make_step_layer`.
+
+   .. py:method:: make_step_layer(step, iteration, X, y, validator, rng)
+      :abstractmethod:
+
+      Make the current step layer.
+
+      :param step: Current step number.
+      :param iteration: Current iteration number.
+      :param X: Input features data.
+      :param y: Target data.
+      :param validator: Pipeline model validator.
+      :param rng: Random number generator.
+
+
+   .. py:method:: construct(X_, y_)
+
+      Construct the pipeline given training data.
+
+      :param `X_`: Input features data.
+      :param `y_`: Target data.
+
+
+
+.. py:function:: _make_base_df_blocks(params, layer_width, block_classes = None)
+
+   Make base Deep Forest Blocks for one layer.
+
+   :param params: One Forest parameters (n_estimators, max_depth, etc.).
+   :param layer_width: Number of blocks of one type in the layer.
+
+   :returns: List of layer blocks.
+
+
+.. py:class:: ClassicalDeepForestConstructor(executor_cls, rf_params = None, layer_width = 2, max_iter = 10, cv = 5, make_metrics = None, growing_strategy = None, block_classes = None, random_state = None)
+
+   Bases: :py:obj:`BaseAutoDeepForestConstructor`
+
+   Classical Deep Forest iteratively builds layers consisting of different
+   Random Forests and Extremely Randomized Trees Classifiers.
+
+   :param executor_cls: Executor class (see :py:mod:`bosk.executor`).
+   :param rf_params: Parameters of tree ensembles (Random Forests, Extra Trees).
+   :param layer_width: Number of blocks of each type in a layer.
+   :param max_iter: Maximum number of iterations.
+   :param cv: Number of cross-validation folds. If `None` the cross-validation is not performed.
+   :param make_metrics: Function that makes metrics evaluator.
+   :param growing_strategy: Growing strategy.
+   :param block_classes: List of block classes used in layers.
+   :param random_state: Random state.
+
+   .. attribute:: rf_params
+
+      Parameters of tree ensembles (Random Forests, Extra Trees).
+
+   .. py:attribute:: LAYER_CLS
+      
+
+      
+
+   .. py:attribute:: n_steps
+      :annotation: = 1
+
+      Number of steps. The Classical Deep Forest has just one step.
+
+   .. py:method:: make_step_layer(step, iteration, X, y, validator, rng)
+
+      Make the current step layer.
+
+      :param step: Current step number.
+      :param iteration: Current iteration number.
+      :param X: Input features data.
+      :param y: Target data.
+      :param validator: Pipeline model validator.
+      :param rng: Random number generator.
+
+
+
+.. py:class:: HyperparamSearchDeepForestConstructor(executor_cls, rf_param_grid = None, layer_width = 2, n_steps = 3, max_iter = 10, cv = 5, make_metrics = None, growing_strategy = None, block_classes = None, random_state = None)
+
+   Bases: :py:obj:`BaseAutoDeepForestConstructor`
+
+   Classical Deep Forest that estimates the best parameters at each step.
+
+   :param executor_cls: Executor class (see :py:mod:`bosk.executor`).
+   :param rf_params: Parameters of tree ensembles (Random Forests, Extra Trees).
+   :param layer_width: Number of blocks of each type in a layer.
+   :param n_steps: Number of steps.
+   :param max_iter: Maximum number of iterations.
+   :param cv: Number of cross-validation folds. If `None` the cross-validation is not performed.
+   :param make_metrics: Function that makes metrics evaluator.
+   :param growing_strategy: Growing strategy.
+   :param block_classes: List of block classes used in layers.
+   :param random_state: Random state.
+
+   .. attribute:: rf_param_grid
+
+      Parameters grid for the tree ensembles (Random Forests, Extra Trees).
+
+   .. py:attribute:: n_steps
+      
+
+      Number of steps. At each step the best parameters are estimated.
+
+   .. py:attribute:: LAYER_CLS
+      
+
+      
+
+   .. py:method:: make_step_layer(step, iteration, X, y, validator, rng)
+
+      Make the current step layer.
+
+      :param step: Current step number.
+      :param iteration: Current iteration number.
+      :param X: Input features data.
+      :param y: Target data.
+      :param validator: Pipeline model validator.
+      :param rng: Random number generator.
+
+
+
+.. py:class:: MGSDeepForestConstructor(executor_cls, input_shape, rf_params = None, conv_params = None, layer_width = 2, max_iter = 10, cv = 5, make_metrics = None, growing_strategy = None, block_classes = None, random_state = None)
+
+   Bases: :py:obj:`BaseAutoDeepForestConstructor`
+
+   Classical Multi-Grained Scanning Deep Forest.
+
+   It consists of convolutional layers which reduce spatial dimensions (step 1),
+   and classical stacking-based layers (step 2).
+
+   :param executor_cls: Executor class (see :py:mod:`bosk.executor`).
+   :param input_shape: Input shape (spatial dimensions).
+   :param rf_params: Parameters of tree ensembles (Random Forests, Extra Trees).
+   :param conv_params: Parameters of MGS layers.
+   :param layer_width: Number of blocks of each type in a layer.
+   :param max_iter: Maximum number of iterations.
+   :param cv: Number of cross-validation folds. If `None` the cross-validation is not performed.
+   :param make_metrics: Function that makes metrics evaluator.
+   :param growing_strategy: Growing strategy.
+   :param block_classes: List of block classes used in layers.
+   :param random_state: Random state.
+
+   .. attribute:: rf_params
+
+      Parameters of tree ensembles (Random Forests, Extra Trees).
+
+   .. py:attribute:: STACKING_LAYER_CLS
+      
+
+      
+
+   .. py:attribute:: MGS_LAYER_CLS
+      
+
+      
+
+   .. py:attribute:: n_steps
+      :annotation: = 2
+
+      Number of steps. The Classical Deep Forest has two steps.
+
+   .. py:method:: make_step_layer(step, iteration, X, y, validator, rng)
+
+      Make the current step layer.
+
+      :param step: Current step number.
+      :param iteration: Current iteration number.
+      :param X: Input features data.
+      :param y: Target data.
+      :param validator: Pipeline model validator.
+      :param rng: Random number generator.
+
+
+

@@ -1,0 +1,211 @@
+:py:mod:`bosk.pipeline.serializer`
+==================================
+
+.. py:module:: bosk.pipeline.serializer
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   base/index.rst
+   joblib/index.rst
+   onnx/index.rst
+   skops/index.rst
+   zip/index.rst
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.pipeline.serializer.BaseBlockSerializer
+   bosk.pipeline.serializer.BasePipelineSerializer
+   bosk.pipeline.serializer.JoblibBlockSerializer
+   bosk.pipeline.serializer.JoblibPipelineSerializer
+   bosk.pipeline.serializer.SkopsBlockSerializer
+   bosk.pipeline.serializer.ZipPipelineSerializer
+
+
+
+
+.. py:class:: BaseBlockSerializer
+
+   Bases: :py:obj:`abc.ABC`
+
+   Base Block Serializer.
+
+   Can serialize blocks, and could be used as a component of pipeline serialization.
+
+
+   .. py:method:: dump(block, out_file)
+      :abstractmethod:
+
+      Serialize and dump the pipeline to the file.
+
+      :param pipeline: The pipeline to serialize.
+      :param out_file: Output file or stream.
+
+
+   .. py:method:: load(in_file)
+      :abstractmethod:
+
+      Load and deserialize a block from the file.
+
+      :param in_file: Input file or stream.
+
+
+
+.. py:class:: BasePipelineSerializer
+
+   Bases: :py:obj:`abc.ABC`
+
+   Base Pipeline Serializer.
+
+   Can be used for the whole pipeline serialization.
+
+
+   .. py:method:: dump(pipeline, out_file)
+      :abstractmethod:
+
+      Serialize and dump the pipeline to the file.
+
+      :param pipeline: The pipeline to serialize.
+      :param out_file: Output file or stream.
+
+
+   .. py:method:: load(in_file)
+      :abstractmethod:
+
+      Load and deserialize a pipeline from the file.
+
+      :param in_file: Input file or stream.
+
+
+
+.. py:class:: JoblibBlockSerializer(compress = 0, protocol = None)
+
+   Bases: :py:obj:`bosk.pipeline.serializer.base.BaseBlockSerializer`
+
+   Joblib-based block serialization.
+
+   :param compress: Compression level (see :py:func:`joblib.dump`).
+   :param protocol: Pickle protocol (see :py:func:`joblib.dump`).
+
+   .. py:method:: dump(block, out_file)
+
+      Serialize and dump the pipeline to the file.
+
+      :param pipeline: The pipeline to serialize.
+      :param out_file: Output file or stream.
+
+
+   .. py:method:: load(in_file)
+
+      Load and deserialize a block from the file.
+
+      :param in_file: Input file or stream.
+
+
+
+.. py:class:: JoblibPipelineSerializer(compress = 0, protocol = None)
+
+   Bases: :py:obj:`bosk.pipeline.serializer.base.BasePipelineSerializer`
+
+   Joblib-based pipeline serialization.
+
+   Consider using :py:class:`bosk.pipeline.serializer.ZipPipelineSerializer` instead
+   if there will be any issues.
+
+   :param compress: Compression level (see :py:func:`joblib.dump`).
+   :param protocol: Pickle protocol (see :py:func:`joblib.dump`).
+
+   .. py:method:: dump(pipeline, out_file)
+
+      Serialize and dump the pipeline to the file.
+
+      :param pipeline: The pipeline to serialize.
+      :param out_file: Output file or stream.
+
+
+   .. py:method:: load(in_file)
+
+      Load and deserialize a pipeline from the file.
+
+      :param in_file: Input file or stream.
+
+
+
+.. py:class:: SkopsBlockSerializer(trusted = True)
+
+   Bases: :py:obj:`bosk.pipeline.serializer.base.BaseBlockSerializer`
+
+   Skops-based pipeline serialization.
+
+   Skops is more secure than Joblib, but doesn't allow to serialize
+   the whole pipelines.
+   If you are going to do so, consider :py:class:`bosk.pipeline.serializer.ZipPipelineSerializer`.
+
+   :param trusted: Will the given data be trusted or not.
+                   Note that it is True by default.
+
+   .. py:method:: dump(block, out_file)
+
+      Serialize and dump the pipeline to the file.
+
+      :param pipeline: The pipeline to serialize.
+      :param out_file: Output file or stream.
+
+
+   .. py:method:: load(in_file)
+
+      Load and deserialize a block from the file.
+
+      :param in_file: Input file or stream.
+
+
+
+.. py:class:: ZipPipelineSerializer(block_serializer)
+
+   Bases: :py:obj:`bosk.pipeline.serializer.base.BasePipelineSerializer`
+
+   Zip-based pipeline serializer.
+
+   It is parametrized by block serializer, and
+   just serializes block separately, providing
+   additional information about connections (edges) between blocks
+   to be able to restore the pipeline structure.
+
+   :param block_serializer: Block serializer.
+
+   .. py:method:: _dump_block(block, out_file)
+
+
+   .. py:method:: _dump_all_blocks(ids_by_block, storage)
+
+
+   .. py:method:: _load_all_blocks(storage, block_names)
+
+
+   .. py:method:: dump(pipeline, out_file)
+
+      Serialize and dump the pipeline to the file.
+
+      :param pipeline: The pipeline to serialize.
+      :param out_file: Output file or stream.
+
+
+   .. py:method:: load(in_file)
+
+      Load and deserialize a pipeline from the file.
+
+      :param in_file: Input file or stream.
+
+
+

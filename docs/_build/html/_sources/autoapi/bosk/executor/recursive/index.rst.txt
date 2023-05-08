@@ -1,0 +1,55 @@
+:py:mod:`bosk.executor.recursive`
+=================================
+
+.. py:module:: bosk.executor.recursive
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.executor.recursive.RecursiveExecutor
+
+
+
+
+.. py:class:: RecursiveExecutor(pipeline, stage, inputs = None, outputs = None, slot_handler = None, block_executor = None)
+
+   Bases: :py:obj:`bosk.executor.base.BaseExecutor`
+
+   The recursive executor implementation.
+
+   Considers only input-output slots information to match slots.
+
+   .. attribute:: _conn_map
+
+      Pipeline connections, represented as a hash map, the keys are blocks' input slots,
+      the values are output ones. Each input slot corresponds no more than one
+      output slot, so this representation is correct.
+
+   :param pipeline: Sets :attr:`.BaseExecutor.__pipeline`.
+   :param stage: Sets :attr:`.BaseExecutor.__stage`,
+   :param inputs: Sets :attr:`.BaseExecutor.__inputs`.
+   :param outputs: Sets :attr:`.BaseExecutor.__outputs`.
+   :param slot_handler: Sets :attr:`.BaseExecutor.__slot_handler` with `_prepare_slot_handler` method.
+   :param block_executor: Sets :attr:`.BaseExecutor.__block_executor` with `_prepare_block_executor` method.
+
+   .. py:attribute:: _conn_map
+      :annotation: :Mapping[bosk.block.base.BlockInputSlot, bosk.block.base.BlockOutputSlot]
+
+      
+
+   .. py:method:: execute(input_values)
+
+      Executes the pipeline given `BaseData` inputs and return `BaseData` output values.
+
+      :param input_values: Input data.
+
+      :returns: Calculated output data dictionary that maps output names to the data.
+
+
+

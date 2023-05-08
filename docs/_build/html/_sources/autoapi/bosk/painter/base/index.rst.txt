@@ -1,0 +1,58 @@
+:py:mod:`bosk.painter.base`
+===========================
+
+.. py:module:: bosk.painter.base
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.painter.base.BasePainter
+
+
+
+
+.. py:class:: BasePainter
+
+   Bases: :py:obj:`abc.ABC`
+
+   Abstract base class for all pipeline painters.
+
+
+   .. py:property:: available_formats
+      :type: Sequence[str]
+      :abstractmethod:
+
+      List of the available formats to render the
+      computational graph into.
+
+   .. py:method:: from_pipeline(pipeline)
+      :abstractmethod:
+
+      Method for drawing the `pipeline` and saving the
+      result into internal representation.
+
+
+   .. py:method:: from_executor(executor)
+      :abstractmethod:
+
+      Method for drawing the pipeline connected with the `executor`
+      and saving the result into internal representation. The drawn
+      graph should represent executor's behaviour.
+
+
+   .. py:method:: render(output_filename, format = None)
+      :abstractmethod:
+
+      Method for saving drawn computational graph.
+
+      :param output_filename: Path (containing the filename) where the output graphics file will be saved.
+      :param format: Format of the output file. If `None`, then the `output_filename` determines the format.
+
+
+

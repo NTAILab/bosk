@@ -1,0 +1,89 @@
+:py:mod:`bosk.block.auto`
+=========================
+
+.. py:module:: bosk.block.auto
+
+.. autoapi-nested-parse::
+
+   Auto block module allows to automatically convert any fit-transform class into a block.
+
+   For example, wrapping simple fit-transform class into a block can be done with decorator :py:func:`auto_block`:
+
+   .. code-block::
+
+       @auto_block
+       class MyFitTransformClassBlock:
+           def fit(self, arg1, arg2):
+               return self
+
+           def transform(self, arg1):
+               return arg1
+
+   The resulting class will be derived from :py:class:`BaseBlock` and can be used as a block in the pipeline.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.auto.FitTransformClass
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.auto.auto_block
+
+
+
+.. py:class:: FitTransformClass
+
+   Bases: :py:obj:`Protocol`
+
+   Protocol for fit-transform estimator classes.
+
+   Classes decorated with `@auto_block` should implement this protocol.
+
+   .. py:method:: fit(X, y=None)
+
+      Fit the estimator.
+
+      Wrapped class can have multiple arguments.
+
+
+
+   .. py:method:: transform(X)
+
+      Transform data with the estimator.
+
+      Wrapped class can have multiple arguments.
+
+      :returns: Numpy array or data object (e.g. `CPUData`).
+
+
+
+.. py:function:: auto_block(_implicit_cls=None, execution_props = None, random_state_field = 'random_state', auto_state = False)
+
+   Decorator for conversion from a fit-transform class into a block.
+
+   :param _implicit_cls: Class with fit-transform interface.
+                         It is automatically passed when `@auto_block` without
+                         brackets is used. Otherwise it should be `None`.
+   :param execution_props: Custom block execution properties.
+   :param random_state_field: Field name in the class that corresponds to object's random seed.
+                              Pass `None` if the class doesn't have any. If the class already has
+                              the `set_random_state` method, it won't be redefined.
+   :param auto_state: Automatically implement `__getstate__` and `__setstate__` methods.
+                      These methods are required for serialization.
+
+   :returns: Block wrapping function.
+
+

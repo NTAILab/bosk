@@ -1,0 +1,157 @@
+:py:mod:`bosk.block.meta`
+=========================
+
+.. py:module:: bosk.block.meta
+
+.. autoapi-nested-parse::
+
+   Block meta information.
+
+   Determines the `type` of a block: which inputs, outputs and execution properties it has.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.meta.BaseSlotMeta
+   bosk.block.meta.InputSlotMeta
+   bosk.block.meta.OutputSlotMeta
+   bosk.block.meta.BlockExecutionProperties
+   bosk.block.meta.BlockMeta
+   bosk.block.meta.DynamicBlockMetaStub
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.meta.make_simple_meta
+
+
+
+.. py:class:: BaseSlotMeta
+
+   Base slot meta information.
+
+   Slot meta is unique for a block slot.
+
+
+   .. py:attribute:: name
+      :annotation: :str
+
+      Slot name.
+
+
+.. py:class:: InputSlotMeta
+
+   Bases: :py:obj:`BaseSlotMeta`
+
+   Block input slot meta.
+
+
+
+   .. py:attribute:: stages
+      :annotation: :bosk.stages.Stages
+
+      At which stages slot value is needed.
+
+
+.. py:class:: OutputSlotMeta
+
+   Bases: :py:obj:`BaseSlotMeta`
+
+   Block output slot meta.
+
+
+
+.. py:class:: BlockExecutionProperties
+
+   Block execution properties.
+
+
+
+   .. py:attribute:: cpu
+      :annotation: :bool = True
+
+      Has CPU implementation that handles CPU data.
+
+   .. py:attribute:: gpu
+      :annotation: :bool = False
+
+      Has GPU implementation that handles GPU data.
+
+   .. py:attribute:: threadsafe
+      :annotation: :bool = False
+
+      CPU/GPU implementation is thread safe, can be executed in parallel.
+
+   .. py:attribute:: plain
+      :annotation: :bool = False
+
+      Block implementation is straightforward and not computantionally expensive,
+      it should not be parallelized (parallelization costs are larger than computation).
+
+
+.. py:class:: BlockMeta(*, inputs=None, outputs=None, execution_props=None)
+
+   Block meta, containing input and output slots description.
+
+
+
+   .. py:attribute:: inputs
+      :annotation: :Mapping[str, InputSlotMeta]
+
+      Mapping from input slots names to their meta.
+
+   .. py:attribute:: outputs
+      :annotation: :Mapping[str, OutputSlotMeta]
+
+      Mapping from output slots names to their meta.
+
+   .. py:attribute:: execution_props
+      :annotation: :BlockExecutionProperties
+
+      Block execution properties.
+
+   .. py:method:: list_of_slots_meta_to_mapping(slots_meta_list)
+      :staticmethod:
+
+      Convert list of slots meta to mapping (name -> slot meta).
+
+      :param slots_meta_list: List of slots meta.
+
+      :returns: Mapping dict (name -> slot meta).
+
+
+
+.. py:class:: DynamicBlockMetaStub(*, inputs=None, outputs=None, execution_props=None)
+
+   Bases: :py:obj:`BlockMeta`
+
+   Meta stub for blocks with dynamic meta.
+
+   Usually blocks define static meta, but sometimes meta can be defined at
+   block initialization time.
+
+   In this case, the stub can be used to express that the meta is dynamic.
+
+
+.. py:function:: make_simple_meta(input_names, output_names, **additional_params)
+
+   Make simple block meta from input and output slot names.
+
+   :param input_names: List of input slot names.
+   :param output_names: List of output slot names.
+   :param \*\*additional_params: Additional meta params.
+
+   :returns: Block meta with given inputs and outputs.
+
+

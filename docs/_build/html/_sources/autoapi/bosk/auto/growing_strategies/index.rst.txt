@@ -1,0 +1,138 @@
+:py:mod:`bosk.auto.growing_strategies`
+======================================
+
+.. py:module:: bosk.auto.growing_strategies
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.auto.growing_strategies.GrowingStrategy
+   bosk.auto.growing_strategies.DefaultGrowingStrategy
+   bosk.auto.growing_strategies.EarlyStoppingCV
+   bosk.auto.growing_strategies.EarlyStoppingVal
+
+
+
+
+.. py:class:: GrowingStrategy
+
+   Bases: :py:obj:`abc.ABC`
+
+   Growing strategy.
+
+   Determines the stopping criterion for a Deep Forest builder and how to trim the pipelines
+   after stopping.
+
+
+   .. py:method:: need_grow(pipeline, metrics, executor_cls, growing_state)
+      :abstractmethod:
+
+      Check if the pipeline needs to be grown further.
+
+      :param pipeline: The most recent pipeline to check.
+      :param metrics: Metrics evaluation results.
+      :param executor_cls: Executor class to use.
+      :param growing_state: Growing state that stores a context of the strategy.
+
+      :returns: True if the pipeline needs to be grown further.
+
+
+   .. py:method:: trim(pipelines, growing_state)
+
+      Trim the pipelines after stopping.
+
+      :param pipelines: The pipelines list to trim.
+      :param growing_state: Growing state that stores a context of the strategy.
+
+      :returns: Trimmed pipelines
+
+
+
+.. py:class:: DefaultGrowingStrategy
+
+   Bases: :py:obj:`GrowingStrategy`
+
+   Default growing strategy.
+
+   Never stops.
+
+
+   .. py:method:: need_grow(pipeline, metrics, executor_cls, growing_state)
+
+      Check if the pipeline needs to be grown further.
+
+      :param pipeline: The most recent pipeline to check.
+      :param metrics: Metrics evaluation results.
+      :param executor_cls: Executor class to use.
+      :param growing_state: Growing state that stores a context of the strategy.
+
+      :returns: True if the pipeline needs to be grown further.
+
+
+
+.. py:class:: EarlyStoppingCV(mode = 'all', patience = 1)
+
+   Bases: :py:obj:`GrowingStrategy`
+
+   Early stopping based on cross-validation metrics.
+
+   :param mode: Stop when **any** of the metrics is worse than the best metric or
+                **all* of the metrics are worse than the best metric.
+   :param patience: Number of epochs to wait before stopping.
+
+   .. py:method:: need_grow(pipeline, metrics, executor_cls, growing_state)
+
+      Check if the pipeline needs to be grown further.
+
+      :param pipeline: The most recent pipeline to check.
+      :param metrics: Metrics evaluation results.
+      :param executor_cls: Executor class to use.
+      :param growing_state: Growing state that stores a context of the strategy.
+
+      :returns: True if the pipeline needs to be grown further.
+
+
+   .. py:method:: trim(pipelines, growing_state)
+
+      Trim the last `count` pipelines.
+
+
+
+
+.. py:class:: EarlyStoppingVal(data, make_metrics_eval, **early_stopping_params)
+
+   Bases: :py:obj:`EarlyStoppingCV`
+
+   Early stopping based on validation metrics.
+
+   :param data: Data for validation.
+   :param make_metrics_eval: Function that returns a new `MetricsEvaluator`.
+   :param mode: Stop when **any** of the metrics is worse than the best metric or
+                **all* of the metrics are worse than the best metric.
+   :param patience: Number of epochs to wait before stopping.
+
+   .. py:method:: need_grow(pipeline, metrics, executor_cls, growing_state)
+
+      Check if the pipeline needs to be grown further.
+
+      :param pipeline: The most recent pipeline to check.
+      :param metrics: Metrics evaluation results.
+      :param executor_cls: Executor class to use.
+      :param growing_state: Growing state that stores a context of the strategy.
+
+      :returns: True if the pipeline needs to be grown further.
+
+
+   .. py:method:: trim(pipelines, growing_state)
+
+      Trim the last `count` pipelines.
+
+
+
+

@@ -1,0 +1,1090 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
+
+    <meta name="generator" content="sphinx-5.3.0, furo 2022.09.29"/>
+        <title>bosk.block.base - bosk 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../../index.html"><div class="brand">bosk 1.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../../index.html">
+  
+  
+  <span class="sidebar-brand-text">bosk 1.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
+  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting started</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../examples.html">Bosk usage examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../basic_examples.html">Basic bosk usage user guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../notebooks/basic_forest.html">Making basic deep forest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../notebooks/executor_basics.html">Executors usage guide</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../architectures.html">Deep Forest architectures examples</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../notebooks/basic_forest.html">Basic deep forest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../notebooks/conf_screening.html">Confidence screening</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../notebooks/mg_scanning.html">Multigrained scanning</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../advanced_api.html">Advanced bosk usage examples</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../notebooks/autoblock.html">Autoblock usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../notebooks/comparison_example.html">Models comparison</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../notebooks/sklearn_interface.html">Scikit-learn interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../notebooks/serializing.html">Serialization guide</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contribution.html">Contributing guidelines</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../../../index.html">API Reference</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk</span></code></a><input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../auto/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../auto/builders/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.builders</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../auto/deep_forest/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.deep_forest</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../auto/growing_strategies/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.growing_strategies</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../auto/layers/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.layers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../auto/metrics/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.metrics</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../auto/validation/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.validation</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 current has-children"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block</span></code></a><input checked="" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l4 has-children"><a class="reference internal" href="../repo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../repo/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo.base</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../repo/scope/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo.scope</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../repo/zoo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo.zoo</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../zoo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../zoo/data_conversion/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.data_conversion</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../zoo/data_weighting/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.data_weighting</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../zoo/debugging/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.debugging</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../zoo/gpu_blocks/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.gpu_blocks</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../zoo/input_plugs/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.input_plugs</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../zoo/metrics/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.metrics</span></code></a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../zoo/models/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l6 has-children"><a class="reference internal" href="../zoo/models/classification/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l7"><a class="reference internal" href="../zoo/models/classification/_jax_util/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification._jax_util</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="../zoo/models/classification/ferns/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification.ferns</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="../zoo/models/classification/jax/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification.jax</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="../zoo/models/classification/mgs_ferns/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification.mgs_ferns</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../zoo/models/regression/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.regression</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../zoo/multi_grained_scanning/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../zoo/multi_grained_scanning/_convolution_helpers/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning._convolution_helpers</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../zoo/multi_grained_scanning/_pooling_impl/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning._pooling_impl</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../zoo/multi_grained_scanning/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.base</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../zoo/multi_grained_scanning/mil/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.mil</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../zoo/multi_grained_scanning/multi_grained_scanning_1d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_1d</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../zoo/multi_grained_scanning/multi_grained_scanning_2d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_2d</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../zoo/multi_grained_scanning/multi_grained_scanning_nd/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_nd</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../zoo/multi_grained_scanning/pooling/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.pooling</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../zoo/output_plugs/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.output_plugs</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../zoo/preprocessing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.preprocessing</span></code></a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../zoo/routing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.routing</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../zoo/routing/cs/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.routing.cs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../zoo/routing/cv/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.routing.cv</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../auto/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.auto</span></code></a></li>
+<li class="toctree-l4 current current-page"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../functional/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.functional</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../meta/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.meta</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../comparison/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../comparison/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../comparison/cross_val/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison.cross_val</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../comparison/metric/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison.metric</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../executor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../executor/parallel/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../executor/parallel/dask/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.dask</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../executor/parallel/greedy/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.greedy</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../executor/parallel/networkx/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.networkx</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../executor/parallel/topsort/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.topsort</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../executor/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../executor/block/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.block</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../executor/recursive/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.recursive</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../executor/sklearn_interface/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.sklearn_interface</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../executor/timer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.timer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../executor/topological/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.topological</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../executor/utility/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.utility</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../painter/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../painter/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../painter/graphviz/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter.graphviz</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../painter/topological/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter.topological</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../pipeline/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../pipeline/builder/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.builder</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../pipeline/builder/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.builder.base</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../pipeline/builder/functional/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.builder.functional</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../pipeline/converter/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.converter</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../pipeline/converter/dask/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.converter.dask</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../pipeline/converter/nx/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.converter.nx</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../pipeline/serializer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../pipeline/serializer/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.base</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../pipeline/serializer/joblib/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.joblib</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../pipeline/serializer/onnx/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.onnx</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../pipeline/serializer/skops/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.skops</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../pipeline/serializer/zip/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.zip</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../pipeline/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../pipeline/connection/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.connection</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../pipeline/dynamic/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.dynamic</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../visitor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.visitor</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../visitor/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.visitor.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../visitor/group/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.visitor.group</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../data/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../exceptions/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.exceptions</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../stages/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.stages</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../utility/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.utility</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="module-bosk.block.base">
+<span id="bosk-block-base"></span><h1><a class="reference internal" href="#module-bosk.block.base" title="bosk.block.base"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.base</span></code></a><a class="headerlink" href="#module-bosk.block.base" title="Permalink to this heading">#</a></h1>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this heading">#</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this heading">#</a></h3>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#bosk.block.base.BaseSlot" title="bosk.block.base.BaseSlot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseSlot</span></code></a></p></td>
+<td><p>Base slot.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#bosk.block.base.BlockInputSlot" title="bosk.block.base.BlockInputSlot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockInputSlot</span></code></a></p></td>
+<td><p>Block input slot.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#bosk.block.base.BlockOutputSlot" title="bosk.block.base.BlockOutputSlot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockOutputSlot</span></code></a></p></td>
+<td><p>Block output slot.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#bosk.block.base.BlockGroup" title="bosk.block.base.BlockGroup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockGroup</span></code></a></p></td>
+<td><p>Block group is an assiciated collection of blocks.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#bosk.block.base.BlockSlots" title="bosk.block.base.BlockSlots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockSlots</span></code></a></p></td>
+<td><p>Collection of block input and output slots, as well as block groups.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#bosk.block.base.BaseBlock" title="bosk.block.base.BaseBlock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseBlock</span></code></a></p></td>
+<td><p>Base block, the parent of every computation block.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#bosk.block.base.BaseInputBlock" title="bosk.block.base.BaseInputBlock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseInputBlock</span></code></a></p></td>
+<td><p>Base input block. It is guaranteed that is has a single input and some name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#bosk.block.base.BaseOutputBlock" title="bosk.block.base.BaseOutputBlock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseOutputBlock</span></code></a></p></td>
+<td><p>Base output block. It is guaranteed that is has a single output and some name.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading">#</a></h3>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#bosk.block.base.BlockT" title="bosk.block.base.BlockT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockT</span></code></a></p></td>
+<td><p>Block generic typevar.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#bosk.block.base.SlotT" title="bosk.block.base.SlotT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SlotT</span></code></a></p></td>
+<td><p>Slot generic typevar.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#bosk.block.base.SlotMetaT" title="bosk.block.base.SlotMetaT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SlotMetaT</span></code></a></p></td>
+<td><p>Slot Meta generic typevar.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#bosk.block.base.BlockInputData" title="bosk.block.base.BlockInputData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockInputData</span></code></a></p></td>
+<td><p>Block input values container data type.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#bosk.block.base.TransformOutputData" title="bosk.block.base.TransformOutputData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransformOutputData</span></code></a></p></td>
+<td><p>Block transform output values container data type.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#bosk.block.base.BlockOutputData" title="bosk.block.base.BlockOutputData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockOutputData</span></code></a></p></td>
+<td><p>Block output values container data type.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py data">
+<dt class="sig sig-object py" id="bosk.block.base.BlockT">
+<span class="sig-prename descclassname"><span class="pre">bosk.block.base.</span></span><span class="sig-name descname"><span class="pre">BlockT</span></span><a class="headerlink" href="#bosk.block.base.BlockT" title="Permalink to this definition">#</a></dt>
+<dd><p>Block generic typevar.</p>
+<p>Required to constrain a block to return itself in <cite>fit(…)</cite>.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="bosk.block.base.SlotT">
+<span class="sig-prename descclassname"><span class="pre">bosk.block.base.</span></span><span class="sig-name descname"><span class="pre">SlotT</span></span><a class="headerlink" href="#bosk.block.base.SlotT" title="Permalink to this definition">#</a></dt>
+<dd><p>Slot generic typevar.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="bosk.block.base.SlotMetaT">
+<span class="sig-prename descclassname"><span class="pre">bosk.block.base.</span></span><span class="sig-name descname"><span class="pre">SlotMetaT</span></span><a class="headerlink" href="#bosk.block.base.SlotMetaT" title="Permalink to this definition">#</a></dt>
+<dd><p>Slot Meta generic typevar.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bosk.block.base.BaseSlot">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bosk.block.base.</span></span><span class="sig-name descname"><span class="pre">BaseSlot</span></span><a class="headerlink" href="#bosk.block.base.BaseSlot" title="Permalink to this definition">#</a></dt>
+<dd><p>Base slot.</p>
+<p>Slot is a named placeholder for data.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bosk.block.base.BaseSlot.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#bosk.block.base.BaseSlot.name" title="Permalink to this definition">#</a></dt>
+<dd><p>Slot name.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bosk.block.base.BaseSlot.stages">
+<span class="sig-name descname"><span class="pre">stages</span></span><a class="headerlink" href="#bosk.block.base.BaseSlot.stages" title="Permalink to this definition">#</a></dt>
+<dd><p>At which stages slot value is needed.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bosk.block.base.BaseSlot.debug_info">
+<span class="sig-name descname"><span class="pre">debug_info</span></span><a class="headerlink" href="#bosk.block.base.BaseSlot.debug_info" title="Permalink to this definition">#</a></dt>
+<dd><p>Debugging info.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bosk.block.base.BaseSlot.meta">
+<span class="sig-name descname"><span class="pre">meta</span></span><em class="property"><span class="w"> </span><span class="pre">:bosk.block.meta.BaseSlotMeta</span></em><a class="headerlink" href="#bosk.block.base.BaseSlot.meta" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bosk.block.base.BaseSlot.parent_block">
+<span class="sig-name descname"><span class="pre">parent_block</span></span><em class="property"><span class="w"> </span><span class="pre">:BaseBlock</span></em><a class="headerlink" href="#bosk.block.base.BaseSlot.parent_block" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">debug_info</span></span><em class="property"><span class="w"> </span><span class="pre">:str</span> <span class="pre">=</span></em><a class="headerlink" href="#id0" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BaseSlot.__hash__">
+<span class="sig-name descname"><span class="pre">__hash__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BaseSlot.__hash__" title="Permalink to this definition">#</a></dt>
+<dd><p>Return hash(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BaseSlot.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BaseSlot.__repr__" title="Permalink to this definition">#</a></dt>
+<dd><p>Return repr(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bosk.block.base.BlockInputSlot">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bosk.block.base.</span></span><span class="sig-name descname"><span class="pre">BlockInputSlot</span></span><a class="headerlink" href="#bosk.block.base.BlockInputSlot" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bosk.block.base.BaseSlot" title="bosk.block.base.BaseSlot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseSlot</span></code></a></p>
+<p>Block input slot.</p>
+<p>Contains the information required for the input data processing, and input-output matching.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bosk.block.base.BlockInputSlot.meta">
+<span class="sig-name descname"><span class="pre">meta</span></span><em class="property"><span class="w"> </span><span class="pre">:bosk.block.meta.InputSlotMeta</span></em><a class="headerlink" href="#bosk.block.base.BlockInputSlot.meta" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bosk.block.base.BlockOutputSlot">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bosk.block.base.</span></span><span class="sig-name descname"><span class="pre">BlockOutputSlot</span></span><a class="headerlink" href="#bosk.block.base.BlockOutputSlot" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bosk.block.base.BaseSlot" title="bosk.block.base.BaseSlot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseSlot</span></code></a></p>
+<p>Block output slot.</p>
+<p>Contains the information about the output data for input-output matching.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bosk.block.base.BlockOutputSlot.meta">
+<span class="sig-name descname"><span class="pre">meta</span></span><em class="property"><span class="w"> </span><span class="pre">:bosk.block.meta.OutputSlotMeta</span></em><a class="headerlink" href="#bosk.block.base.BlockOutputSlot.meta" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bosk.block.base.BlockGroup">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bosk.block.base.</span></span><span class="sig-name descname"><span class="pre">BlockGroup</span></span><a class="headerlink" href="#bosk.block.base.BlockGroup" title="Permalink to this definition">#</a></dt>
+<dd><p>Block group is an assiciated collection of blocks.</p>
+<p>Practically, each block has collection of groups to which the block belongs.</p>
+<p>Block groups can be used to express that some blocks belong to the same Deep Forest layer,
+and it helps to draw more understandable pipeline diagrams.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bosk.block.base.BlockGroup.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="pre">:str</span></em><a class="headerlink" href="#bosk.block.base.BlockGroup.name" title="Permalink to this definition">#</a></dt>
+<dd><p>Block group name.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BlockGroup.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BlockGroup.add" title="Permalink to this definition">#</a></dt>
+<dd><p>Add the block to the group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>block</strong> (<em>BlockT</em>) – Block to add.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BlockGroup.remove">
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BlockGroup.remove" title="Permalink to this definition">#</a></dt>
+<dd><p>Remove the block from the group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>block</strong> (<em>BlockT</em>) – Block to remove.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BlockGroup.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BlockGroup.__repr__" title="Permalink to this definition">#</a></dt>
+<dd><p>Return repr(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bosk.block.base.BlockSlots">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bosk.block.base.</span></span><span class="sig-name descname"><span class="pre">BlockSlots</span></span><a class="headerlink" href="#bosk.block.base.BlockSlots" title="Permalink to this definition">#</a></dt>
+<dd><p>Collection of block input and output slots, as well as block groups.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bosk.block.base.BlockSlots.inputs">
+<span class="sig-name descname"><span class="pre">inputs</span></span><a class="headerlink" href="#bosk.block.base.BlockSlots.inputs" title="Permalink to this definition">#</a></dt>
+<dd><p>Input slots.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bosk.block.base.BlockSlots.outputs">
+<span class="sig-name descname"><span class="pre">outputs</span></span><a class="headerlink" href="#bosk.block.base.BlockSlots.outputs" title="Permalink to this definition">#</a></dt>
+<dd><p>Output slots.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bosk.block.base.BlockSlots.groups">
+<span class="sig-name descname"><span class="pre">groups</span></span><a class="headerlink" href="#bosk.block.base.BlockSlots.groups" title="Permalink to this definition">#</a></dt>
+<dd><p>Block groups.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">inputs</span></span><em class="property"><span class="w"> </span><span class="pre">:Mapping[str,</span> <span class="pre">BlockInputSlot]</span></em><a class="headerlink" href="#id1" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">outputs</span></span><em class="property"><span class="w"> </span><span class="pre">:Mapping[str,</span> <span class="pre">BlockOutputSlot]</span></em><a class="headerlink" href="#id2" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">groups</span></span><em class="property"><span class="w"> </span><span class="pre">:Set[BlockGroup]</span></em><a class="headerlink" href="#id3" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="bosk.block.base.BlockInputData">
+<span class="sig-prename descclassname"><span class="pre">bosk.block.base.</span></span><span class="sig-name descname"><span class="pre">BlockInputData</span></span><a class="headerlink" href="#bosk.block.base.BlockInputData" title="Permalink to this definition">#</a></dt>
+<dd><p>Block input values container data type.</p>
+<p>It is indexed by input slot names.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="bosk.block.base.TransformOutputData">
+<span class="sig-prename descclassname"><span class="pre">bosk.block.base.</span></span><span class="sig-name descname"><span class="pre">TransformOutputData</span></span><a class="headerlink" href="#bosk.block.base.TransformOutputData" title="Permalink to this definition">#</a></dt>
+<dd><p>Block transform output values container data type.</p>
+<p>It is indexed by output slot names.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="bosk.block.base.BlockOutputData">
+<span class="sig-prename descclassname"><span class="pre">bosk.block.base.</span></span><span class="sig-name descname"><span class="pre">BlockOutputData</span></span><a class="headerlink" href="#bosk.block.base.BlockOutputData" title="Permalink to this definition">#</a></dt>
+<dd><p>Block output values container data type.</p>
+<p>It is indexed by output slots, not their names.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bosk.block.base.BaseBlock">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bosk.block.base.</span></span><span class="sig-name descname"><span class="pre">BaseBlock</span></span><a class="headerlink" href="#bosk.block.base.BaseBlock" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Base block, the parent of every computation block.</p>
+<p>Block has meta information, that defines the inputs and outputs as well as block execution properties,
+and slots which are unique for each block instance and can be used to connect different
+block between each other.</p>
+<p>Main block methods are: <cite>fit(…)</cite> and <cite>transform(…)</cite>.
+Both accept dictionaries as input, <cite>transform(…)</cite> returns a dictionary with output data.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bosk.block.base.BaseBlock.meta">
+<span class="sig-name descname"><span class="pre">meta</span></span><a class="headerlink" href="#bosk.block.base.BaseBlock.meta" title="Permalink to this definition">#</a></dt>
+<dd><p>Meta information of the block.
+May be shaped between different blocks.
+If the meta information cannot be specified at the class definition step,
+<code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicBlockMetaStub</span></code> should be used as a stub, and
+then redefined at the initialization step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../meta/index.html#bosk.block.meta.BlockMeta" title="bosk.block.meta.BlockMeta">bosk.block.meta.BlockMeta</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bosk.block.base.BaseBlock.slots">
+<span class="sig-name descname"><span class="pre">slots</span></span><a class="headerlink" href="#bosk.block.base.BaseBlock.slots" title="Permalink to this definition">#</a></dt>
+<dd><p>Block slots of type <a class="reference internal" href="#bosk.block.base.BlockSlots" title="bosk.block.base.BlockSlots"><code class="xref py py-class docutils literal notranslate"><span class="pre">BlockSlots</span></code></a>, made dynamically at the initialization.
+Slots are unique for the block instance.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id4">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">meta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../meta/index.html#bosk.block.meta.BlockMeta" title="bosk.block.meta.BlockMeta"><span class="pre">bosk.block.meta.BlockMeta</span></a></em><a class="headerlink" href="#id4" title="Permalink to this definition">#</a></dt>
+<dd><p>Meta information property getter.</p>
+<p>Children classes must specify meta.
+It can be implemented as an attribute without redefining a property, for example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">StubBlock</span><span class="p">(</span><span class="n">BaseBlock</span><span class="p">):</span>
+    <span class="n">meta</span> <span class="o">=</span> <span class="n">BlockMeta</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../meta/index.html#bosk.block.meta.BlockMeta" title="bosk.block.meta.BlockMeta">bosk.block.meta.BlockMeta</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="bosk.block.base.BaseBlock.default_output">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">default_output</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bosk.block.base.BaseBlock.default_output" title="Permalink to this definition">#</a></dt>
+<dd><p>Get default output name.</p>
+<p>If the block has a single output, it will be used as a default.
+Otherwise, the block can override this property to set a specific default output.
+If the block can’t have a single default output (its outputs have equal importance),
+this method should return <cite>None</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BaseBlock._make_slots">
+<span class="sig-name descname"><span class="pre">_make_slots</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BaseBlock._make_slots" title="Permalink to this definition">#</a></dt>
+<dd><p>Make slots</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BaseBlock.fit">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BaseBlock.fit" title="Permalink to this definition">#</a></dt>
+<dd><p>Fit the block on the given input data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>inputs</strong> (<em>BlockInputData</em>) – Block input data for the fitting stage.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Self.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>BlockT</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BaseBlock.transform">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BaseBlock.transform" title="Permalink to this definition">#</a></dt>
+<dd><p>Transform the given input data, i.e. compute values for each output slot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>inputs</strong> (<em>BlockInputData</em>) – Block input data for the transforming stage.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Outputs calculated for the given inputs.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>TransformOutputData</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BaseBlock.wrap">
+<span class="sig-name descname"><span class="pre">wrap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BaseBlock.wrap" title="Permalink to this definition">#</a></dt>
+<dd><p>Wrap outputs dictionary into <code class="docutils literal notranslate"><span class="pre">BlockOutputs</span></code> object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>output_values</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="../../data/index.html#bosk.data.BaseData" title="bosk.data.BaseData"><em>bosk.data.BaseData</em></a><em>]</em>) – Dictionary of values indexed by slot names.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Block outputs object indexed by slots.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>BlockOutputData</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BaseBlock.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BaseBlock.__repr__" title="Permalink to this definition">#</a></dt>
+<dd><p>Return repr(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BaseBlock.accept">
+<span class="sig-name descname"><span class="pre">accept</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">visitor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BaseBlock.accept" title="Permalink to this definition">#</a></dt>
+<dd><p>Accept the visitor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>visitor</strong> (<a class="reference internal" href="../../visitor/base/index.html#bosk.visitor.base.BaseVisitor" title="bosk.visitor.base.BaseVisitor"><em>bosk.visitor.base.BaseVisitor</em></a>) – The visitor which can visit blocks.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BaseBlock.set_random_state">
+<span class="sig-name descname"><span class="pre">set_random_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BaseBlock.set_random_state" title="Permalink to this definition">#</a></dt>
+<dd><p>Set random seed for the block using numpy
+random generator or integer value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em> | </em><em>Generator</em><em>]</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BaseBlock.get_default_output">
+<span class="sig-name descname"><span class="pre">get_default_output</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BaseBlock.get_default_output" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the default block output slot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The block output slot.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#bosk.block.base.BlockOutputSlot" title="bosk.block.base.BlockOutputSlot">BlockOutputSlot</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bosk.block.base.BaseInputBlock">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bosk.block.base.</span></span><span class="sig-name descname"><span class="pre">BaseInputBlock</span></span><a class="headerlink" href="#bosk.block.base.BaseInputBlock" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bosk.block.base.BaseBlock" title="bosk.block.base.BaseBlock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseBlock</span></code></a></p>
+<p>Base input block. It is guaranteed that is has a single input and some name.</p>
+<p>An input block can help to automatically determine pipeline inputs.
+The name can be None, in this case the block is not considered as one of pipeline inputs.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="bosk.block.base.BaseInputBlock.name">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bosk.block.base.BaseInputBlock.name" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the input name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The block instance name.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BaseInputBlock._make_slots">
+<span class="sig-name descname"><span class="pre">_make_slots</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BaseInputBlock._make_slots" title="Permalink to this definition">#</a></dt>
+<dd><p>Make slots</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BaseInputBlock.get_single_input">
+<span class="sig-name descname"><span class="pre">get_single_input</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BaseInputBlock.get_single_input" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the single block input slot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The block input slot.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#bosk.block.base.BlockInputSlot" title="bosk.block.base.BlockInputSlot">BlockInputSlot</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bosk.block.base.BaseOutputBlock">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bosk.block.base.</span></span><span class="sig-name descname"><span class="pre">BaseOutputBlock</span></span><a class="headerlink" href="#bosk.block.base.BaseOutputBlock" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bosk.block.base.BaseBlock" title="bosk.block.base.BaseBlock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseBlock</span></code></a></p>
+<p>Base output block. It is guaranteed that is has a single output and some name.</p>
+<p>An output block can help to automatically determine pipeline outputs.
+The name can be None, in this case the block is not considered as one of pipeline outputs.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="bosk.block.base.BaseOutputBlock.name">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bosk.block.base.BaseOutputBlock.name" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the input name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The block instance name or None if the block does not have name.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BaseOutputBlock._make_slots">
+<span class="sig-name descname"><span class="pre">_make_slots</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BaseOutputBlock._make_slots" title="Permalink to this definition">#</a></dt>
+<dd><p>Make slots</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosk.block.base.BaseOutputBlock.get_single_output">
+<span class="sig-name descname"><span class="pre">get_single_output</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bosk.block.base.BaseOutputBlock.get_single_output" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the single block output slot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The block output slot.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#bosk.block.base.BlockOutputSlot" title="bosk.block.base.BlockOutputSlot">BlockOutputSlot</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022-2023, NTAILab
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.base</span></code></a><ul>
+<li><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+<li><a class="reference internal" href="#attributes">Attributes</a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BlockT"><code class="docutils literal notranslate"><span class="pre">BlockT</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.SlotT"><code class="docutils literal notranslate"><span class="pre">SlotT</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.SlotMetaT"><code class="docutils literal notranslate"><span class="pre">SlotMetaT</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot"><code class="docutils literal notranslate"><span class="pre">BaseSlot</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot.name"><code class="docutils literal notranslate"><span class="pre">BaseSlot.name</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot.stages"><code class="docutils literal notranslate"><span class="pre">BaseSlot.stages</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot.debug_info"><code class="docutils literal notranslate"><span class="pre">BaseSlot.debug_info</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot.meta"><code class="docutils literal notranslate"><span class="pre">BaseSlot.meta</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot.parent_block"><code class="docutils literal notranslate"><span class="pre">BaseSlot.parent_block</span></code></a></li>
+<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">BaseSlot.debug_info</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot.__hash__"><code class="docutils literal notranslate"><span class="pre">BaseSlot.__hash__()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot.__repr__"><code class="docutils literal notranslate"><span class="pre">BaseSlot.__repr__()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.block.base.BlockInputSlot"><code class="docutils literal notranslate"><span class="pre">BlockInputSlot</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BlockInputSlot.meta"><code class="docutils literal notranslate"><span class="pre">BlockInputSlot.meta</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.block.base.BlockOutputSlot"><code class="docutils literal notranslate"><span class="pre">BlockOutputSlot</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BlockOutputSlot.meta"><code class="docutils literal notranslate"><span class="pre">BlockOutputSlot.meta</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.block.base.BlockGroup"><code class="docutils literal notranslate"><span class="pre">BlockGroup</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BlockGroup.name"><code class="docutils literal notranslate"><span class="pre">BlockGroup.name</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BlockGroup.add"><code class="docutils literal notranslate"><span class="pre">BlockGroup.add()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BlockGroup.remove"><code class="docutils literal notranslate"><span class="pre">BlockGroup.remove()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BlockGroup.__repr__"><code class="docutils literal notranslate"><span class="pre">BlockGroup.__repr__()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.block.base.BlockSlots"><code class="docutils literal notranslate"><span class="pre">BlockSlots</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BlockSlots.inputs"><code class="docutils literal notranslate"><span class="pre">BlockSlots.inputs</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BlockSlots.outputs"><code class="docutils literal notranslate"><span class="pre">BlockSlots.outputs</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BlockSlots.groups"><code class="docutils literal notranslate"><span class="pre">BlockSlots.groups</span></code></a></li>
+<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">BlockSlots.inputs</span></code></a></li>
+<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">BlockSlots.outputs</span></code></a></li>
+<li><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">BlockSlots.groups</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.block.base.BlockInputData"><code class="docutils literal notranslate"><span class="pre">BlockInputData</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.TransformOutputData"><code class="docutils literal notranslate"><span class="pre">TransformOutputData</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BlockOutputData"><code class="docutils literal notranslate"><span class="pre">BlockOutputData</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock"><code class="docutils literal notranslate"><span class="pre">BaseBlock</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.meta"><code class="docutils literal notranslate"><span class="pre">BaseBlock.meta</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.slots"><code class="docutils literal notranslate"><span class="pre">BaseBlock.slots</span></code></a></li>
+<li><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">BaseBlock.meta</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.default_output"><code class="docutils literal notranslate"><span class="pre">BaseBlock.default_output</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock._make_slots"><code class="docutils literal notranslate"><span class="pre">BaseBlock._make_slots()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.fit"><code class="docutils literal notranslate"><span class="pre">BaseBlock.fit()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.transform"><code class="docutils literal notranslate"><span class="pre">BaseBlock.transform()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.wrap"><code class="docutils literal notranslate"><span class="pre">BaseBlock.wrap()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.__repr__"><code class="docutils literal notranslate"><span class="pre">BaseBlock.__repr__()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.accept"><code class="docutils literal notranslate"><span class="pre">BaseBlock.accept()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.set_random_state"><code class="docutils literal notranslate"><span class="pre">BaseBlock.set_random_state()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.get_default_output"><code class="docutils literal notranslate"><span class="pre">BaseBlock.get_default_output()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.block.base.BaseInputBlock"><code class="docutils literal notranslate"><span class="pre">BaseInputBlock</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BaseInputBlock.name"><code class="docutils literal notranslate"><span class="pre">BaseInputBlock.name</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseInputBlock._make_slots"><code class="docutils literal notranslate"><span class="pre">BaseInputBlock._make_slots()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseInputBlock.get_single_input"><code class="docutils literal notranslate"><span class="pre">BaseInputBlock.get_single_input()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.block.base.BaseOutputBlock"><code class="docutils literal notranslate"><span class="pre">BaseOutputBlock</span></code></a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BaseOutputBlock.name"><code class="docutils literal notranslate"><span class="pre">BaseOutputBlock.name</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseOutputBlock._make_slots"><code class="docutils literal notranslate"><span class="pre">BaseOutputBlock._make_slots()</span></code></a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseOutputBlock.get_single_output"><code class="docutils literal notranslate"><span class="pre">BaseOutputBlock.get_single_output()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.block.base.BlockT">BlockT</a></li>
+<li><a class="reference internal" href="#bosk.block.base.SlotT">SlotT</a></li>
+<li><a class="reference internal" href="#bosk.block.base.SlotMetaT">SlotMetaT</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot">BaseSlot</a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot.name">name</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot.stages">stages</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot.debug_info">debug_info</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot.meta">meta</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot.parent_block">parent_block</a></li>
+<li><a class="reference internal" href="#id0">debug_info</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot.__hash__">__hash__</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseSlot.__repr__">__repr__</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.block.base.BlockInputSlot">BlockInputSlot</a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BlockInputSlot.meta">meta</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.block.base.BlockOutputSlot">BlockOutputSlot</a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BlockOutputSlot.meta">meta</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.block.base.BlockGroup">BlockGroup</a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BlockGroup.name">name</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BlockGroup.add">add</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BlockGroup.remove">remove</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BlockGroup.__repr__">__repr__</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.block.base.BlockSlots">BlockSlots</a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BlockSlots.inputs">inputs</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BlockSlots.outputs">outputs</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BlockSlots.groups">groups</a></li>
+<li><a class="reference internal" href="#id1">inputs</a></li>
+<li><a class="reference internal" href="#id2">outputs</a></li>
+<li><a class="reference internal" href="#id3">groups</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.block.base.BlockInputData">BlockInputData</a></li>
+<li><a class="reference internal" href="#bosk.block.base.TransformOutputData">TransformOutputData</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BlockOutputData">BlockOutputData</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock">BaseBlock</a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.meta">meta</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.slots">slots</a></li>
+<li><a class="reference internal" href="#id4">meta</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.default_output">default_output</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock._make_slots">_make_slots</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.fit">fit</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.transform">transform</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.wrap">wrap</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.__repr__">__repr__</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.accept">accept</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.set_random_state">set_random_state</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseBlock.get_default_output">get_default_output</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.block.base.BaseInputBlock">BaseInputBlock</a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BaseInputBlock.name">name</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseInputBlock._make_slots">_make_slots</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseInputBlock.get_single_input">get_single_input</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bosk.block.base.BaseOutputBlock">BaseOutputBlock</a><ul>
+<li><a class="reference internal" href="#bosk.block.base.BaseOutputBlock.name">name</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseOutputBlock._make_slots">_make_slots</a></li>
+<li><a class="reference internal" href="#bosk.block.base.BaseOutputBlock.get_single_output">get_single_output</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../../_static/scripts/furo.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

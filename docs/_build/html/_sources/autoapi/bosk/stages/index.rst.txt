@@ -1,0 +1,82 @@
+:py:mod:`bosk.stages`
+=====================
+
+.. py:module:: bosk.stages
+
+.. autoapi-nested-parse::
+
+   Pipeline execution stages.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.stages.Stage
+   bosk.stages.Stages
+
+
+
+
+.. py:class:: Stage
+
+   Bases: :py:obj:`enum.Enum`
+
+   Stage of pipeline execution: `FIT` or `TRANSFORM`.
+
+   At the `FIT` stage the blocks are fitted to the data given by preceding blocks
+   and then applied to transform the given data (predict).
+
+   At the `TRANSFORM` stage the blocks are only used to transform
+   the given by preceding blocks data.
+
+
+   .. py:attribute:: FIT
+      
+
+      
+
+   .. py:attribute:: TRANSFORM
+      
+
+      
+
+
+.. py:class:: Stages
+
+   At which stages of pipeline execution slot value is required
+   and should be passed to the block.
+
+   .. attribute:: fit
+
+      Slot value is needed for the fit method.
+
+   .. attribute:: transform
+
+      Slot value is needed for the transform method.
+
+   .. attribute:: transform_on_fit
+
+      Slot value is needed for the transform method only at the `FIT` stage.
+
+   .. py:attribute:: fit
+      :annotation: :bool = True
+
+      
+
+   .. py:attribute:: transform
+      :annotation: :bool = True
+
+      
+
+   .. py:attribute:: transform_on_fit
+      :annotation: :bool = False
+
+      
+
+

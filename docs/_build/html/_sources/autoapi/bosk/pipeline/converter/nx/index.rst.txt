@@ -1,0 +1,49 @@
+:py:mod:`bosk.pipeline.converter.nx`
+====================================
+
+.. py:module:: bosk.pipeline.converter.nx
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.pipeline.converter.nx.NetworkXConverter
+
+
+
+
+.. py:class:: NetworkXConverter
+
+   .. py:class:: Visitor(graph)
+
+      Bases: :py:obj:`bosk.visitor.base.BaseVisitor`
+
+      Base Visitor interface.
+
+      Visitor can be used to process any entity of a computational pipeline,
+      such as: block, connection, or even the whole pipeline.
+
+      It is important to implement dispatching for all entity types or
+      to make some default method which will not raise ``NotImplementedError``
+      for unknown entity types.
+
+
+      .. py:method:: visit(obj)
+
+
+      .. py:method:: _(block)
+
+
+      .. py:method:: _(connection)
+
+
+
+   .. py:method:: __call__(pipeline)
+
+
+

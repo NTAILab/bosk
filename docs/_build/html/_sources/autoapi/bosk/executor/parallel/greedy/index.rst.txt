@@ -1,0 +1,274 @@
+:py:mod:`bosk.executor.parallel.greedy`
+=======================================
+
+.. py:module:: bosk.executor.parallel.greedy
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.executor.parallel.greedy.ParallelEngine
+   bosk.executor.parallel.greedy.JoblibParallelEngine
+   bosk.executor.parallel.greedy.MultiprocessingParallelEngine
+   bosk.executor.parallel.greedy.GreedyParallelExecutor
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.executor.parallel.greedy.ResultT
+
+
+.. py:data:: ResultT
+   
+
+   Execution result generic typevar.
+
+   Required to constrain `ParallelEngine.Instance.staramap` result.
+
+.. py:class:: ParallelEngine
+
+   Bases: :py:obj:`abc.ABC`
+
+   Parallel execution engine interface.
+
+   Implements a context manager interface, returning execution engine instance.
+
+
+   .. py:class:: Instance
+
+      Bases: :py:obj:`abc.ABC`
+
+      Execution engine instance interface.
+
+      Can somehow execute :func:`starmap` function in parallel.
+
+
+      .. py:method:: starmap(func, iterable)
+         :abstractmethod:
+
+
+
+   .. py:method:: __enter__()
+      :abstractmethod:
+
+
+   .. py:method:: __exit__(_type, _value, _traceback)
+      :abstractmethod:
+
+
+
+.. py:class:: JoblibParallelEngine(n_threads = -1, backend = None, prefer = 'threads')
+
+   Bases: :py:obj:`ParallelEngine`
+
+   Joblib-based Parallel Engine.
+
+   :param n_threads: Number of threads.
+   :param backend: Joblib backend to use.
+   :param prefer: Soft hint what to prefer (threads or processes).
+
+   .. py:class:: JoblibInstance(parallel)
+
+      Bases: :py:obj:`ParallelEngine`
+
+      Execution engine instance interface.
+
+      Can somehow execute :func:`starmap` function in parallel.
+
+
+      .. py:method:: starmap(func, iterable)
+
+
+
+   .. py:method:: __enter__()
+
+
+   .. py:method:: __exit__(_type, _value, _traceback)
+
+
+
+.. py:class:: MultiprocessingParallelEngine(n_threads = None)
+
+   Bases: :py:obj:`ParallelEngine`
+
+   Multiprocessing-based thread pool execution engine.
+
+   :param n_threads: Number of threads.
+
+   .. py:class:: MPInstance(pool)
+
+      Bases: :py:obj:`ParallelEngine`
+
+      Execution engine instance interface.
+
+      Can somehow execute :func:`starmap` function in parallel.
+
+
+      .. py:method:: starmap(func, iterable)
+
+
+
+   .. py:method:: __enter__()
+
+
+   .. py:method:: __exit__(_type, _value, _traceback)
+
+
+
+.. py:class:: GreedyParallelExecutor(pipeline, stage, inputs = None, outputs = None, slot_handler = None, block_executor = None, parallel_engine = MultiprocessingParallelEngine())
+
+   Bases: :py:obj:`bosk.executor.base.BaseExecutor`
+
+   The recursive executor implementation.
+
+   Considers only input-output slots information to match slots.
+
+   .. attribute:: _conn_map
+
+      Pipeline connections, represented as a hash map, the keys are blocks' input slots,
+      the values are output ones. Each input slot corresponds no more than one
+      output slot, so this representation is correct.
+
+   :param pipeline: Sets :attr:`.BaseExecutor.__pipeline`.
+   :param stage: Sets :attr:`.BaseExecutor.__stage`,
+   :param inputs: Sets :attr:`.BaseExecutor.__inputs`.
+   :param outputs: Sets :attr:`.BaseExecutor.__outputs`.
+   :param slot_handler: Sets :attr:`.BaseExecutor.__slot_handler` with `_prepare_slot_handler` method.
+   :param block_executor: Sets :attr:`.BaseExecutor.__block_executor` with `_prepare_block_executor` method.
+
+   .. py:property:: outputs
+      :type: Optional[frozenset[str]]
+
+      Getter for the executor's ouputs set. `None` if there are
+      no restrictions on the pipeline's outputs.
+
+   .. py:attribute:: _conn_map
+      :annotation: :Mapping[bosk.block.base.BlockInputSlot, bosk.block.base.BlockOutputSlot]
+
+      
+
+   .. py:method:: _prepare_out_to_in_edges()
+
+      Prepare the mapping from output slots to list of input slots.
+
+      :returns: Dictionary with output slots as keys,
+                lists of the corresponding input slots as values.
+
+
+   .. py:method:: _get_blocks(output_slots)
+
+      Get all blocks that should be executed.
+
+      :param output_slots: Set of output slots.
+
+      :returns: Set of the pipeline blocks.
+
+
+   .. py:method:: _prepare_inputs_by_block()
+
+      Prepare the mapping from blocks to their inputs.
+
+      :returns: Dictionary with blocks as keys,
+                sets of the corresponding input slots as values.
+
+
+   .. py:method:: _prepare_inputs(block, input_slot_values)
+
+      Prepare the mapping of inputs needed for the block.
+
+      :param block: The block for which input values are needed.
+      :param input_slot_values: Mapping from input slots to the corresponding data.
+
+      :returns: Mapping from input slots to the corresponding data for the given block.
+
+
+   .. py:method:: _compute_all_plain(blocks, computed_values)
+
+      Filter plain blocks and compute them.
+
+      It is assumed that plain block execution is computationally effortless.
+
+      :param blocks: Blocks that potentially can be computed (not necessarily plain).
+
+      :returns: Mapping from `BlockOutputSlot` to `Data`.
+
+
+   .. py:method:: _compute_all_parallel(blocks, computed_values, parallel)
+
+      Filter blocks that can be computed in parallel and compute them.
+
+      :param blocks: All blocks that potentially can be computed.
+
+      :returns: Mapping from `BlockOutputSlot` to `Data`.
+
+
+   .. py:method:: _compute_all_non_threadsafe(blocks, computed_values)
+
+      Filter blocks that are not plain and cannot be computed in parallel, and compute them.
+
+      :param blocks: All blocks that potentially can be computed.
+
+      :returns: Mapping from `BlockOutputSlot` to `Data`.
+
+
+   .. py:method:: _clean_unnecessary_data(computed_values, remaining_blocks)
+
+      Remove the intermediate data (execution results) that will not be required in the future.
+
+      :param computed_values: Dictionary of already computed values.
+      :param remaining_blocks: Set of blocks that should be computed in the next steps.
+
+      Returns:
+
+
+
+   .. py:method:: _find_ready_blocks(computed_values, remaining_blocks)
+
+      Find the blocks for which required inputs are already computed.
+
+      :param computed_values: Mapping from input slots to the corresponding computed data.
+      :param remaining_blocks: Set of blocks which haven't been computed yet.
+
+      :returns: List of blocks which are ready to be computed.
+
+
+   .. py:method:: __append_outputs(output_values, computed_values, output_slots, new_outputs)
+
+      Append newly computed outputs.
+
+      :param output_values: Final output values (will be modified).
+      :param computed_values: Computed values required for following blocks computation (will be modified).
+      :param output_slots: Set of output slots.
+      :param new_outputs: Newly computed outputs.
+
+
+   .. py:method:: __execute_with_parallel(input_values, parallel)
+
+      Pipeline execution with given parallel engine instance.
+
+      :param input_values: Input values data mapping.
+      :param parallel: Parallel engine instance.
+
+      :returns: Dictionary with output slots as keys and computed data as values.
+
+
+   .. py:method:: execute(input_values)
+
+      Executes the pipeline given `BaseData` inputs and return `BaseData` output values.
+
+      :param input_values: Input data.
+
+      :returns: Calculated output data dictionary that maps output names to the data.
+
+
+

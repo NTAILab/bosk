@@ -1,0 +1,88 @@
+:py:mod:`bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_nd`
+=========================================================================
+
+.. py:module:: bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_nd
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_nd.MultiGrainedScanningNDBlock
+
+
+
+
+.. py:class:: MultiGrainedScanningNDBlock(model, kernel_size = 3, stride = None, dilation = 1, padding = None, chunk_size = -1)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   N-dimensional Multi Grained Scanning Block.
+
+   Main use case is to process data with spatial dimensions, like images and sequences.
+
+   It takes `X` of shape `(n_samples, n_channels, n_features_1, ..., n_features_k)`
+   as an input and returns the tensor of shape `(n_samples, n_channels, t_1, ..., t_k)`.
+
+   :param model: A fit-transform base model.
+   :param kernel_size: Kernel size (int or tuple).
+   :param stride: Stride.
+   :param dilation: Dilation (kernel stride).
+   :param padding: Padding size (see `numpy.pad`);
+                   if None padding is disabled.
+   :param chunk_size: Chunk size. Affects performance.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - X: Data tensor of shape `(n_samples, n_channels, n_features_1,..., n_features_k)`.
+       - y: Target variable values of shape `(n_samples, [n_outputs])`.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Data tensor of shape `(n_samples, n_channels, n_features_1,..., n_features_k)`.
+
+   Output slots
+   ------------
+
+       - output: Prediction tensor of shape `(n_samples, n_out_channels, out_n_features_1,..., out_n_features_k)`.
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:method:: fit(inputs)
+
+      Fit the block on the given input data.
+
+      :param inputs: Block input data for the fitting stage.
+
+      :returns: Self.
+
+
+   .. py:method:: __prepare_pooling_indices(xs_shape)
+
+
+   .. py:method:: _model_transform(sliced)
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+

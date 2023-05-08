@@ -1,0 +1,40 @@
+:py:mod:`bosk.block.repo.base`
+==============================
+
+.. py:module:: bosk.block.repo.base
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.repo.base.BaseBlockClassRepository
+
+
+
+
+.. py:class:: BaseBlockClassRepository
+
+   Bases: :py:obj:`abc.ABC`
+
+   Base block class repository, the parent of every block class repo.
+
+   It can be used to get block classes by name,
+   for example in pipeline builders.
+
+
+   .. py:method:: get(name)
+      :abstractmethod:
+
+      Get block class by name.
+
+      :param name: Block name.
+
+      :returns: Demanded block class.
+
+
+

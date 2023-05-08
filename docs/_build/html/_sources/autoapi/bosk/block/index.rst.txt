@@ -1,0 +1,481 @@
+:py:mod:`bosk.block`
+====================
+
+.. py:module:: bosk.block
+
+.. autoapi-nested-parse::
+
+   Blocks are an essential part of a pipeline (:py:class:`bosk.pipeline.BasePipeline`).
+
+   Any block can be fitted on some data and then used to transform the data.
+
+   Blocks may have different number of inputs and outputs.
+   Information about inputs, outputs and other block properties
+   is stored in :py:class:`bosk.block.meta.BlockMeta`.
+   The meta information may be shared between different instances of the same block class.
+   Each input is described by a :py:class:`bosk.block.meta.InputSlotMeta` and
+   each output is described by a :py:class:`bosk.block.meta.OutputSlotMeta`.
+
+   To connect blocks to each other, every block has `slots`:
+   :py:class:`BlockInputSlot` and :py:class:`BlockOutputSlot`,
+   which correspond to meta information. But the slots are unique for each block (i.e. block class instance).
+
+   Every block class should be derived from :py:class:`bosk.block.base.BaseBlock`,
+   define meta information and implement the :py:meth:`fit` and :py:meth:`transform` methods.
+
+   *Note*, that block prediction is always performed with the :py:meth:`transform` method, not with "predict"
+   or something else.
+
+   List of available blocks can be found in the :py:mod:`bosk.block.zoo`.
+
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   repo/index.rst
+   zoo/index.rst
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   auto/index.rst
+   base/index.rst
+   functional/index.rst
+   meta/index.rst
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.BaseBlock
+   bosk.block.BaseInputBlock
+   bosk.block.BaseOutputBlock
+   bosk.block.BaseSlot
+   bosk.block.BlockInputSlot
+   bosk.block.BlockOutputSlot
+   bosk.block.BaseSlotMeta
+   bosk.block.BlockGroup
+   bosk.block.BlockMeta
+   bosk.block.InputSlotMeta
+   bosk.block.OutputSlotMeta
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.auto_block
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.BlockInputData
+   bosk.block.BlockOutputData
+   bosk.block.TransformOutputData
+   bosk.block.SlotT
+
+
+.. py:function:: auto_block(_implicit_cls=None, execution_props = None, random_state_field = 'random_state', auto_state = False)
+
+   Decorator for conversion from a fit-transform class into a block.
+
+   :param _implicit_cls: Class with fit-transform interface.
+                         It is automatically passed when `@auto_block` without
+                         brackets is used. Otherwise it should be `None`.
+   :param execution_props: Custom block execution properties.
+   :param random_state_field: Field name in the class that corresponds to object's random seed.
+                              Pass `None` if the class doesn't have any. If the class already has
+                              the `set_random_state` method, it won't be redefined.
+   :param auto_state: Automatically implement `__getstate__` and `__setstate__` methods.
+                      These methods are required for serialization.
+
+   :returns: Block wrapping function.
+
+
+.. py:class:: BaseBlock
+
+   Bases: :py:obj:`abc.ABC`
+
+   Base block, the parent of every computation block.
+
+   Block has meta information, that defines the inputs and outputs as well as block execution properties,
+   and slots which are unique for each block instance and can be used to connect different
+   block between each other.
+
+   Main block methods are: `fit(...)` and `transform(...)`.
+   Both accept dictionaries as input, `transform(...)` returns a dictionary with output data.
+
+   .. attribute:: meta
+
+      Meta information of the block.
+      May be shaped between different blocks.
+      If the meta information cannot be specified at the class definition step,
+      :py:class:`DynamicBlockMetaStub` should be used as a stub, and
+      then redefined at the initialization step.
+
+   .. attribute:: slots
+
+      Block slots of type :py:class:`BlockSlots`, made dynamically at the initialization.
+      Slots are unique for the block instance.
+
+   .. py:property:: meta
+      :type: bosk.block.meta.BlockMeta
+      :abstractmethod:
+
+      Meta information property getter.
+
+      Children classes must specify meta.
+      It can be implemented as an attribute without redefining a property, for example::
+
+          class StubBlock(BaseBlock):
+              meta = BlockMeta(...)
+
+   .. py:property:: default_output
+      :type: Optional[str]
+
+      Get default output name.
+
+      If the block has a single output, it will be used as a default.
+      Otherwise, the block can override this property to set a specific default output.
+      If the block can't have a single default output (its outputs have equal importance),
+      this method should return `None`.
+
+   .. py:method:: _make_slots()
+
+      Make slots
+
+
+   .. py:method:: fit(inputs)
+      :abstractmethod:
+
+      Fit the block on the given input data.
+
+      :param inputs: Block input data for the fitting stage.
+
+      :returns: Self.
+
+
+   .. py:method:: transform(inputs)
+      :abstractmethod:
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+   .. py:method:: wrap(output_values)
+
+      Wrap outputs dictionary into ``BlockOutputs`` object.
+
+      :param output_values: Dictionary of values indexed by slot names.
+
+      :returns: Block outputs object indexed by slots.
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+   .. py:method:: accept(visitor)
+
+      Accept the visitor.
+
+      :param visitor: The visitor which can visit blocks.
+
+
+   .. py:method:: set_random_state(seed)
+
+      Set random seed for the block using numpy
+      random generator or integer value.
+
+
+   .. py:method:: get_default_output()
+
+      Get the default block output slot.
+
+      :returns: The block output slot.
+
+
+
+.. py:data:: BlockInputData
+   
+
+   Block input values container data type.
+
+   It is indexed by input slot names.
+
+.. py:data:: BlockOutputData
+   
+
+   Block output values container data type.
+
+   It is indexed by output slots, not their names.
+
+.. py:data:: TransformOutputData
+   
+
+   Block transform output values container data type.
+
+   It is indexed by output slot names.
+
+.. py:class:: BaseInputBlock
+
+   Bases: :py:obj:`BaseBlock`
+
+   Base input block. It is guaranteed that is has a single input and some name.
+
+   An input block can help to automatically determine pipeline inputs.
+   The name can be None, in this case the block is not considered as one of pipeline inputs.
+
+   .. py:property:: name
+      :type: Optional[str]
+      :abstractmethod:
+
+      Get the input name.
+
+      :returns: The block instance name.
+
+   .. py:method:: _make_slots()
+
+      Make slots
+
+
+   .. py:method:: get_single_input()
+
+      Get the single block input slot.
+
+      :returns: The block input slot.
+
+
+
+.. py:class:: BaseOutputBlock
+
+   Bases: :py:obj:`BaseBlock`
+
+   Base output block. It is guaranteed that is has a single output and some name.
+
+   An output block can help to automatically determine pipeline outputs.
+   The name can be None, in this case the block is not considered as one of pipeline outputs.
+
+   .. py:property:: name
+      :type: Optional[str]
+      :abstractmethod:
+
+      Get the input name.
+
+      :returns: The block instance name or None if the block does not have name.
+
+   .. py:method:: _make_slots()
+
+      Make slots
+
+
+   .. py:method:: get_single_output()
+
+      Get the single block output slot.
+
+      :returns: The block output slot.
+
+
+
+.. py:class:: BaseSlot
+
+   Base slot.
+
+   Slot is a named placeholder for data.
+
+   .. attribute:: name
+
+      Slot name.
+
+   .. attribute:: stages
+
+      At which stages slot value is needed.
+
+   .. attribute:: debug_info
+
+      Debugging info.
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.meta.BaseSlotMeta
+
+      
+
+   .. py:attribute:: parent_block
+      :annotation: :BaseBlock
+
+      
+
+   .. py:attribute:: debug_info
+      :annotation: :str = 
+
+      
+
+   .. py:method:: __hash__()
+
+      Return hash(self).
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+
+.. py:class:: BlockInputSlot
+
+   Bases: :py:obj:`BaseSlot`
+
+   Block input slot.
+
+   Contains the information required for the input data processing, and input-output matching.
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.meta.InputSlotMeta
+
+      
+
+
+.. py:class:: BlockOutputSlot
+
+   Bases: :py:obj:`BaseSlot`
+
+   Block output slot.
+
+   Contains the information about the output data for input-output matching.
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.meta.OutputSlotMeta
+
+      
+
+
+.. py:data:: SlotT
+   
+
+   Slot generic typevar.
+
+.. py:class:: BaseSlotMeta
+
+   Base slot meta information.
+
+   Slot meta is unique for a block slot.
+
+
+   .. py:attribute:: name
+      :annotation: :str
+
+      Slot name.
+
+
+.. py:class:: BlockGroup
+
+   Block group is an assiciated collection of blocks.
+
+   Practically, each block has collection of groups to which the block belongs.
+
+   Block groups can be used to express that some blocks belong to the same Deep Forest layer,
+   and it helps to draw more understandable pipeline diagrams.
+
+
+   .. py:attribute:: name
+      :annotation: :str
+
+      Block group name.
+
+   .. py:method:: add(block)
+
+      Add the block to the group.
+
+      :param block: Block to add.
+
+
+   .. py:method:: remove(block)
+
+      Remove the block from the group.
+
+      :param block: Block to remove.
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+
+.. py:class:: BlockMeta(*, inputs=None, outputs=None, execution_props=None)
+
+   Block meta, containing input and output slots description.
+
+
+
+   .. py:attribute:: inputs
+      :annotation: :Mapping[str, InputSlotMeta]
+
+      Mapping from input slots names to their meta.
+
+   .. py:attribute:: outputs
+      :annotation: :Mapping[str, OutputSlotMeta]
+
+      Mapping from output slots names to their meta.
+
+   .. py:attribute:: execution_props
+      :annotation: :BlockExecutionProperties
+
+      Block execution properties.
+
+   .. py:method:: list_of_slots_meta_to_mapping(slots_meta_list)
+      :staticmethod:
+
+      Convert list of slots meta to mapping (name -> slot meta).
+
+      :param slots_meta_list: List of slots meta.
+
+      :returns: Mapping dict (name -> slot meta).
+
+
+
+.. py:class:: InputSlotMeta
+
+   Bases: :py:obj:`BaseSlotMeta`
+
+   Block input slot meta.
+
+
+
+   .. py:attribute:: stages
+      :annotation: :bosk.stages.Stages
+
+      At which stages slot value is needed.
+
+
+.. py:class:: OutputSlotMeta
+
+   Bases: :py:obj:`BaseSlotMeta`
+
+   Block output slot meta.
+
+
+

@@ -1,0 +1,82 @@
+:py:mod:`bosk.data`
+===================
+
+.. py:module:: bosk.data
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.data.BaseData
+   bosk.data.CPUData
+   bosk.data.GPUData
+
+
+
+
+.. py:class:: BaseData(data)
+
+   Base class for data which will be transferred between blocks.
+
+   .. attribute:: data
+
+      Underlying data.
+
+   .. py:method:: to_cpu()
+
+      Convert data to CPU representation.
+
+      :returns: CPU Data.
+
+
+   .. py:method:: to_gpu()
+
+      Converts data to a GPU-based representation.
+
+      :returns: GPU Data.
+
+
+   .. py:method:: __repr__()
+
+      Representation of data shape and type.
+
+      :returns: String data representation.
+
+
+
+.. py:class:: CPUData(data)
+
+   Bases: :py:obj:`BaseData`
+
+   CPU-based representation of data.
+
+
+   .. py:attribute:: data
+      :annotation: :numpy.ndarray
+
+      
+
+
+.. py:class:: GPUData(data)
+
+   Bases: :py:obj:`BaseData`
+
+   GPU-based (JAX) representation of data.
+
+
+   .. py:attribute:: data
+      :annotation: :jax.numpy.ndarray
+
+      
+
+   .. py:method:: to_cpu()
+
+      Transfers data to a CPU-based representation.
+
+
+

@@ -1,0 +1,67 @@
+:py:mod:`bosk.utility`
+======================
+
+.. py:module:: bosk.utility
+
+.. autoapi-nested-parse::
+
+   Utility functions.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.utility.get_random_generator
+   bosk.utility.get_rand_int
+   bosk.utility.timer_wrap
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.utility.RT
+
+
+.. py:function:: get_random_generator(seed)
+
+   Utility function to obtain random generator from a seed number.
+
+   :param seed: Random seed.
+
+   :returns: Random number generator.
+
+
+.. py:function:: get_rand_int(generator)
+
+   Utility function to obtain pseudo-random non-negative 32 bit integer value.
+
+   :param generator: Random number generator.
+
+   :returns: Non-negative 32 bit integer value.
+
+
+.. py:data:: RT
+   
+
+   
+
+.. py:function:: timer_wrap(func)
+
+   Decorator that returns execution CPU-time for a callable object.
+
+   :param func: Function to wrap.
+
+   :returns: Wrapped function.
+             It will return a tuple of wrapped function result and execution time.
+
+
