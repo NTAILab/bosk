@@ -13,11 +13,47 @@ from ....meta import BlockMeta, BlockExecutionProperties, InputSlotMeta, OutputS
 from .....stages import Stages
 from .....data import GPUData
 # from .....utility import get_random_generator, get_rand_int
-from .classification_models_jax_util import DecisionTreeClassifier, ExtraTreeClassifier
+from ._jax_util import DecisionTreeClassifier, ExtraTreeClassifier
+
+
+__all__ = [
+    "RFCGBlock",
+    "ETCGBlock",
+]
 
 
 @register_pytree_node_class
 class RFCGBlock(BaseBlock):
+    """JAX implementation of Random Forest Classifier for GPU.
+
+    Args:
+        n_classes: Number of classes.
+        n_estimators: Number of estimators (trees).
+        min_samples: Minimum number of samples.
+        max_depth: Maximum depth.
+        max_splits: Maximum number of splits.
+
+
+    Input slots
+    -----------
+
+    Fit inputs
+    ~~~~~~~~~~
+
+        - X: Input features.
+        - y: Ground truth labels.
+
+    Transform inputs
+    ~~~~~~~~~~~~~~~~
+
+        - X: Input features.
+
+    Output slots
+    ------------
+
+        - probas: Predicted probabilities.
+
+    """
     meta = BlockMeta(
         inputs=[
             InputSlotMeta(
@@ -105,7 +141,36 @@ class RFCGBlock(BaseBlock):
 
 
 @register_pytree_node_class
-class ETCGBlock(BaseBlock):  # TODO: can express this class as a block successor RFCGBlock
+class ETCGBlock(BaseBlock):
+    """JAX implementation of Extremely Randomized Trees Classifier for GPU.
+
+    Args:
+        n_classes: Number of classes.
+        n_estimators: Number of estimators (trees).
+        min_samples: Minimum number of samples.
+        max_depth: Maximum depth.
+        max_splits: Maximum number of splits.
+
+    Input slots
+    -----------
+
+    Fit inputs
+    ~~~~~~~~~~
+
+        - X: Input features.
+        - y: Ground truth labels.
+
+    Transform inputs
+    ~~~~~~~~~~~~~~~~
+
+        - X: Input features.
+
+    Output slots
+    ------------
+
+        - probas: Predicted probabilities.
+
+    """
     meta = BlockMeta(
         inputs=[
             InputSlotMeta(

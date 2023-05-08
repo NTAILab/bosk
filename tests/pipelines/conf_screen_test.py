@@ -1,6 +1,6 @@
 from sklearn.datasets import make_moons
 
-from bosk.data import Data, CPUData
+from bosk.data import CPUData, BaseData
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from .base import BasePipelineTest as BPT
 from typing import Dict, Optional, Sequence, Tuple
@@ -66,7 +66,7 @@ class ConfScreenForestTest(BPT):
         self.x = CPUData(x)
         self.y = CPUData(y)
 
-    def get_fit_data(self) -> Dict[str, Data]:
+    def get_fit_data(self) -> Dict[str, BaseData]:
         if not hasattr(self, 'x'):
             self.make_dataset()
         return {'X': self.x, 'y': self.y}
@@ -74,7 +74,7 @@ class ConfScreenForestTest(BPT):
     def get_fit_in_out(self) -> Tuple[Optional[Sequence[str]], Optional[Sequence[str]]]:
         return ['X', 'y'], ['probas', 'rf_1_roc-auc', 'roc-auc']
 
-    def get_transform_data(self) -> Dict[str, Data]:
+    def get_transform_data(self) -> Dict[str, BaseData]:
         if not hasattr(self, 'x'):
             self.make_dataset()
         return {'X': self.x}

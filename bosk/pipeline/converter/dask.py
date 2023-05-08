@@ -1,5 +1,5 @@
 from functools import singledispatchmethod
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Mapping, Optional, Union, MutableMapping
 from abc import ABC, abstractmethod
 
 from ...stages import Stage
@@ -177,7 +177,7 @@ class DaskConverter:
     def __init__(self, stage: Stage, operator_set: DaskOperatorSet = TransformDaskOperatorSet()):
         self.stage = stage
         self.operator_set = operator_set
-        self.dsk: Dict[str, BaseData] = dict()
+        self.dsk: MutableMapping[str, Any] = dict()
         self.block_ids: Dict[BaseBlock, int] = dict()
         self.visitor = self.Visitor(self)
 
@@ -190,6 +190,6 @@ class DaskConverter:
     def _mangle_input_slot(self, input_slot) -> str:
         return self._mangle_block(input_slot.parent_block) + '_' + input_slot.meta.name + '_in'
 
-    def __call__(self, pipeline: BasePipeline) -> Dict[str, Any]:
+    def __call__(self, pipeline: BasePipeline) -> Mapping[str, Any]:
         pipeline.accept(self.visitor)
         return self.dsk

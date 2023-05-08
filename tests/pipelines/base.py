@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Optional, Sequence, Tuple
 from bosk.pipeline.base import BasePipeline
-from bosk.data import Data
+from bosk.data import BaseData
 from bosk.executor.recursive import RecursiveExecutor
 from bosk.stages import Stage
 from ..utility import fit_pipeline, log_test_name
@@ -46,7 +46,7 @@ class BasePipelineTest(ABC):
         return pipeline
 
     @abstractmethod
-    def get_fit_data(self) -> Dict[str, Data]:
+    def get_fit_data(self) -> Dict[str, BaseData]:
         """Method for retreiving the data to fit the pipeline."""
 
     def get_fit_in_out(self) -> Tuple[Optional[Sequence[str]], Optional[Sequence[str]]]:
@@ -54,7 +54,7 @@ class BasePipelineTest(ABC):
         return None, None
 
     @abstractmethod
-    def get_transform_data(self) -> Dict[str, Data]:
+    def get_transform_data(self) -> Dict[str, BaseData]:
         """Method for retreiving the data to execute the
             transform stage of the pipeline.
         """

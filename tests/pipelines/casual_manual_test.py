@@ -6,7 +6,7 @@ from bosk.block.zoo.metrics import RocAucBlock
 from .base import BasePipelineTest as BPT
 from sklearn.datasets import make_moons
 from typing import Dict, Optional, Sequence, Tuple
-from bosk.data import Data, CPUData
+from bosk.data import CPUData, BaseData
 
 
 class CasualManualForestTest(BPT):
@@ -94,7 +94,7 @@ class CasualManualForestTest(BPT):
         self.x = CPUData(x)
         self.y = CPUData(y)
 
-    def get_fit_data(self) -> Dict[str, Data]:
+    def get_fit_data(self) -> Dict[str, BaseData]:
         if not hasattr(self, 'x'):
             self.make_dataset()
         return {'X': self.x, 'y': self.y}
@@ -102,7 +102,7 @@ class CasualManualForestTest(BPT):
     def get_fit_in_out(self) -> Tuple[Optional[Sequence[str]], Optional[Sequence[str]]]:
         return ['X', 'y'], ['probas', 'rf_1_roc-auc', 'roc-auc']
 
-    def get_transform_data(self) -> Dict[str, Data]:
+    def get_transform_data(self) -> Dict[str, BaseData]:
         if not hasattr(self, 'x'):
             self.make_dataset()
         return {'X': self.x}

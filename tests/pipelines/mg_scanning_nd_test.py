@@ -4,7 +4,7 @@ from sklearn.ensemble import (
     ExtraTreesClassifier,
 )
 
-from bosk.data import Data, CPUData
+from bosk.data import BaseData, CPUData
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.block.zoo.multi_grained_scanning import \
     (MultiGrainedScanning1DBlock, MultiGrainedScanning2DBlock)
@@ -70,7 +70,7 @@ class NDimensionalMGScanning2DTest(BPT):
         digits = load_digits()
         self.x, self.y = CPUData(digits.data), CPUData(digits.target)
 
-    def get_fit_data(self) -> Dict[str, Data]:
+    def get_fit_data(self) -> Dict[str, BaseData]:
         if not hasattr(self, 'x'):
             self.make_dataset()
         return {'X': self.x, 'y': self.y}
@@ -78,7 +78,7 @@ class NDimensionalMGScanning2DTest(BPT):
     def get_fit_in_out(self) -> Tuple[Optional[Sequence[str]], Optional[Sequence[str]]]:
         return ['X', 'y'], ['probas', 'rf_1_roc-auc', 'roc-auc']
 
-    def get_transform_data(self) -> Dict[str, Data]:
+    def get_transform_data(self) -> Dict[str, BaseData]:
         if not hasattr(self, 'x'):
             self.make_dataset()
         return {'X': self.x}

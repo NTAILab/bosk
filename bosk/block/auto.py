@@ -33,7 +33,7 @@ class FitTransformClass(Protocol):
     Classes decorated with `@auto_block` should implement this protocol.
     """
 
-    def fit(self):
+    def fit(self, X, y=None):
         """Fit the estimator.
 
         Wrapped class can have multiple arguments.
@@ -41,7 +41,7 @@ class FitTransformClass(Protocol):
         """
         ...
 
-    def transform(self) -> Union[np.ndarray, BaseData]:
+    def transform(self, X) -> Union[np.ndarray, BaseData]:
         """Transform data with the estimator.
 
         Wrapped class can have multiple arguments.
@@ -56,7 +56,7 @@ class FitTransformClass(Protocol):
 def auto_block(_implicit_cls=None,  # noqa: C901
                execution_props: Optional[BlockExecutionProperties] = None,
                random_state_field: str | None = 'random_state',
-               auto_state: bool = False) -> Type[BaseBlock]:
+               auto_state: bool = False):
     """Decorator for conversion from a fit-transform class into a block.
 
     Args:
