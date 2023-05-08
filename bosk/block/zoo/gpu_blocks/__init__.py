@@ -47,8 +47,7 @@ class MoveToBlock(BaseBlock):
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         input_data = inputs['X']
         input_type = type(input_data)
-        if input_type not in [BaseData, CPUData, GPUData]:
-            return {'X': CPUData(input_data)}
+        assert issubclass(input_type, BaseData)
         if self.to == 'CPU':
             return {'X': input_data.to_cpu()}
         elif self.to == 'GPU':

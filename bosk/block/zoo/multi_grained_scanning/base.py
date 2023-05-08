@@ -10,6 +10,37 @@ from ....utility import get_random_generator, get_rand_int
 
 
 class MultiGrainedScanningBlock(ABC):
+    """Base Multi Grained Scanning Block.
+
+    It takes `X` of shape `(n_samples, n_channels)`
+    as an input and returns the tensor of shape `(n_samples, n_out_channels)`.
+
+    Args:
+        models: Tuple of underlying models.
+        window_size: Size of the sliding window.
+        stride: Stride of the sliding window.
+        shape_sample: Input data spatial dimensions (shape).
+
+    Input slots
+    -----------
+
+    Fit inputs
+    ~~~~~~~~~~
+
+        - X: Data tensor of shape `(n_samples, n_channels)`.
+        - y: Target variable values of shape `(n_samples, [n_outputs])`.
+
+    Transform inputs
+    ~~~~~~~~~~~~~~~~
+
+        - X: Data tensor of shape `(n_samples, n_channels)`.
+
+    Output slots
+    ------------
+
+        - output: Prediction tensor of shape `(n_samples, n_out_channels)`.
+
+    """
     def __init__(self, models: Tuple[Any, Any],
                  window_size: int,
                  stride: int,
