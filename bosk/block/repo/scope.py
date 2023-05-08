@@ -4,15 +4,6 @@ from typing import Type
 
 
 class ScopeBlockClassRepository(BaseBlockClassRepository):
-    """Scope block class repository.
-
-    Helps to get access to all blocks in a scope.
-
-    Args:
-        scope (dict): Scope dictionary.
-                      Pass `locals()` or `globals()` to use the caller's scope.
-
-    """
     def __init__(self, scope: dict):
         self.__scope = scope
 

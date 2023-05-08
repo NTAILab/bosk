@@ -7,12 +7,12 @@ from ..stages import Stage
 from ..utility import get_rand_int, get_random_generator
 from ..visitor.group import ModifyGroupVisitor
 from ..pipeline.builder.functional import FunctionalPipelineBuilder
-from ..block.zoo.models.classification import RFCBlock, ETCBlock
+from ..block.zoo.models.classification.classification_models import RFCBlock, ETCBlock
 from ..block.zoo.routing.cv import CVTrainIndicesBlock, SubsetTrainWrapperBlock
 from ..block.zoo.multi_grained_scanning._convolution_helpers import _ConvolutionParams, _ConvolutionHelper
 from ..block.base import BaseBlock, BlockOutputData, BlockGroup
 from ..data import BaseData, CPUData
-from ..executor.base import BaseExecutor, InputSlotToDataMapping
+from ..executor.base import BaseExecutor, DefaultBlockExecutor, InputSlotToDataMapping
 from ..executor.block import FitBlacklistBlockExecutor
 from ..pipeline.base import BasePipeline
 from .validation import BasePipelineModelValidator, CVPipelineModelValidator

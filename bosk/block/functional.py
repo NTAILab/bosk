@@ -13,7 +13,6 @@ class FunctionalBlockWrapper:
     create distinct wrappers.
 
     Example:
-
         Assuming block `test_block` has multiple outputs:
         "out_1" and "out_2", its wrapper can be used to create
         new wrappers for each output separately:

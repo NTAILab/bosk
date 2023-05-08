@@ -4,45 +4,11 @@ import itertools
 import numpy as np
 
 from ...auto import auto_block
-from .base import MultiGrainedScanningBlock
+from .multi_grained_scanning import MultiGrainedScanningBlock
 
 
 @auto_block(auto_state=True, random_state_field=None)
 class MultiGrainedScanning2DBlock(MultiGrainedScanningBlock):
-    """2-dimensional Multi Grained Scanning Block.
-
-    Main use case is to process data with two spatial dimensions, like images.
-
-    It takes `X` of shape `(n_samples, n_channels)`
-    as an input and returns the tensor of shape `(n_samples, n_out_channels)`.
-
-    Args:
-        models: Tuple of underlying models.
-        window_size: Size of the sliding window.
-        stride: Stride of the sliding window.
-        shape_sample: Input data spatial dimensions (shape).
-
-    Input slots
-    -----------
-
-    Fit inputs
-    ~~~~~~~~~~
-
-        - X: Data tensor of shape `(n_samples, n_channels)`.
-        - y: Target variable values of shape `(n_samples, [n_outputs])`.
-
-    Transform inputs
-    ~~~~~~~~~~~~~~~~
-
-        - X: Data tensor of shape `(n_samples, n_channels)`.
-
-    Output slots
-    ------------
-
-        - output: Prediction tensor of shape `(n_samples, n_out_channels)`.
-
-    """
-
     def _window_slicing_data(self, X, y=None) -> 'Tuple[np.ndarray, Optional[np.ndarray]]':
         shape = self._shape_sample
         if shape is None:

@@ -8,7 +8,7 @@ import pkgutil
 
 
 def import_submodules_contents(module: ModuleType):
-    """Import contents of all submodules.
+    """ Import contents of all submodules.
 
     Source:
 
@@ -32,8 +32,8 @@ def import_submodules_contents(module: ModuleType):
 class ZooBlockClassRepository(ScopeBlockClassRepository):
     """Block class repository that extracts block classes from
     `block.zoo` submodule.
-
     """
     def __init__(self):
+        # super().__init__(globals())
         zoo_contents = import_submodules_contents(zoo_module)
         super().__init__(zoo_contents)

@@ -13,41 +13,10 @@ from ._convolution_helpers import (
 
 
 class MultiGrainedScanningNDBlock(BaseBlock):
-    """N-dimensional Multi Grained Scanning Block.
+    """N-dimensional Multi Grained Scanning.
 
-    Main use case is to process data with spatial dimensions, like images and sequences.
-
-    It takes `X` of shape `(n_samples, n_channels, n_features_1, ..., n_features_k)`
-    as an input and returns the tensor of shape `(n_samples, n_channels, t_1, ..., t_k)`.
-
-    Args:
-        model: A fit-transform base model.
-        kernel_size: Kernel size (int or tuple).
-        stride: Stride.
-        dilation: Dilation (kernel stride).
-        padding: Padding size (see `numpy.pad`);
-                    if None padding is disabled.
-        chunk_size: Chunk size. Affects performance.
-
-    Input slots
-    -----------
-
-    Fit inputs
-    ~~~~~~~~~~
-
-        - X: Data tensor of shape `(n_samples, n_channels, n_features_1,..., n_features_k)`.
-        - y: Target variable values of shape `(n_samples, [n_outputs])`.
-
-    Transform inputs
-    ~~~~~~~~~~~~~~~~
-
-        - X: Data tensor of shape `(n_samples, n_channels, n_features_1,..., n_features_k)`.
-
-    Output slots
-    ------------
-
-        - output: Prediction tensor of shape `(n_samples, n_out_channels, out_n_features_1,..., out_n_features_k)`.
-
+    It takes `X` of shape (n_samples, n_channels, n_features_1, ..., n_features_k)
+    as an input and returns the pooled tensor of shape (n_samples, n_channels, t_1, ..., t_k).
     """
 
     meta = BlockMeta(
@@ -79,6 +48,18 @@ class MultiGrainedScanningNDBlock(BaseBlock):
                  dilation: int = 1,
                  padding: Optional[int] = None,
                  chunk_size: int = -1):
+        """Initialize N-dimensional Multi Grained Scanning Block.
+
+        Args:
+            model: A fit-transform base model.
+            kernel_size: Kernel size (int or tuple).
+            stride: Stride.
+            dilation: Dilation (kernel stride).
+            padding: Padding size (see `numpy.pad`);
+                     if None padding is disabled.
+            chunk_size: Chunk size. Affects performance.
+
+        """
         super().__init__()
         self.model = model
         self.params = _ConvolutionParams(
@@ -133,6 +114,13 @@ class MultiGrainedScanningNDBlock(BaseBlock):
         raise RuntimeError(f'Model has no transform-like method: {self.model=}')
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
+        """Apply Pooling to input 'X'.
+
+        Args:
+            inputs: Input data that consists of one element with key 'X'.
+                    `inputs['X']` should have shape (n_samples, n_channels, n_features_1, ..., n_features_k).
+
+        """
         assert 'X' in inputs
         assert isinstance(inputs['X'], CPUData)
         xs = inputs['X'].data

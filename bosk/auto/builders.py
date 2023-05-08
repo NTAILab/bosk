@@ -13,25 +13,9 @@ from .layers import Layer
 
 
 class SequentialPipelineBuilder:
-    """Sequential pipeline builder.
-
-    Allows to sequentially build a Deep Forest layer by layer.
-
-    Args:
-        executor_cls: Executor class.
-        growing_strategy: Growing strategy (stopping criterion).
-        **inputs: Input data for layer training.
-
-    """
     base_input_names = ['X', 'y']
-    """Base input names ("X" and "y" by default).
-    """
     pipelines: List[BasePipeline]
-    """List of built layer pipelines.
-    """
     history: Mapping[str, List[float]]
-    """List of training metrics collected at each iteration.
-    """
 
     def __init__(self, executor_cls: Type[BaseExecutor],
                  growing_strategy: GrowingStrategy,
@@ -46,15 +30,6 @@ class SequentialPipelineBuilder:
         self.history = defaultdict(list)
 
     def append(self, layer: Layer) -> bool:
-        """Fit and append the new layer `layer`.
-
-        Args:
-            layer: Layer to append.
-
-        Returns:
-            True if the layer was appended successfully.
-
-        """
         if self.prev_step_inputs is None:
             step_inputs = {k: v for k, v in self.inputs.items() if k in layer.inputs}
         else:

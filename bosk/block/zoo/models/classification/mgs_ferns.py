@@ -17,11 +17,6 @@ from ...multi_grained_scanning._convolution_helpers import _ConvolutionParams, _
 from .ferns import calculate_bucket_stats, predict_proba
 
 
-__all__ = [
-    "MGSRandomFernsBlock",
-]
-
-
 @partial(jax.jit, static_argnames=('n_channels', 'window_size', 'n_ferns', 'fern_size'))
 def make_window_unary_ferns(xs: jnp.ndarray,
                             n_channels: int,
@@ -176,41 +171,6 @@ class MGSRandomFernsBlock(BaseBlock):
 
     The implementation is based on idea that each patch can be considered as a separate training sample.
 
-    Args:
-        n_groups: Number of ferns groups (like a number of estimators).
-        n_ferns_in_group: Number of ferns in a group.
-        fern_size: Number of tests in fern.
-        kind: Kind of tests ('unary' or 'binary').
-        bootstrap: Apply data bootstrap or not.
-        n_jobs: Number of threads.
-        random_state: Random state.
-
-        kernel_size: Kernel size (int or tuple).
-        stride: Stride.
-        dilation: Dilation (kernel stride).
-        padding: Padding size (see `numpy.pad`);
-                    if None padding is disabled.
-
-
-    Input slots
-    -----------
-
-    Fit inputs
-    ~~~~~~~~~~
-
-        - X: Input features.
-        - y: Ground truth labels.
-
-    Transform inputs
-    ~~~~~~~~~~~~~~~~
-
-        - X: Input features.
-
-    Output slots
-    ------------
-
-        - probas: Predicted probabilities.
-
     """
     meta = BlockMeta(
         inputs=[
@@ -243,6 +203,24 @@ class MGSRandomFernsBlock(BaseBlock):
                  stride: Union[None, int, Tuple[int]] = None,
                  dilation: int = 1,
                  padding: Optional[int] = None):
+        """Initialize MGS Random Ferns Block.
+
+        Args:
+            n_groups: Number of ferns groups (like a number of estimators).
+            n_ferns_in_group: Number of ferns in a group.
+            fern_size: Number of tests in fern.
+            kind: Kind of tests ('unary' or 'binary').
+            bootstrap: Apply data bootstrap or not.
+            n_jobs: Number of threads.
+            random_state: Random state.
+
+            kernel_size: Kernel size (int or tuple).
+            stride: Stride.
+            dilation: Dilation (kernel stride).
+            padding: Padding size (see `numpy.pad`);
+                     if None padding is disabled.
+
+        """
         super().__init__()
         assert fern_size <= 32, 'Maximum number of tests in a fern is 32'
         self.n_groups = n_groups

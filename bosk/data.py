@@ -2,64 +2,40 @@ from typing import Any, Union
 import jax.numpy as jnp
 import numpy as np
 
+Data = Any
+"""Type for data which will be transferred between blocks.
+"""
+
 
 class BaseData:
-    """Base class for data which will be transferred between blocks.
-
-    Attributes:
-        data: Underlying data.
-
-    """
     def __init__(self, data: Union[np.ndarray, jnp.ndarray]):
         self.data = data
 
     def to_cpu(self) -> 'CPUData':
-        """Convert data to CPU representation.
-
-        Returns:
-            CPU Data.
-
-        """
+        """Returns self, since the data is already on CPU."""
         return CPUData(self.data)
 
     def to_gpu(self) -> 'GPUData':
-        """Converts data to a GPU-based representation.
-
-        Returns:
-            GPU Data.
-
-        """
+        """Transfers data to a GPU-based representation."""
         return GPUData(self.data)
 
     def __repr__(self) -> str:
-        """Representation of data shape and type.
-
-        Returns:
-            String data representation.
-
-        """
         return f'<{self.__class__.__name__} {self.data.shape!r} {self.data.dtype!r}>'
 
 
 class CPUData(BaseData):
-    """CPU-based representation of data.
-    """
-
     data: np.ndarray
 
-    def __init__(self, data: Union[np.ndarray, jnp.ndarray]):
+    def __init__(self, data: Any):
         if isinstance(data, jnp.ndarray):
             data = np.array(data)
         super().__init__(data)
 
 
 class GPUData(BaseData):
-    """GPU-based (JAX) representation of data.
-    """
-
     data: jnp.ndarray
 
-    def __init__(self, data: Union[np.ndarray, jnp.ndarray]):
+    def __init__(self, data: Any):
         if isinstance(data, np.ndarray):
             data = jnp.array(data)
         super().__init__(data)

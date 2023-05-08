@@ -11,61 +11,20 @@ from .metrics import MetricsEvaluator
 
 
 class GrowingStrategy(ABC):
-    """Growing strategy.
-
-    Determines the stopping criterion for a Deep Forest builder and how to trim the pipelines
-    after stopping.
-
-    """
     @abstractmethod
     def need_grow(self, pipeline, metrics, executor_cls, growing_state: dict) -> bool:
-        """Check if the pipeline needs to be grown further.
-
-        Args:
-            pipeline: The most recent pipeline to check.
-            metrics: Metrics evaluation results.
-            executor_cls: Executor class to use.
-            growing_state: Growing state that stores a context of the strategy.
-
-        Returns:
-            True if the pipeline needs to be grown further.
-
-        """
         ...
 
-    def trim(self, pipelines: List[BasePipeline], growing_state: dict) -> List[BasePipeline]:
-        """Trim the pipelines after stopping.
-
-        Args:
-            pipelines: The pipelines list to trim.
-            growing_state: Growing state that stores a context of the strategy.
-
-        Returns:
-            Trimmed pipelines
-
-        """
+    def trim(self, pipelines: List[BasePipeline], growing_state: dict):
         return pipelines
 
 
 class DefaultGrowingStrategy(GrowingStrategy):
-    """Default growing strategy.
-
-    Never stops.
-
-    """
     def need_grow(self, pipeline, metrics, executor_cls, growing_state: dict) -> bool:
         return True
 
 
 class EarlyStoppingCV(GrowingStrategy):
-    """Early stopping based on cross-validation metrics.
-
-    Args:
-        mode: Stop when **any** of the metrics is worse than the best metric or
-              **all* of the metrics are worse than the best metric.
-        patience: Number of epochs to wait before stopping.
-
-    """
     def __init__(self, mode: Literal['any'] | Literal['all'] = 'all', patience: int = 1):
         self.mode = mode
         self.patience = patience
@@ -110,16 +69,6 @@ class EarlyStoppingCV(GrowingStrategy):
 
 
 class EarlyStoppingVal(EarlyStoppingCV):
-    """Early stopping based on validation metrics.
-
-    Args:
-        data: Data for validation.
-        make_metrics_eval: Function that returns a new `MetricsEvaluator`.
-        mode: Stop when **any** of the metrics is worse than the best metric or
-              **all* of the metrics are worse than the best metric.
-        patience: Number of epochs to wait before stopping.
-
-    """
     def __init__(self, data: Mapping[str, BaseData], make_metrics_eval: Callable[[], MetricsEvaluator],
                  **early_stopping_params):
         super().__init__(**early_stopping_params)

@@ -7,19 +7,19 @@ from ...visitor.base import BaseVisitor
 from ..base import BasePipeline
 from ...block.base import BaseBlock, BlockInputData
 from ..connection import Connection
-from ...data import BaseData
+from ...data import Data
 import dask
 
 
 class DaskOperatorSet(ABC):
     @staticmethod
     @abstractmethod
-    def bypass(value: BaseData) -> BaseData:
+    def bypass(value: Data) -> Data:
         ...
 
     @staticmethod
     @abstractmethod
-    def extract(block_output: Dict[str, BaseData], _output_key: Optional[str] = None):
+    def extract(block_output: Dict[str, Data], _output_key: Optional[str] = None):
         ...
 
     @staticmethod
@@ -30,11 +30,11 @@ class DaskOperatorSet(ABC):
 
 class TransformDaskOperatorSet(DaskOperatorSet):
     @staticmethod
-    def bypass(value: BaseData) -> BaseData:
+    def bypass(value: Data) -> Data:
         return value
 
     @staticmethod
-    def extract(block_output: Dict[str, BaseData], _output_key: Optional[str] = None):
+    def extract(block_output: Dict[str, Data], _output_key: Optional[str] = None):
         assert _output_key is not None
         return block_output[_output_key]
 
@@ -53,11 +53,11 @@ class TransformDaskOperatorSet(DaskOperatorSet):
 
 class FitDaskOperatorSet(DaskOperatorSet):
     @staticmethod
-    def bypass(value: BaseData) -> BaseData:
+    def bypass(value: Data) -> Data:
         return value
 
     @staticmethod
-    def extract(block_output: Dict[str, BaseData], _output_key: Optional[str] = None):
+    def extract(block_output: Dict[str, Data], _output_key: Optional[str] = None):
         assert _output_key is not None
         return block_output[_output_key]
 
@@ -88,10 +88,8 @@ class DaskConverter:
 
     Since Dask does not support multi-output blocks by default,
     we split each block into multiple nodes:
-
         - Node that computes the block;
         - A number of nodes that extract data corresponding to outputs.
-
     """
 
     class Visitor(BaseVisitor):
@@ -177,7 +175,7 @@ class DaskConverter:
     def __init__(self, stage: Stage, operator_set: DaskOperatorSet = TransformDaskOperatorSet()):
         self.stage = stage
         self.operator_set = operator_set
-        self.dsk: Dict[str, BaseData] = dict()
+        self.dsk: Dict[str, Data] = dict()
         self.block_ids: Dict[BaseBlock, int] = dict()
         self.visitor = self.Visitor(self)
 

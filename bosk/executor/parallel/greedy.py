@@ -1,7 +1,7 @@
 from collections import defaultdict
-from typing import Callable, Dict, Iterable, Mapping, Set, TypeVar, Sequence, Optional, List
+from typing import Callable, Dict, Iterable, Mapping, Set, TypeVar, Union, Sequence, Optional, List
 
-from ...data import BaseData
+from ...data import BaseData, Data
 from ..base import BaseBlockExecutor, BaseExecutor, BaseSlotHandler, Stage
 from ...pipeline import BasePipeline
 from ...block.base import BaseBlock, BlockOutputData, BlockInputSlot, BlockOutputSlot
@@ -20,16 +20,10 @@ Required to constrain `ParallelEngine.Instance.staramap` result.
 
 class ParallelEngine(ABC):
     """Parallel execution engine interface.
-
-    Implements a context manager interface, returning execution engine instance.
-
     """
 
     class Instance(ABC):
         """Execution engine instance interface.
-
-        Can somehow execute :func:`starmap` function in parallel.
-
         """
         @abstractmethod
         def starmap(self, func: Callable[..., ResultT], iterable: Iterable) -> List[ResultT]:
@@ -46,12 +40,6 @@ class ParallelEngine(ABC):
 
 class JoblibParallelEngine(ParallelEngine):
     """Joblib-based Parallel Engine.
-
-    Args:
-        n_threads: Number of threads.
-        backend: Joblib backend to use.
-        prefer: Soft hint what to prefer (threads or processes).
-
     """
     class JoblibInstance(ParallelEngine.Instance):
         def __init__(self, parallel: JoblibParallel):
@@ -84,10 +72,6 @@ class JoblibParallelEngine(ParallelEngine):
 
 class MultiprocessingParallelEngine(ParallelEngine):
     """Multiprocessing-based thread pool execution engine.
-
-    Args:
-        n_threads: Number of threads.
-
     """
     class MPInstance(ParallelEngine.Instance):
         def __init__(self, pool: MultiprocessingThreadPool):
@@ -124,7 +108,6 @@ class GreedyParallelExecutor(BaseExecutor):
         outputs: Sets :attr:`.BaseExecutor.__outputs`.
         slot_handler: Sets :attr:`.BaseExecutor.__slot_handler` with `_prepare_slot_handler` method.
         block_executor: Sets :attr:`.BaseExecutor.__block_executor` with `_prepare_block_executor` method.
-
     """
 
     _conn_map: Mapping[BlockInputSlot, BlockOutputSlot]
@@ -195,7 +178,7 @@ class GreedyParallelExecutor(BaseExecutor):
         return result
 
     def _prepare_inputs(self, block,
-                        input_slot_values: Mapping[BlockInputSlot, BaseData]) -> Mapping[BlockInputSlot, BaseData]:
+                        input_slot_values: Mapping[BlockInputSlot, Data]) -> Mapping[BlockInputSlot, Data]:
         """Prepare the mapping of inputs needed for the block.
 
         Args:
@@ -214,7 +197,7 @@ class GreedyParallelExecutor(BaseExecutor):
         }
 
     def _compute_all_plain(self, blocks: Sequence[BaseBlock],
-                           computed_values: Mapping[BlockInputSlot, BaseData]) -> Mapping[BlockOutputSlot, BaseData]:
+                           computed_values: Mapping[BlockInputSlot, Data]) -> Mapping[BlockOutputSlot, Data]:
         """Filter plain blocks and compute them.
 
         It is assumed that plain block execution is computationally effortless.
@@ -226,7 +209,7 @@ class GreedyParallelExecutor(BaseExecutor):
             Mapping from `BlockOutputSlot` to `Data`.
 
         """
-        outputs: Dict[BlockOutputSlot, BaseData] = dict()
+        outputs: Dict[BlockOutputSlot, Data] = dict()
         for block in blocks:
             if not block.meta.execution_props.plain:
                 continue
@@ -236,8 +219,8 @@ class GreedyParallelExecutor(BaseExecutor):
         return outputs
 
     def _compute_all_parallel(self, blocks: Sequence[BaseBlock],
-                              computed_values: Mapping[BlockInputSlot, BaseData],
-                              parallel: ParallelEngine.Instance) -> Mapping[BlockOutputSlot, BaseData]:
+                              computed_values: Mapping[BlockInputSlot, Data],
+                              parallel: ParallelEngine.Instance) -> Mapping[BlockOutputSlot, Data]:
         """Filter blocks that can be computed in parallel and compute them.
 
         Args:
@@ -247,7 +230,7 @@ class GreedyParallelExecutor(BaseExecutor):
             Mapping from `BlockOutputSlot` to `Data`.
 
         """
-        outputs: Dict[BlockOutputSlot, BaseData] = dict()
+        outputs: Dict[BlockOutputSlot, Data] = dict()
         # TODO: consider another impl: call block executor method like `execute_threadsafe_blocks`
         #   in this case execution behaviour will be implemented in block executor
         parallel_results = parallel.starmap(
@@ -262,7 +245,7 @@ class GreedyParallelExecutor(BaseExecutor):
         return outputs
 
     def _compute_all_non_threadsafe(self, blocks: Sequence[BaseBlock],
-                                    computed_values: Mapping[BlockInputSlot, BaseData]) -> Mapping[BlockOutputSlot, BaseData]:
+                                    computed_values: Mapping[BlockInputSlot, Data]) -> Mapping[BlockOutputSlot, Data]:
         """Filter blocks that are not plain and cannot be computed in parallel, and compute them.
 
         Args:
@@ -272,7 +255,7 @@ class GreedyParallelExecutor(BaseExecutor):
             Mapping from `BlockOutputSlot` to `Data`.
 
         """
-        outputs: Dict[BlockOutputSlot, BaseData] = dict()
+        outputs: Dict[BlockOutputSlot, Data] = dict()
         for block in blocks:
             if block.meta.execution_props.threadsafe or \
                     block.meta.execution_props.plain:
@@ -282,7 +265,7 @@ class GreedyParallelExecutor(BaseExecutor):
             outputs.update(block_outputs)
         return outputs
 
-    def _clean_unnecessary_data(self, computed_values: Dict[BlockInputSlot, BaseData],
+    def _clean_unnecessary_data(self, computed_values: Dict[BlockInputSlot, Data],
                                 remaining_blocks: Set[BaseBlock]):
         """Remove the intermediate data (execution results) that will not be required in the future.
 
@@ -300,7 +283,7 @@ class GreedyParallelExecutor(BaseExecutor):
         for in_slot in to_delete:
             del computed_values[in_slot]
 
-    def _find_ready_blocks(self, computed_values: Dict[BlockInputSlot, BaseData],
+    def _find_ready_blocks(self, computed_values: Dict[BlockInputSlot, Data],
                            remaining_blocks: Set[BaseBlock]) -> List[BaseBlock]:
         """Find the blocks for which required inputs are already computed.
 
@@ -329,8 +312,8 @@ class GreedyParallelExecutor(BaseExecutor):
                 result.append(block)
         return result
 
-    def __append_outputs(self, output_values: Dict[BlockOutputSlot, BaseData],
-                         computed_values: Dict[BlockInputSlot, BaseData],
+    def __append_outputs(self, output_values: Dict[BlockOutputSlot, Data],
+                         computed_values: Dict[BlockInputSlot, Data],
                          output_slots: Set[BlockOutputSlot],
                          new_outputs: BlockOutputData):
         """Append newly computed outputs.
@@ -356,7 +339,7 @@ class GreedyParallelExecutor(BaseExecutor):
             return frozenset(self.pipeline.outputs.keys())
         return super().outputs
 
-    def __execute_with_parallel(self, input_values: Mapping[str, BaseData],
+    def __execute_with_parallel(self, input_values: Mapping[str, Data],
                              parallel: ParallelEngine.Instance) -> Dict[BlockOutputSlot, BaseData]:
         """Pipeline execution with given parallel engine instance.
 
@@ -375,7 +358,7 @@ class GreedyParallelExecutor(BaseExecutor):
             for out_name, out_slot in self.pipeline.outputs.items()
             if out_name in self.outputs
         }
-        output_values: Dict[BlockOutputSlot, BaseData] = dict()
+        output_values: Dict[BlockOutputSlot, Data] = dict()
         remaining_blocks: Set[BaseBlock] = self._get_blocks(output_slots)
         computed_blocks: Set[BaseBlock] = set()
 
@@ -387,7 +370,7 @@ class GreedyParallelExecutor(BaseExecutor):
         #    Go to 1 if some blocks were computed.
         # 4. Compute in parallel threadsafe blocks.
 
-        computed_values: Dict[BlockInputSlot, BaseData] = initial_input_slot_values
+        computed_values: Dict[BlockInputSlot, Data] = initial_input_slot_values
         recently_computed_outputs: Optional[BlockOutputData] = None
         while True:
             if recently_computed_outputs is not None:
@@ -429,7 +412,7 @@ class GreedyParallelExecutor(BaseExecutor):
             recently_computed_outputs = parallel_outputs
         return output_values
 
-    def execute(self, input_values: Mapping[str, BaseData]) -> Dict[str, BaseData]:
+    def execute(self, input_values: Mapping[str, Data]) -> Dict[str, BaseData]:
         self._check_input_values(input_values)
         with self.parallel_engine as parallel:
             output_values = self.__execute_with_parallel(input_values, parallel)

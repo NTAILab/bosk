@@ -7,13 +7,6 @@ from typing import Any, Optional
 
 
 class JoblibBlockSerializer(BaseBlockSerializer):
-    """Joblib-based block serialization.
-
-    Args:
-        compress: Compression level (see :py:func:`joblib.dump`).
-        protocol: Pickle protocol (see :py:func:`joblib.dump`).
-
-    """
     def __init__(self, compress: int = 0, protocol: Optional[Any] = None):
         self.compress = compress
         self.protocol = protocol
@@ -33,16 +26,6 @@ class JoblibBlockSerializer(BaseBlockSerializer):
 
 
 class JoblibPipelineSerializer(BasePipelineSerializer):
-    """Joblib-based pipeline serialization.
-
-    Consider using :py:class:`bosk.pipeline.serializer.ZipPipelineSerializer` instead
-    if there will be any issues.
-
-    Args:
-        compress: Compression level (see :py:func:`joblib.dump`).
-        protocol: Pickle protocol (see :py:func:`joblib.dump`).
-
-    """
     def __init__(self, compress: int = 0, protocol: Optional[Any] = None):
         self.compress = compress
         self.protocol = protocol

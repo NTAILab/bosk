@@ -4,7 +4,7 @@ from bosk.comparison.metric import MetricWrapper
 from bosk.pipeline import BasePipeline
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.executor.topological import TopologicalExecutor
-from bosk.executor.timer import TimerBlockExecutor
+from bosk.executor.timer import TimerBlockHandler
 from bosk.stages import Stage
 from bosk.data import CPUData, BaseData
 from bosk.utility import timer_wrap
@@ -298,9 +298,9 @@ def optimization_test():
             unopt_cmp._optim_pipelines,
             opt_cmp._optim_pipelines,
             opt_cmp._new_blocks_list):
-        true_bl_ex = TimerBlockExecutor()
-        unopt_bl_ex = TimerBlockExecutor()
-        opt_bl_ex = TimerBlockExecutor()
+        true_bl_ex = TimerBlockHandler()
+        unopt_bl_ex = TimerBlockHandler()
+        opt_bl_ex = TimerBlockHandler()
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             TopologicalExecutor(true_pipeline, Stage.FIT, block_executor=true_bl_ex)(data)
@@ -337,8 +337,8 @@ def blocks_times_test():
     metrics = [MetricWrapper(my_acc, name='accuracy'), MetricWrapper(my_roc_auc, name='roc_auc')]
     cv_res = comparator.get_score(data, metrics)
     for i, pipeline in enumerate(pipelines):
-        fit_bl_ex = TimerBlockExecutor()
-        tf_bl_ex = TimerBlockExecutor()
+        fit_bl_ex = TimerBlockHandler()
+        tf_bl_ex = TimerBlockHandler()
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             TopologicalExecutor(pipeline, Stage.FIT, block_executor=fit_bl_ex)(data)

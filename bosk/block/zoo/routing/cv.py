@@ -13,40 +13,7 @@ class CVTrainIndicesBlock(BaseBlock):
 
     Generates training indices for `size` models.
     The block has `size` outputs, each named as a number of model: `"0", "1", ...`.
-
-    Dynamically specifies the meta information.
-
-    Args:
-        size: Cross-validation size (number of splits).
-        random_state: Random state.
-
-    Input slots
-    -----------
-
-    Fit inputs
-    ~~~~~~~~~~
-
-        The fit step is bypassed.
-
-    Transform inputs
-    ~~~~~~~~~~~~~~~~
-
-        - X: Features data array.
-        - y: Target variable array.
-
-    Output slots
-    ------------
-
-        - "0": Fold 0 training subset indices.
-        - ...
-        - "<n>": Fold n training subset indices.
-
-    Attributes:
-        size: Cross-validation size (number of splits).
-        random_state: Random state.
-
     """
-
     meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, size: int, random_state: Optional[int]):
@@ -66,8 +33,7 @@ class CVTrainIndicesBlock(BaseBlock):
         super().__init__()
 
     def fit(self, inputs):
-        """The block bypasses the fit step."""
-        return self
+        pass
 
     def transform(self, inputs):
         X = inputs['X'].data
@@ -89,44 +55,12 @@ class SubsetTrainWrapperBlock(BaseBlock):
 
     At TRANSFORM stage the wrapper bypasses inputs to the base block.
 
-    Input slots
-    -----------
-
-    Fit inputs
-    ~~~~~~~~~~
-
-        - All inputs from the underlying block `block`.
-        - training_indices: Training indices.
-
-    Transform inputs
-    ~~~~~~~~~~~~~~~~
-
-        - All inputs from the underlying block `block`.
-
-    Output slots
-    ------------
-
-        - All outputs from the underlying block `block`.
-
-    Attributes:
-        block: Underlying block.
-
     """
     TRAINING_INDICES_NAME = 'training_indices'
 
     meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, block: BaseBlock):
-        """Initialize the subset training wrapper block.
-
-        Dynamically specifies the meta information.
-
-        The meta information is determined by the underlying block `block`.
-
-        Args:
-            block: The underlying block.
-
-        """
         self.meta = BlockMeta(
             inputs=[
                 inp for inp in block.meta.inputs.values()

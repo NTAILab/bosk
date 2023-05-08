@@ -7,7 +7,6 @@ class BaseBlockSerializer(ABC):
     """Base Block Serializer.
 
     Can serialize blocks, and could be used as a component of pipeline serialization.
-
     """
     @abstractmethod
     def dump(self, block: BaseBlock, out_file):
@@ -35,7 +34,6 @@ class BasePipelineSerializer(ABC):
     """Base Pipeline Serializer.
 
     Can be used for the whole pipeline serialization.
-
     """
     @abstractmethod
     def dump(self, pipeline: BasePipeline, out_file):
