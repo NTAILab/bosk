@@ -15,9 +15,7 @@ Python 3.9+ is required.
 ### JAX installation
 
 Bosk uses JAX for GPU computations, but JAX installation is not trivial.
-Officially JAX is only distributed for Linux and Mac OS, so, unfortunatelly,
-Windows users should use [WSL](https://docs.microsoft.com/en-us/windows/wsl/about)
-to install JAX and use bosk.
+Officially JAX is distributed only for Linux and Mac OS, so, unfortunatelly, Windows users should use [WSL](https://docs.microsoft.com/en-us/windows/wsl/about) to install JAX and use bosk.
 
 **CPU-only system**
 
@@ -27,7 +25,7 @@ If there is no GPU available, install the CPU JAX version
 
 **GPU system**
 
-If you are interested in GPU installation, please, visit our install guide in the documentation.
+If you are interested in GPU installation, please, visit our [install guide](https://ntailab.github.io/bosk/install.html#jax-installation) in the documentation.
 
 ### Package Installation
 
@@ -35,12 +33,11 @@ To install the bosk package directly from GitHub run:
 
     pip install git+ssh://git@github.com:NTAILab/bosk.git
 
-If you are interested in manual or developement-mode installation, please, visit our install guide in the documentation.
+If you are interested in manual or developement-mode installation, please, visit our [install guide](https://ntailab.github.io/bosk/install.html#package-installation) in the documentation.
 
 ### Examples
 
-For the quick overview let's make a Deep Forest with one layer, consisting of two forests (Random Forest and Extremely Randomized Trees), which output probabilities are concatenated with input feature vector and passed to the final
-forest. The following code could be used:
+For the quick overview let's make a Deep Forest with one layer, consisting of two forests (Random Forest and Extremely Randomized Trees), which output probabilities are concatenated with input feature vector and passed to the final forest. The following code could be used:
 
 ```python
 # make a pipeline
@@ -69,12 +66,12 @@ model.fit(X_train, y_train)
 # predict with the model
 test_preds = model.predict(X_test)
 ```
-For more examples visit our documentation. Also, you can found example scripts and Jupyter notebooks in the [examples folder](examples/).
+For more examples visit our [documentation](https://ntailab.github.io/bosk/examples.html). Also, you can find example scripts and Jupyter notebooks in the [examples folder](examples/).
 
 ### Documentation
 
-More information about bosk can be found in our documentation.
+More information about bosk can be found in our [documentation](https://ntailab.github.io/bosk/index.html).
 
 ### Contribution
 
-We are glad to see new contributors. Please, look at the contribution guide to get started and read the guidelines.
+We are glad to see new contributors. Please, look at the [contribution guide](https://ntailab.github.io/bosk/contribution.html) to get started and read the guidelines.
