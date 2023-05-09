@@ -350,16 +350,16 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from bosk.painter.graphviz import GraphvizPainter
-from bosk.executor.recursive import RecursiveExecutor
-from bosk.stages import Stage
-from bosk.block.zoo.data_weighting import WeightsBlock
-from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
-from sklearn.datasets import make_moons
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_auc_score
-import numpy as np
-from IPython.display import Image
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bosk.painter.graphviz</span> <span class="kn">import</span> <span class="n">GraphvizPainter</span>
+<span class="kn">from</span> <span class="nn">bosk.executor.recursive</span> <span class="kn">import</span> <span class="n">RecursiveExecutor</span>
+<span class="kn">from</span> <span class="nn">bosk.stages</span> <span class="kn">import</span> <span class="n">Stage</span>
+<span class="kn">from</span> <span class="nn">bosk.block.zoo.data_weighting</span> <span class="kn">import</span> <span class="n">WeightsBlock</span>
+<span class="kn">from</span> <span class="nn">bosk.pipeline.builder.functional</span> <span class="kn">import</span> <span class="n">FunctionalPipelineBuilder</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">make_moons</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">roc_auc_score</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Image</span>
 </pre></div>
 </div>
 </div>
@@ -367,16 +367,16 @@ from IPython.display import Image
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>random_state = 42
-n_estimators = 7
-EXEC_CLS = RecursiveExecutor
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">random_state</span> <span class="o">=</span> <span class="mi">42</span>
+<span class="n">n_estimators</span> <span class="o">=</span> <span class="mi">7</span>
+<span class="n">EXEC_CLS</span> <span class="o">=</span> <span class="n">RecursiveExecutor</span>
 
 
-def get_plain_dataset():
-    all_X, all_y = make_moons(noise=1, random_state=random_state)
-    train_X, test_X, train_y, test_y = train_test_split(
-        all_X, all_y, test_size=0.2, random_state=random_state)
-    return train_X, test_X, train_y, test_y
+<span class="k">def</span> <span class="nf">get_plain_dataset</span><span class="p">():</span>
+    <span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span> <span class="o">=</span> <span class="n">make_moons</span><span class="p">(</span><span class="n">noise</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+    <span class="n">train_X</span><span class="p">,</span> <span class="n">test_X</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">test_y</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+        <span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">train_X</span><span class="p">,</span> <span class="n">test_X</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">test_y</span>
 </pre></div>
 </div>
 </div>
@@ -384,63 +384,63 @@ def get_plain_dataset():
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># helper function
-def make_deep_forest_layer(b, **inputs):
-    rf = b.RFC(n_estimators=n_estimators)(**inputs)
-    et = b.ETC(n_estimators=n_estimators)(**inputs)
-    stack = b.Stack([&#39;rf&#39;, &#39;et&#39;], axis=1)(rf=rf, et=et)
-    average = b.Average(axis=1)(X=stack)
-    return average
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># helper function</span>
+<span class="k">def</span> <span class="nf">make_deep_forest_layer</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="o">**</span><span class="n">inputs</span><span class="p">):</span>
+    <span class="n">rf</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="o">**</span><span class="n">inputs</span><span class="p">)</span>
+    <span class="n">et</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="o">**</span><span class="n">inputs</span><span class="p">)</span>
+    <span class="n">stack</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Stack</span><span class="p">([</span><span class="s1">&#39;rf&#39;</span><span class="p">,</span> <span class="s1">&#39;et&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">rf</span><span class="o">=</span><span class="n">rf</span><span class="p">,</span> <span class="n">et</span><span class="o">=</span><span class="n">et</span><span class="p">)</span>
+    <span class="n">average</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Average</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">stack</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">average</span>
 
-b = FunctionalPipelineBuilder()
-X, y = b.Input()(), b.TargetInput()()
-rf_1 = b.RFC(n_estimators=n_estimators)(X=X, y=y)
-et_1 = b.ETC(n_estimators=n_estimators)(X=X, y=y)
-concat_1 = b.Concat([&#39;rf_1&#39;, &#39;et_1&#39;])(rf_1=rf_1, et_1=et_1)
-stack_1 = b.Stack([&#39;rf_1&#39;, &#39;et_1&#39;], axis=1)(rf_1=rf_1, et_1=et_1)
-average_1 = b.Average(axis=1)(X=stack_1)
+<span class="n">b</span> <span class="o">=</span> <span class="n">FunctionalPipelineBuilder</span><span class="p">()</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Input</span><span class="p">()(),</span> <span class="n">b</span><span class="o">.</span><span class="n">TargetInput</span><span class="p">()()</span>
+<span class="n">rf_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">et_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">concat_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;rf_1&#39;</span><span class="p">,</span> <span class="s1">&#39;et_1&#39;</span><span class="p">])(</span><span class="n">rf_1</span><span class="o">=</span><span class="n">rf_1</span><span class="p">,</span> <span class="n">et_1</span><span class="o">=</span><span class="n">et_1</span><span class="p">)</span>
+<span class="n">stack_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Stack</span><span class="p">([</span><span class="s1">&#39;rf_1&#39;</span><span class="p">,</span> <span class="s1">&#39;et_1&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">rf_1</span><span class="o">=</span><span class="n">rf_1</span><span class="p">,</span> <span class="n">et_1</span><span class="o">=</span><span class="n">et_1</span><span class="p">)</span>
+<span class="n">average_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Average</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">stack_1</span><span class="p">)</span>
 
-# get confidence screening mask
-cs_1 = b.CS(eps=0.95)(X=average_1)
-# filter X and concatenated predictions samples by CS
-filtered_1 = b.CSFilter([&#39;concat_1&#39;, &#39;X&#39;])(
-    concat_1=concat_1,
-    X=X,
-    mask=cs_1[&#39;mask&#39;]
-)
-# y should be filtered separately since it is not used at the Transform stage
-filtered_1_y = b.CSFilter([&#39;y&#39;])(y=y, mask=cs_1[&#39;mask&#39;])
-concat_all_1 = b.Concat([&#39;filtered_1_X&#39;, &#39;filtered_concat_1&#39;])(
-    filtered_1_X=filtered_1[&#39;X&#39;],
-    filtered_concat_1=filtered_1[&#39;concat_1&#39;]
-)
+<span class="c1"># get confidence screening mask</span>
+<span class="n">cs_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">CS</span><span class="p">(</span><span class="n">eps</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">average_1</span><span class="p">)</span>
+<span class="c1"># filter X and concatenated predictions samples by CS</span>
+<span class="n">filtered_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">CSFilter</span><span class="p">([</span><span class="s1">&#39;concat_1&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">])(</span>
+    <span class="n">concat_1</span><span class="o">=</span><span class="n">concat_1</span><span class="p">,</span>
+    <span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="n">cs_1</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="c1"># y should be filtered separately since it is not used at the Transform stage</span>
+<span class="n">filtered_1_y</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">CSFilter</span><span class="p">([</span><span class="s1">&#39;y&#39;</span><span class="p">])(</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">cs_1</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">])</span>
+<span class="n">concat_all_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;filtered_1_X&#39;</span><span class="p">,</span> <span class="s1">&#39;filtered_concat_1&#39;</span><span class="p">])(</span>
+    <span class="n">filtered_1_X</span><span class="o">=</span><span class="n">filtered_1</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span>
+    <span class="n">filtered_concat_1</span><span class="o">=</span><span class="n">filtered_1</span><span class="p">[</span><span class="s1">&#39;concat_1&#39;</span><span class="p">]</span>
+<span class="p">)</span>
 
-average_2 = make_deep_forest_layer(b, X=concat_all_1, y=filtered_1_y)
-concat_2 = b.Concat([&#39;X&#39;, &#39;average_2&#39;])(X=filtered_1[&#39;X&#39;], average_2=average_2)
+<span class="n">average_2</span> <span class="o">=</span> <span class="n">make_deep_forest_layer</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="n">concat_all_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">filtered_1_y</span><span class="p">)</span>
+<span class="n">concat_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;average_2&#39;</span><span class="p">])(</span><span class="n">X</span><span class="o">=</span><span class="n">filtered_1</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="n">average_2</span><span class="o">=</span><span class="n">average_2</span><span class="p">)</span>
 
-average_3 = make_deep_forest_layer(b, X=concat_2, y=filtered_1_y)
+<span class="n">average_3</span> <span class="o">=</span> <span class="n">make_deep_forest_layer</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="n">concat_2</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">filtered_1_y</span><span class="p">)</span>
 
-# join confident samples with screened out ones
-joined_3 = b.CSJoin()(
-    best=cs_1[&#39;best&#39;],
-    refined=average_3,
-    mask=cs_1[&#39;mask&#39;]
-)
+<span class="c1"># join confident samples with screened out ones</span>
+<span class="n">joined_3</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">CSJoin</span><span class="p">()(</span>
+    <span class="n">best</span><span class="o">=</span><span class="n">cs_1</span><span class="p">[</span><span class="s1">&#39;best&#39;</span><span class="p">],</span>
+    <span class="n">refined</span><span class="o">=</span><span class="n">average_3</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="n">cs_1</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]</span>
+<span class="p">)</span>
 
-argmax_3 = b.Argmax(axis=1)(X=joined_3)
+<span class="n">argmax_3</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">joined_3</span><span class="p">)</span>
 
-rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
-roc_auc = b.RocAuc()(gt_y=y, pred_probas=joined_3)
-pipeline = b.build(
-    {&#39;X&#39;: X, &#39;y&#39;: y},
-    {&#39;labels&#39;: argmax_3, &#39;probas&#39;: joined_3, &#39;rf_1_roc-auc&#39;: rf_1_roc_auc, &#39;roc-auc&#39;: roc_auc}
-)
-pipeline.set_random_state(random_state)
-# let&#39;s draw the pipeline
-# if a pipeline is too large, we can draw it
-# from the top to the bottom
-GraphvizPainter(figure_dpi=80, figure_rankdir=&#39;TB&#39;).from_pipeline(pipeline).render(&#39;deep_forest.jpeg&#39;)
-display(Image(filename=&#39;deep_forest.jpeg&#39;))
+<span class="n">rf_1_roc_auc</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RocAuc</span><span class="p">()(</span><span class="n">gt_y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">pred_probas</span><span class="o">=</span><span class="n">rf_1</span><span class="p">)</span>
+<span class="n">roc_auc</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RocAuc</span><span class="p">()(</span><span class="n">gt_y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">pred_probas</span><span class="o">=</span><span class="n">joined_3</span><span class="p">)</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">build</span><span class="p">(</span>
+    <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">},</span>
+    <span class="p">{</span><span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="n">argmax_3</span><span class="p">,</span> <span class="s1">&#39;probas&#39;</span><span class="p">:</span> <span class="n">joined_3</span><span class="p">,</span> <span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">:</span> <span class="n">rf_1_roc_auc</span><span class="p">,</span> <span class="s1">&#39;roc-auc&#39;</span><span class="p">:</span> <span class="n">roc_auc</span><span class="p">}</span>
+<span class="p">)</span>
+<span class="n">pipeline</span><span class="o">.</span><span class="n">set_random_state</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+<span class="c1"># let&#39;s draw the pipeline</span>
+<span class="c1"># if a pipeline is too large, we can draw it</span>
+<span class="c1"># from the top to the bottom</span>
+<span class="n">GraphvizPainter</span><span class="p">(</span><span class="n">figure_dpi</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">figure_rankdir</span><span class="o">=</span><span class="s1">&#39;TB&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">from_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">&#39;deep_forest.jpeg&#39;</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;deep_forest.jpeg&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -455,34 +455,34 @@ display(Image(filename=&#39;deep_forest.jpeg&#39;))
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># let&#39;s run our pipeline
-fit_executor = EXEC_CLS(
-    pipeline,
-    stage=Stage.FIT,
-    inputs=[&#39;X&#39;, &#39;y&#39;],
-    outputs=[&#39;probas&#39;, &#39;rf_1_roc-auc&#39;, &#39;roc-auc&#39;],
-)
-transform_executor = EXEC_CLS(
-    pipeline,
-    stage=Stage.TRANSFORM,
-    inputs=[&#39;X&#39;],
-    outputs=[&#39;probas&#39;, &#39;labels&#39;]
-)
-train_X, test_X, train_y, test_y = get_plain_dataset()
-fit_result = fit_executor({&#39;X&#39;: train_X, &#39;y&#39;: train_y}).numpy()
-train_result = transform_executor({&#39;X&#39;: train_X}).numpy()
-print(&quot;Fit probas == probas on train:&quot;, np.allclose(fit_result[&#39;probas&#39;], train_result[&#39;probas&#39;]))
-test_result = transform_executor({&#39;X&#39;: test_X}).numpy()
-print(&quot;Train ROC-AUC:&quot;, roc_auc_score(train_y, train_result[&#39;probas&#39;][:, 1]))
-print(
-    &quot;Train ROC-AUC calculated by fit_executor:&quot;,
-    fit_result[&#39;roc-auc&#39;]
-)
-print(
-    &quot;Train ROC-AUC for RF_1:&quot;,
-    fit_result[&#39;rf_1_roc-auc&#39;]
-)
-print(&quot;Test ROC-AUC:&quot;, roc_auc_score(test_y, test_result[&#39;probas&#39;][:, 1]))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># let&#39;s run our pipeline</span>
+<span class="n">fit_executor</span> <span class="o">=</span> <span class="n">EXEC_CLS</span><span class="p">(</span>
+    <span class="n">pipeline</span><span class="p">,</span>
+    <span class="n">stage</span><span class="o">=</span><span class="n">Stage</span><span class="o">.</span><span class="n">FIT</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">],</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">,</span> <span class="s1">&#39;roc-auc&#39;</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">transform_executor</span> <span class="o">=</span> <span class="n">EXEC_CLS</span><span class="p">(</span>
+    <span class="n">pipeline</span><span class="p">,</span>
+    <span class="n">stage</span><span class="o">=</span><span class="n">Stage</span><span class="o">.</span><span class="n">TRANSFORM</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">,</span> <span class="s1">&#39;labels&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">train_X</span><span class="p">,</span> <span class="n">test_X</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">test_y</span> <span class="o">=</span> <span class="n">get_plain_dataset</span><span class="p">()</span>
+<span class="n">fit_result</span> <span class="o">=</span> <span class="n">fit_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">train_X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">train_y</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">train_result</span> <span class="o">=</span> <span class="n">transform_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">train_X</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Fit probas == probas on train:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">],</span> <span class="n">train_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">]))</span>
+<span class="n">test_result</span> <span class="o">=</span> <span class="n">transform_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">test_X</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Train ROC-AUC:&quot;</span><span class="p">,</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">train_y</span><span class="p">,</span> <span class="n">train_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;Train ROC-AUC calculated by fit_executor:&quot;</span><span class="p">,</span>
+    <span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;Train ROC-AUC for RF_1:&quot;</span><span class="p">,</span>
+    <span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Test ROC-AUC:&quot;</span><span class="p">,</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">test_y</span><span class="p">,</span> <span class="n">test_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]))</span>
 </pre></div>
 </div>
 </div>
@@ -503,54 +503,54 @@ Test ROC-AUC: 0.7797619047619047
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>b = FunctionalPipelineBuilder()
-X, y = b.Input()(), b.TargetInput()()
-rf_1 = b.RFC(n_estimators=n_estimators)(X=X, y=y)
-et_1 = b.ETC(n_estimators=n_estimators)(X=X, y=y)
-concat_1 = b.Concat([&#39;rf_1&#39;, &#39;et_1&#39;])(rf_1=rf_1, et_1=et_1)
-stack_1 = b.Stack([&#39;rf_1&#39;, &#39;et_1&#39;], axis=1)(rf_1=rf_1, et_1=et_1)
-average_1 = b.Average(axis=1)(X=stack_1)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">b</span> <span class="o">=</span> <span class="n">FunctionalPipelineBuilder</span><span class="p">()</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Input</span><span class="p">()(),</span> <span class="n">b</span><span class="o">.</span><span class="n">TargetInput</span><span class="p">()()</span>
+<span class="n">rf_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">et_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">concat_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;rf_1&#39;</span><span class="p">,</span> <span class="s1">&#39;et_1&#39;</span><span class="p">])(</span><span class="n">rf_1</span><span class="o">=</span><span class="n">rf_1</span><span class="p">,</span> <span class="n">et_1</span><span class="o">=</span><span class="n">et_1</span><span class="p">)</span>
+<span class="n">stack_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Stack</span><span class="p">([</span><span class="s1">&#39;rf_1&#39;</span><span class="p">,</span> <span class="s1">&#39;et_1&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">rf_1</span><span class="o">=</span><span class="n">rf_1</span><span class="p">,</span> <span class="n">et_1</span><span class="o">=</span><span class="n">et_1</span><span class="p">)</span>
+<span class="n">average_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Average</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">stack_1</span><span class="p">)</span>
 
-# get confidence screening mask
-cs_1 = b.CS(eps=0.95)(X=average_1)
-# filter X and concatenated predictions samples by CS
-filtered_1 = b.CSFilter([&#39;concat_1&#39;, &#39;X&#39;])(
-    concat_1=concat_1,
-    X=X,
-    mask=cs_1[&#39;mask&#39;]
-)
-# y should be filtered separately since it is not used at the Transform stage
-filtered_1_y = b.CSFilter([&#39;y&#39;])(y=y, mask=cs_1[&#39;mask&#39;])
-concat_all_1 = b.Concat([&#39;filtered_1_X&#39;, &#39;filtered_concat_1&#39;])(
-    filtered_1_X=filtered_1[&#39;X&#39;],
-    filtered_concat_1=filtered_1[&#39;concat_1&#39;]
-)
+<span class="c1"># get confidence screening mask</span>
+<span class="n">cs_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">CS</span><span class="p">(</span><span class="n">eps</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">average_1</span><span class="p">)</span>
+<span class="c1"># filter X and concatenated predictions samples by CS</span>
+<span class="n">filtered_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">CSFilter</span><span class="p">([</span><span class="s1">&#39;concat_1&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">])(</span>
+    <span class="n">concat_1</span><span class="o">=</span><span class="n">concat_1</span><span class="p">,</span>
+    <span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="n">cs_1</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="c1"># y should be filtered separately since it is not used at the Transform stage</span>
+<span class="n">filtered_1_y</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">CSFilter</span><span class="p">([</span><span class="s1">&#39;y&#39;</span><span class="p">])(</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">cs_1</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">])</span>
+<span class="n">concat_all_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;filtered_1_X&#39;</span><span class="p">,</span> <span class="s1">&#39;filtered_concat_1&#39;</span><span class="p">])(</span>
+    <span class="n">filtered_1_X</span><span class="o">=</span><span class="n">filtered_1</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span>
+    <span class="n">filtered_concat_1</span><span class="o">=</span><span class="n">filtered_1</span><span class="p">[</span><span class="s1">&#39;concat_1&#39;</span><span class="p">]</span>
+<span class="p">)</span>
 
-average_2 = make_deep_forest_layer(b, X=concat_all_1, y=filtered_1_y)
-concat_2 = b.Concat([&#39;X&#39;, &#39;average_2&#39;])(X=filtered_1[&#39;X&#39;], average_2=average_2)
+<span class="n">average_2</span> <span class="o">=</span> <span class="n">make_deep_forest_layer</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="n">concat_all_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">filtered_1_y</span><span class="p">)</span>
+<span class="n">concat_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;average_2&#39;</span><span class="p">])(</span><span class="n">X</span><span class="o">=</span><span class="n">filtered_1</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="n">average_2</span><span class="o">=</span><span class="n">average_2</span><span class="p">)</span>
 
-sample_weight_2 = b.new(WeightsBlock, ord=2)(X=average_2, y=filtered_1_y)
+<span class="n">sample_weight_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">WeightsBlock</span><span class="p">,</span> <span class="nb">ord</span><span class="o">=</span><span class="mi">2</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">average_2</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">filtered_1_y</span><span class="p">)</span>
 
-average_3 = make_deep_forest_layer(b, X=concat_2, y=filtered_1_y, sample_weight=sample_weight_2)
+<span class="n">average_3</span> <span class="o">=</span> <span class="n">make_deep_forest_layer</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="n">concat_2</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">filtered_1_y</span><span class="p">,</span> <span class="n">sample_weight</span><span class="o">=</span><span class="n">sample_weight_2</span><span class="p">)</span>
 
-# join confident samples with screened out ones
-joined_3 = b.CSJoin()(
-    best=cs_1[&#39;best&#39;],
-    refined=average_3,
-    mask=cs_1[&#39;mask&#39;]
-)
+<span class="c1"># join confident samples with screened out ones</span>
+<span class="n">joined_3</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">CSJoin</span><span class="p">()(</span>
+    <span class="n">best</span><span class="o">=</span><span class="n">cs_1</span><span class="p">[</span><span class="s1">&#39;best&#39;</span><span class="p">],</span>
+    <span class="n">refined</span><span class="o">=</span><span class="n">average_3</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="n">cs_1</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]</span>
+<span class="p">)</span>
 
-argmax_3 = b.Argmax(axis=1)(X=joined_3)
+<span class="n">argmax_3</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">joined_3</span><span class="p">)</span>
 
-rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
-roc_auc = b.RocAuc()(gt_y=y, pred_probas=joined_3)
-pipeline = b.build(
-    {&#39;X&#39;: X, &#39;y&#39;: y},
-    {&#39;labels&#39;: argmax_3, &#39;probas&#39;: joined_3, &#39;rf_1_roc-auc&#39;: rf_1_roc_auc, &#39;roc-auc&#39;: roc_auc}
-)
-pipeline.set_random_state(random_state)
-GraphvizPainter(figure_dpi=80, figure_rankdir=&#39;TB&#39;).from_pipeline(pipeline).render(&#39;deep_forest.jpeg&#39;)
-display(Image(filename=&#39;deep_forest.jpeg&#39;))
+<span class="n">rf_1_roc_auc</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RocAuc</span><span class="p">()(</span><span class="n">gt_y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">pred_probas</span><span class="o">=</span><span class="n">rf_1</span><span class="p">)</span>
+<span class="n">roc_auc</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RocAuc</span><span class="p">()(</span><span class="n">gt_y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">pred_probas</span><span class="o">=</span><span class="n">joined_3</span><span class="p">)</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">build</span><span class="p">(</span>
+    <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">},</span>
+    <span class="p">{</span><span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="n">argmax_3</span><span class="p">,</span> <span class="s1">&#39;probas&#39;</span><span class="p">:</span> <span class="n">joined_3</span><span class="p">,</span> <span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">:</span> <span class="n">rf_1_roc_auc</span><span class="p">,</span> <span class="s1">&#39;roc-auc&#39;</span><span class="p">:</span> <span class="n">roc_auc</span><span class="p">}</span>
+<span class="p">)</span>
+<span class="n">pipeline</span><span class="o">.</span><span class="n">set_random_state</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+<span class="n">GraphvizPainter</span><span class="p">(</span><span class="n">figure_dpi</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">figure_rankdir</span><span class="o">=</span><span class="s1">&#39;TB&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">from_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">&#39;deep_forest.jpeg&#39;</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;deep_forest.jpeg&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -565,34 +565,34 @@ display(Image(filename=&#39;deep_forest.jpeg&#39;))
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># let&#39;s run our pipeline
-fit_executor = EXEC_CLS(
-    pipeline,
-    stage=Stage.FIT,
-    inputs=[&#39;X&#39;, &#39;y&#39;],
-    outputs=[&#39;probas&#39;, &#39;rf_1_roc-auc&#39;, &#39;roc-auc&#39;],
-)
-transform_executor = EXEC_CLS(
-    pipeline,
-    stage=Stage.TRANSFORM,
-    inputs=[&#39;X&#39;],
-    outputs=[&#39;probas&#39;, &#39;labels&#39;]
-)
-train_X, test_X, train_y, test_y = get_plain_dataset()
-fit_result = fit_executor({&#39;X&#39;: train_X, &#39;y&#39;: train_y}).numpy()
-train_result = transform_executor({&#39;X&#39;: train_X}).numpy()
-print(&quot;Fit probas == probas on train:&quot;, np.allclose(fit_result[&#39;probas&#39;], train_result[&#39;probas&#39;]))
-test_result = transform_executor({&#39;X&#39;: test_X}).numpy()
-print(&quot;Train ROC-AUC:&quot;, roc_auc_score(train_y, train_result[&#39;probas&#39;][:, 1]))
-print(
-    &quot;Train ROC-AUC calculated by fit_executor:&quot;,
-    fit_result[&#39;roc-auc&#39;]
-)
-print(
-    &quot;Train ROC-AUC for RF_1:&quot;,
-    fit_result[&#39;rf_1_roc-auc&#39;]
-)
-print(&quot;Test ROC-AUC:&quot;, roc_auc_score(test_y, test_result[&#39;probas&#39;][:, 1]))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># let&#39;s run our pipeline</span>
+<span class="n">fit_executor</span> <span class="o">=</span> <span class="n">EXEC_CLS</span><span class="p">(</span>
+    <span class="n">pipeline</span><span class="p">,</span>
+    <span class="n">stage</span><span class="o">=</span><span class="n">Stage</span><span class="o">.</span><span class="n">FIT</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">],</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">,</span> <span class="s1">&#39;roc-auc&#39;</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">transform_executor</span> <span class="o">=</span> <span class="n">EXEC_CLS</span><span class="p">(</span>
+    <span class="n">pipeline</span><span class="p">,</span>
+    <span class="n">stage</span><span class="o">=</span><span class="n">Stage</span><span class="o">.</span><span class="n">TRANSFORM</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">,</span> <span class="s1">&#39;labels&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">train_X</span><span class="p">,</span> <span class="n">test_X</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">test_y</span> <span class="o">=</span> <span class="n">get_plain_dataset</span><span class="p">()</span>
+<span class="n">fit_result</span> <span class="o">=</span> <span class="n">fit_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">train_X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">train_y</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">train_result</span> <span class="o">=</span> <span class="n">transform_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">train_X</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Fit probas == probas on train:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">],</span> <span class="n">train_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">]))</span>
+<span class="n">test_result</span> <span class="o">=</span> <span class="n">transform_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">test_X</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Train ROC-AUC:&quot;</span><span class="p">,</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">train_y</span><span class="p">,</span> <span class="n">train_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;Train ROC-AUC calculated by fit_executor:&quot;</span><span class="p">,</span>
+    <span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;Train ROC-AUC for RF_1:&quot;</span><span class="p">,</span>
+    <span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Test ROC-AUC:&quot;</span><span class="p">,</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">test_y</span><span class="p">,</span> <span class="n">test_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]))</span>
 </pre></div>
 </div>
 </div>

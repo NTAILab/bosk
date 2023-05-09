@@ -354,17 +354,17 @@ important thing is that if the block defines slots metainformation dynamically, 
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from bosk.executor.topological import TopologicalExecutor
-from bosk.painter.graphviz import GraphvizPainter
-from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
-from bosk.pipeline.serializer.joblib import JoblibPipelineSerializer
-from bosk.pipeline.serializer.zip import ZipPipelineSerializer
-from bosk.pipeline.serializer.skops import SkopsBlockSerializer
-from bosk.stages import Stage
-from sklearn.datasets import make_moons
-from sklearn.model_selection import train_test_split
-import numpy as np
-from IPython.display import Image
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bosk.executor.topological</span> <span class="kn">import</span> <span class="n">TopologicalExecutor</span>
+<span class="kn">from</span> <span class="nn">bosk.painter.graphviz</span> <span class="kn">import</span> <span class="n">GraphvizPainter</span>
+<span class="kn">from</span> <span class="nn">bosk.pipeline.builder.functional</span> <span class="kn">import</span> <span class="n">FunctionalPipelineBuilder</span>
+<span class="kn">from</span> <span class="nn">bosk.pipeline.serializer.joblib</span> <span class="kn">import</span> <span class="n">JoblibPipelineSerializer</span>
+<span class="kn">from</span> <span class="nn">bosk.pipeline.serializer.zip</span> <span class="kn">import</span> <span class="n">ZipPipelineSerializer</span>
+<span class="kn">from</span> <span class="nn">bosk.pipeline.serializer.skops</span> <span class="kn">import</span> <span class="n">SkopsBlockSerializer</span>
+<span class="kn">from</span> <span class="nn">bosk.stages</span> <span class="kn">import</span> <span class="n">Stage</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">make_moons</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Image</span>
 </pre></div>
 </div>
 </div>
@@ -373,24 +373,24 @@ from IPython.display import Image
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>n_estimators = 17
-b = FunctionalPipelineBuilder()
-X, y = b.Input()(), b.TargetInput()()
-rf_1 = b.RFC(n_estimators=n_estimators)(X=X, y=y)
-et_1 = b.ETC(n_estimators=n_estimators)(X=X, y=y)
-concat_1 = b.Concat([&#39;X&#39;, &#39;rf_1&#39;, &#39;et_1&#39;])(X=X, rf_1=rf_1, et_1=et_1)
-rf_2 = b.RFC(n_estimators=n_estimators)(X=concat_1, y=y)
-et_2 = b.ETC(n_estimators=n_estimators)(X=concat_1, y=y)
-stack = b.Stack([&#39;rf_2&#39;, &#39;et_2&#39;], axis=1)(rf_2=rf_2, et_2=et_2)
-average = b.Average(axis=1)(X=stack)
-argmax = b.Argmax(axis=1)(X=average)
-roc_auc = b.RocAuc()(gt_y=y, pred_probas=average)
-pipeline = b.build(
-    {&#39;X&#39;: X, &#39;y&#39;: y},
-    {&#39;labels&#39;: argmax, &#39;probas&#39;: average, &#39;roc-auc&#39;: roc_auc}
-)
-GraphvizPainter(figure_dpi=100).from_pipeline(pipeline).render(&#39;pipeline.jpeg&#39;)
-display(Image(&#39;pipeline.jpeg&#39;))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">n_estimators</span> <span class="o">=</span> <span class="mi">17</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">FunctionalPipelineBuilder</span><span class="p">()</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Input</span><span class="p">()(),</span> <span class="n">b</span><span class="o">.</span><span class="n">TargetInput</span><span class="p">()()</span>
+<span class="n">rf_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">et_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">concat_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_1&#39;</span><span class="p">,</span> <span class="s1">&#39;et_1&#39;</span><span class="p">])(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">rf_1</span><span class="o">=</span><span class="n">rf_1</span><span class="p">,</span> <span class="n">et_1</span><span class="o">=</span><span class="n">et_1</span><span class="p">)</span>
+<span class="n">rf_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">et_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">stack</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Stack</span><span class="p">([</span><span class="s1">&#39;rf_2&#39;</span><span class="p">,</span> <span class="s1">&#39;et_2&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">rf_2</span><span class="o">=</span><span class="n">rf_2</span><span class="p">,</span> <span class="n">et_2</span><span class="o">=</span><span class="n">et_2</span><span class="p">)</span>
+<span class="n">average</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Average</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">stack</span><span class="p">)</span>
+<span class="n">argmax</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">average</span><span class="p">)</span>
+<span class="n">roc_auc</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RocAuc</span><span class="p">()(</span><span class="n">gt_y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">pred_probas</span><span class="o">=</span><span class="n">average</span><span class="p">)</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">build</span><span class="p">(</span>
+    <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">},</span>
+    <span class="p">{</span><span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="n">argmax</span><span class="p">,</span> <span class="s1">&#39;probas&#39;</span><span class="p">:</span> <span class="n">average</span><span class="p">,</span> <span class="s1">&#39;roc-auc&#39;</span><span class="p">:</span> <span class="n">roc_auc</span><span class="p">}</span>
+<span class="p">)</span>
+<span class="n">GraphvizPainter</span><span class="p">(</span><span class="n">figure_dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">from_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">&#39;pipeline.jpeg&#39;</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="s1">&#39;pipeline.jpeg&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -406,11 +406,11 @@ display(Image(&#39;pipeline.jpeg&#39;))
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>zip_serial = ZipPipelineSerializer(SkopsBlockSerializer())
-zip_serial.dump(pipeline, &#39;pipeline.zip&#39;)
-pipeline = zip_serial.load(&#39;pipeline.zip&#39;)
-GraphvizPainter(figure_dpi=100).from_pipeline(pipeline).render(&#39;pipeline.jpeg&#39;)
-display(Image(&#39;pipeline.jpeg&#39;))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">zip_serial</span> <span class="o">=</span> <span class="n">ZipPipelineSerializer</span><span class="p">(</span><span class="n">SkopsBlockSerializer</span><span class="p">())</span>
+<span class="n">zip_serial</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="s1">&#39;pipeline.zip&#39;</span><span class="p">)</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">zip_serial</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;pipeline.zip&#39;</span><span class="p">)</span>
+<span class="n">GraphvizPainter</span><span class="p">(</span><span class="n">figure_dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">from_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">&#39;pipeline.jpeg&#39;</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="s1">&#39;pipeline.jpeg&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -427,26 +427,26 @@ display(Image(&#39;pipeline.jpeg&#39;))
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>all_X, all_y = make_moons(100, noise=0.5)
-train_X, test_X, train_y, _ = train_test_split(all_X, all_y, test_size=0.2)
-train_data = {&#39;X&#39;: train_X, &#39;y&#39;: train_y}
-test_data = {&#39;X&#39;: test_X}
-fit_executor = TopologicalExecutor(
-    pipeline,
-    stage=Stage.FIT,
-    inputs=[&#39;X&#39;, &#39;y&#39;],
-    outputs=[&#39;probas&#39;],
-)
-fit_results = fit_executor(train_data)
-joblib_serial = JoblibPipelineSerializer()
-joblib_serial.dump(pipeline, &#39;pipeline.gz&#39;)
-pipeline_copy = joblib_serial.load(&#39;pipeline.gz&#39;)
-exec_1 = TopologicalExecutor(pipeline, Stage.TRANSFORM, inputs=[&#39;X&#39;], outputs=[&#39;probas&#39;])
-exec_2 = TopologicalExecutor(pipeline_copy, Stage.TRANSFORM, inputs=[&#39;X&#39;], outputs=[&#39;probas&#39;])
-res_1 = exec_1(test_data).numpy()
-res_2 = exec_2(test_data).numpy()
-print(&quot;L1 metric between the original and deserialized pipelines&#39; probabilities:&quot;,
-      np.sum(np.abs(res_1[&#39;probas&#39;] - res_2[&#39;probas&#39;])))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span> <span class="o">=</span> <span class="n">make_moons</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">train_X</span><span class="p">,</span> <span class="n">test_X</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+<span class="n">train_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">train_X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">train_y</span><span class="p">}</span>
+<span class="n">test_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">test_X</span><span class="p">}</span>
+<span class="n">fit_executor</span> <span class="o">=</span> <span class="n">TopologicalExecutor</span><span class="p">(</span>
+    <span class="n">pipeline</span><span class="p">,</span>
+    <span class="n">stage</span><span class="o">=</span><span class="n">Stage</span><span class="o">.</span><span class="n">FIT</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">],</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">fit_results</span> <span class="o">=</span> <span class="n">fit_executor</span><span class="p">(</span><span class="n">train_data</span><span class="p">)</span>
+<span class="n">joblib_serial</span> <span class="o">=</span> <span class="n">JoblibPipelineSerializer</span><span class="p">()</span>
+<span class="n">joblib_serial</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="s1">&#39;pipeline.gz&#39;</span><span class="p">)</span>
+<span class="n">pipeline_copy</span> <span class="o">=</span> <span class="n">joblib_serial</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;pipeline.gz&#39;</span><span class="p">)</span>
+<span class="n">exec_1</span> <span class="o">=</span> <span class="n">TopologicalExecutor</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">Stage</span><span class="o">.</span><span class="n">TRANSFORM</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">])</span>
+<span class="n">exec_2</span> <span class="o">=</span> <span class="n">TopologicalExecutor</span><span class="p">(</span><span class="n">pipeline_copy</span><span class="p">,</span> <span class="n">Stage</span><span class="o">.</span><span class="n">TRANSFORM</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">])</span>
+<span class="n">res_1</span> <span class="o">=</span> <span class="n">exec_1</span><span class="p">(</span><span class="n">test_data</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">res_2</span> <span class="o">=</span> <span class="n">exec_2</span><span class="p">(</span><span class="n">test_data</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;L1 metric between the original and deserialized pipelines&#39; probabilities:&quot;</span><span class="p">,</span>
+      <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">res_1</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">res_2</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">])))</span>
 </pre></div>
 </div>
 </div>

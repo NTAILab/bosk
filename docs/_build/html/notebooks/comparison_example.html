@@ -351,26 +351,26 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from bosk.block.zoo.models.classification.classification_models import RFCBlock
-from bosk.comparison.cross_val import CVComparator
-from bosk.comparison.base import BaseForeignModel
-from bosk.comparison.metric import MetricWrapper
-from bosk.data import CPUData, BaseData
-from bosk.executor.topological import TopologicalExecutor
-from bosk.painter.graphviz import GraphvizPainter
-from bosk.painter.topological import TopologicalPainter
-from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
-from bosk.stages import Stage
-from catboost import CatBoostClassifier
-from sklearn.datasets import make_moons
-from sklearn.metrics import accuracy_score, roc_auc_score
-from sklearn.model_selection import KFold
-import numpy as np
-import torch
-from typing import Dict
-from torch.utils.data import TensorDataset, DataLoader
-from joblib import hash
-from IPython.display import Image
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bosk.block.zoo.models.classification.classification_models</span> <span class="kn">import</span> <span class="n">RFCBlock</span>
+<span class="kn">from</span> <span class="nn">bosk.comparison.cross_val</span> <span class="kn">import</span> <span class="n">CVComparator</span>
+<span class="kn">from</span> <span class="nn">bosk.comparison.base</span> <span class="kn">import</span> <span class="n">BaseForeignModel</span>
+<span class="kn">from</span> <span class="nn">bosk.comparison.metric</span> <span class="kn">import</span> <span class="n">MetricWrapper</span>
+<span class="kn">from</span> <span class="nn">bosk.data</span> <span class="kn">import</span> <span class="n">CPUData</span><span class="p">,</span> <span class="n">BaseData</span>
+<span class="kn">from</span> <span class="nn">bosk.executor.topological</span> <span class="kn">import</span> <span class="n">TopologicalExecutor</span>
+<span class="kn">from</span> <span class="nn">bosk.painter.graphviz</span> <span class="kn">import</span> <span class="n">GraphvizPainter</span>
+<span class="kn">from</span> <span class="nn">bosk.painter.topological</span> <span class="kn">import</span> <span class="n">TopologicalPainter</span>
+<span class="kn">from</span> <span class="nn">bosk.pipeline.builder.functional</span> <span class="kn">import</span> <span class="n">FunctionalPipelineBuilder</span>
+<span class="kn">from</span> <span class="nn">bosk.stages</span> <span class="kn">import</span> <span class="n">Stage</span>
+<span class="kn">from</span> <span class="nn">catboost</span> <span class="kn">import</span> <span class="n">CatBoostClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">make_moons</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">roc_auc_score</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">KFold</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">TensorDataset</span><span class="p">,</span> <span class="n">DataLoader</span>
+<span class="kn">from</span> <span class="nn">joblib</span> <span class="kn">import</span> <span class="nb">hash</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Image</span>
 </pre></div>
 </div>
 </div>
@@ -378,40 +378,40 @@ from IPython.display import Image
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>n_trees = 20
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">n_trees</span> <span class="o">=</span> <span class="mi">20</span>
 
-# we will make some similar bosk pipelines
+<span class="c1"># we will make some similar bosk pipelines</span>
 
-b = FunctionalPipelineBuilder()
-X, y = b.Input()(), b.TargetInput()()
-rf_1 = b.RFC(n_estimators=n_trees)(X=X, y=y)
-et_1 = b.ETC(n_estimators=n_trees)(X=X, y=y)
-concat_1 = b.Concat([&#39;X&#39;, &#39;rf_1&#39;, &#39;et_1&#39;])(X=X, rf_1=rf_1, et_1=et_1)
-rf_2 = b.RFC(n_estimators=n_trees)(X=concat_1, y=y)
-pipeline_1 = b.build({&#39;X&#39;: X, &#39;y&#39;: y}, {&#39;output&#39;: rf_2})
+<span class="n">b</span> <span class="o">=</span> <span class="n">FunctionalPipelineBuilder</span><span class="p">()</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Input</span><span class="p">()(),</span> <span class="n">b</span><span class="o">.</span><span class="n">TargetInput</span><span class="p">()()</span>
+<span class="n">rf_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_trees</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">et_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_trees</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">concat_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_1&#39;</span><span class="p">,</span> <span class="s1">&#39;et_1&#39;</span><span class="p">])(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">rf_1</span><span class="o">=</span><span class="n">rf_1</span><span class="p">,</span> <span class="n">et_1</span><span class="o">=</span><span class="n">et_1</span><span class="p">)</span>
+<span class="n">rf_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_trees</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">pipeline_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">build</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="n">rf_2</span><span class="p">})</span>
 
-b = FunctionalPipelineBuilder()
-X, y = b.Input()(), b.TargetInput()()
-rf_1 = b.RFC(n_estimators=n_trees)(X=X, y=y)
-et_1 = b.ETC(n_estimators=n_trees)(X=X, y=y)
-concat_1 = b.Concat([&#39;X&#39;, &#39;rf_1&#39;, &#39;et_1&#39;])(X=X, rf_1=rf_1, et_1=et_1)
-rf_2 = b.RFC(n_estimators=n_trees)(X=concat_1, y=y)
-stack = b.Stack([&#39;rf_2_1&#39;, &#39;rf_2_2&#39;], axis=2)(rf_2_1=rf_2, rf_2_2=rf_2)
-av = b.Average(axis=2)(X=stack)
-pipeline_2 = b.build({&#39;X&#39;: X, &#39;y&#39;: y}, {&#39;output&#39;: av})
+<span class="n">b</span> <span class="o">=</span> <span class="n">FunctionalPipelineBuilder</span><span class="p">()</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Input</span><span class="p">()(),</span> <span class="n">b</span><span class="o">.</span><span class="n">TargetInput</span><span class="p">()()</span>
+<span class="n">rf_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_trees</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">et_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_trees</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">concat_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_1&#39;</span><span class="p">,</span> <span class="s1">&#39;et_1&#39;</span><span class="p">])(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">rf_1</span><span class="o">=</span><span class="n">rf_1</span><span class="p">,</span> <span class="n">et_1</span><span class="o">=</span><span class="n">et_1</span><span class="p">)</span>
+<span class="n">rf_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_trees</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">stack</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Stack</span><span class="p">([</span><span class="s1">&#39;rf_2_1&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_2_2&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)(</span><span class="n">rf_2_1</span><span class="o">=</span><span class="n">rf_2</span><span class="p">,</span> <span class="n">rf_2_2</span><span class="o">=</span><span class="n">rf_2</span><span class="p">)</span>
+<span class="n">av</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Average</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">stack</span><span class="p">)</span>
+<span class="n">pipeline_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">build</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="n">av</span><span class="p">})</span>
 
-b = FunctionalPipelineBuilder()
-X, y = b.Input()(), b.TargetInput()()
-rf_1 = b.RFC(n_estimators=n_trees)(X=X, y=y)
-et_1 = b.ETC(n_estimators=n_trees)(X=X, y=y)
-concat_1 = b.Concat([&#39;X&#39;, &#39;rf_1&#39;, &#39;et_1&#39;])(X=X, rf_1=rf_1, et_1=et_1)
-rf_2 = b.RFC(n_estimators=n_trees)(X=concat_1, y=y)
-et_2 = b.ETC(n_estimators=n_trees)(X=concat_1, y=y)
-concat_2 = b.Concat([&#39;rf_2&#39;, &#39;et_2&#39;, &#39;X&#39;])(X=X, rf_2=rf_2, et_2=et_2)
-et_3 = b.ETC(n_estimators=n_trees)(X=concat_2, y=y)
-pipeline_3 = b.build({&#39;X&#39;: X, &#39;y&#39;: y}, {&#39;output&#39;: et_3})
+<span class="n">b</span> <span class="o">=</span> <span class="n">FunctionalPipelineBuilder</span><span class="p">()</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Input</span><span class="p">()(),</span> <span class="n">b</span><span class="o">.</span><span class="n">TargetInput</span><span class="p">()()</span>
+<span class="n">rf_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_trees</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">et_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_trees</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">concat_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_1&#39;</span><span class="p">,</span> <span class="s1">&#39;et_1&#39;</span><span class="p">])(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">rf_1</span><span class="o">=</span><span class="n">rf_1</span><span class="p">,</span> <span class="n">et_1</span><span class="o">=</span><span class="n">et_1</span><span class="p">)</span>
+<span class="n">rf_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_trees</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">et_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_trees</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">concat_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;rf_2&#39;</span><span class="p">,</span> <span class="s1">&#39;et_2&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">])(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">rf_2</span><span class="o">=</span><span class="n">rf_2</span><span class="p">,</span> <span class="n">et_2</span><span class="o">=</span><span class="n">et_2</span><span class="p">)</span>
+<span class="n">et_3</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_trees</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat_2</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">pipeline_3</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">build</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="n">et_3</span><span class="p">})</span>
 
-pipeline_list = [pipeline_1, pipeline_2, pipeline_3]
+<span class="n">pipeline_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pipeline_1</span><span class="p">,</span> <span class="n">pipeline_2</span><span class="p">,</span> <span class="n">pipeline_3</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
@@ -421,95 +421,95 @@ pipeline_list = [pipeline_1, pipeline_2, pipeline_3]
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>class CatBoostModel(BaseForeignModel):
-    def __init__(self) -&gt; None:
-        super().__init__()
-        self.grad_boost = CatBoostClassifier(30, verbose=0)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">CatBoostModel</span><span class="p">(</span><span class="n">BaseForeignModel</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grad_boost</span> <span class="o">=</span> <span class="n">CatBoostClassifier</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-    def fit(self, data: Dict[str, BaseData]) -&gt; None:
-        self.grad_boost.fit(
-            data[&#39;X&#39;].to_cpu().data,
-            data[&#39;y&#39;].to_cpu().data
-        )
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseData</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grad_boost</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_cpu</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_cpu</span><span class="p">()</span><span class="o">.</span><span class="n">data</span>
+        <span class="p">)</span>
 
-    def predict(self, data: Dict[str, BaseData]) -&gt; Dict[str, BaseData]:
-        return {&#39;output&#39;: CPUData(
-                self.grad_boost.predict_proba(data[&#39;X&#39;].to_cpu().data)
-                )}
+    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseData</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseData</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="n">CPUData</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">grad_boost</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_cpu</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                <span class="p">)}</span>
 
-    def set_random_state(self, random_state: int) -&gt; None:
-        self.grad_boost.random_state = random_state
-
-
-class NeuralNetwork(torch.nn.Module):
-    def __init__(self, dim: int) -&gt; None:
-        super().__init__()
-        self.device = torch.device(&#39;cuda&#39;)
-        self.nn = torch.nn.Sequential(
-            torch.nn.Linear(dim, dim * 10),
-            torch.nn.ReLU(),
-            torch.nn.Linear(dim * 10, dim),
-            torch.nn.Tanh(),
-            torch.nn.Linear(dim, 1),
-            torch.nn.Sigmoid()
-        ).to(self.device)
-        self.optimizer = torch.optim.Adam(self.nn.parameters(), 0.0005)
-        self.batch_size = 64
-        self.epochs_num = 500
-        self.loss_fn = torch.nn.CrossEntropyLoss()
-
-    def _get_tensor(self, x: np.ndarray) -&gt; torch.Tensor:
-        return torch.from_numpy(x.astype(np.float32)).to(self.device)
-
-    def forward(self, x: torch.Tensor) -&gt; torch.Tensor:
-        proba = self.nn(x)
-        return torch.concat((1 - proba, proba), dim=-1)
-
-    def transform(self, x: np.ndarray) -&gt; np.ndarray:
-        with torch.no_grad():
-            x = self._get_tensor(x)
-            return self(x).cpu().numpy()
-
-    def fit(self, x: np.ndarray, y: np.ndarray) -&gt; &#39;NeuralNetwork&#39;:
-        x_tens = self._get_tensor(x)
-        y_tens = self._get_tensor(y).long()
-        dataset = TensorDataset(x_tens, y_tens)
-        data_loader = DataLoader(dataset, self.batch_size, True)
-        self.train()
-        for _ in range(self.epochs_num):
-            for x, y in data_loader:
-                self.optimizer.zero_grad()
-                pred = self(x)
-                loss = self.loss_fn(pred, y)
-                loss.backward()
-                self.optimizer.step()
-        return self
+    <span class="k">def</span> <span class="nf">set_random_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">random_state</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grad_boost</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">random_state</span>
 
 
-class NNModel(BaseForeignModel):
-    def __init__(self, dim: int) -&gt; None:
-        super().__init__()
-        self.nn = NeuralNetwork(dim)
+<span class="k">class</span> <span class="nc">NeuralNetwork</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nn</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span> <span class="o">*</span> <span class="mi">10</span><span class="p">),</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">dim</span> <span class="o">*</span> <span class="mi">10</span><span class="p">,</span> <span class="n">dim</span><span class="p">),</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">(),</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="mf">0.0005</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">64</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epochs_num</span> <span class="o">=</span> <span class="mi">500</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
 
-    def fit(self, data: Dict[str, BaseData]) -&gt; None:
-        return self.nn.fit(
-            data[&#39;X&#39;].to_cpu().data,
-            data[&#39;y&#39;].to_cpu().data
-        )
+    <span class="k">def</span> <span class="nf">_get_tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
-    def predict(self, data: Dict[str, BaseData]) -&gt; Dict[str, BaseData]:
-        return {&#39;output&#39;: CPUData(
-                self.nn.transform(data[&#39;X&#39;].to_cpu().data)
-                )}
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">proba</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">concat</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">proba</span><span class="p">,</span> <span class="n">proba</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
-    def set_random_state(self, random_state: int) -&gt; None:
-        torch.manual_seed(random_state)
+    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_tensor</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
 
-        def init_weights(obj):
-            if isinstance(obj, torch.nn.Linear):
-                torch.nn.init.xavier_uniform_(obj.weight)
-        with torch.no_grad():
-            self.nn.apply(init_weights)
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;NeuralNetwork&#39;</span><span class="p">:</span>
+        <span class="n">x_tens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_tensor</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">y_tens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_tensor</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">TensorDataset</span><span class="p">(</span><span class="n">x_tens</span><span class="p">,</span> <span class="n">y_tens</span><span class="p">)</span>
+        <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epochs_num</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">data_loader</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+                <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+<span class="k">class</span> <span class="nc">NNModel</span><span class="p">(</span><span class="n">BaseForeignModel</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nn</span> <span class="o">=</span> <span class="n">NeuralNetwork</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseData</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_cpu</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_cpu</span><span class="p">()</span><span class="o">.</span><span class="n">data</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseData</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseData</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="n">CPUData</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_cpu</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                <span class="p">)}</span>
+
+    <span class="k">def</span> <span class="nf">set_random_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">random_state</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">init_weights</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_uniform_</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">init_weights</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -518,12 +518,12 @@ class NNModel(BaseForeignModel):
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def accuracy(y_true, y_pred):
-    return accuracy_score(y_true, np.int_(y_pred[:, 1]))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">accuracy</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">(</span><span class="n">y_pred</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]))</span>
 
 
-def roc_auc(y_true, y_pred):
-    return roc_auc_score(y_true, np.int_(y_pred[:, 1]))
+<span class="k">def</span> <span class="nf">roc_auc</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">(</span><span class="n">y_pred</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]))</span>
 </pre></div>
 </div>
 </div>
@@ -533,11 +533,11 @@ def roc_auc(y_true, y_pred):
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>block_1 = RFCBlock() # 100 trees by default
-block_2 = RFCBlock(n_estimators=100) # also 100 trees
-# hashes of those blocks will be different
-print(&#39;- Whether hashes are the same?&#39;)
-print(&#39;-&#39;, hash(block_1) == hash(block_2))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">block_1</span> <span class="o">=</span> <span class="n">RFCBlock</span><span class="p">()</span> <span class="c1"># 100 trees by default</span>
+<span class="n">block_2</span> <span class="o">=</span> <span class="n">RFCBlock</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span> <span class="c1"># also 100 trees</span>
+<span class="c1"># hashes of those blocks will be different</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;- Whether hashes are the same?&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="nb">hash</span><span class="p">(</span><span class="n">block_1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">hash</span><span class="p">(</span><span class="n">block_2</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -556,21 +556,21 @@ print(&#39;-&#39;, hash(block_1) == hash(block_2))
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># firstly we will define the CV strategy
-# for creating the CVComparator object
-random_seed = 42
-cv_strat = KFold(n_splits=3, shuffle=True, random_state=random_seed)
-# if you don&#39;t want to compare foreign models
-# or bosk pipelines, just pass None to the
-# corresponding argument
-comparator = CVComparator(
-    pipelines=pipeline_list,
-    foreign_models=[CatBoostModel(), NNModel(dim=2)],
-    cv_strat=cv_strat,
-    get_blocks_times=True,
-    f_optimize_pipelines=True,
-    random_state=random_seed
-)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># firstly we will define the CV strategy</span>
+<span class="c1"># for creating the CVComparator object</span>
+<span class="n">random_seed</span> <span class="o">=</span> <span class="mi">42</span>
+<span class="n">cv_strat</span> <span class="o">=</span> <span class="n">KFold</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_seed</span><span class="p">)</span>
+<span class="c1"># if you don&#39;t want to compare foreign models</span>
+<span class="c1"># or bosk pipelines, just pass None to the</span>
+<span class="c1"># corresponding argument</span>
+<span class="n">comparator</span> <span class="o">=</span> <span class="n">CVComparator</span><span class="p">(</span>
+    <span class="n">pipelines</span><span class="o">=</span><span class="n">pipeline_list</span><span class="p">,</span>
+    <span class="n">foreign_models</span><span class="o">=</span><span class="p">[</span><span class="n">CatBoostModel</span><span class="p">(),</span> <span class="n">NNModel</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)],</span>
+    <span class="n">cv_strat</span><span class="o">=</span><span class="n">cv_strat</span><span class="p">,</span>
+    <span class="n">get_blocks_times</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">f_optimize_pipelines</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">random_state</span><span class="o">=</span><span class="n">random_seed</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -579,8 +579,8 @@ comparator = CVComparator(
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>GraphvizPainter(figure_dpi=100).from_pipeline(comparator._common_pipeline).render(&#39;pipeline.jpeg&#39;)
-display(Image(&#39;pipeline.jpeg&#39;))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">GraphvizPainter</span><span class="p">(</span><span class="n">figure_dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">from_pipeline</span><span class="p">(</span><span class="n">comparator</span><span class="o">.</span><span class="n">_common_pipeline</span><span class="p">)</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">&#39;pipeline.jpeg&#39;</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="s1">&#39;pipeline.jpeg&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -596,10 +596,10 @@ display(Image(&#39;pipeline.jpeg&#39;))
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>for pip in comparator._optim_pipelines[0::2]:
-    executor = TopologicalExecutor(pip, Stage.FIT)
-    TopologicalPainter(figure_dpi=100).from_executor(executor).render(&#39;pipeline.jpeg&#39;)
-    display(Image(&#39;pipeline.jpeg&#39;))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">pip</span> <span class="ow">in</span> <span class="n">comparator</span><span class="o">.</span><span class="n">_optim_pipelines</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]:</span>
+    <span class="n">executor</span> <span class="o">=</span> <span class="n">TopologicalExecutor</span><span class="p">(</span><span class="n">pip</span><span class="p">,</span> <span class="n">Stage</span><span class="o">.</span><span class="n">FIT</span><span class="p">)</span>
+    <span class="n">TopologicalPainter</span><span class="p">(</span><span class="n">figure_dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">from_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">)</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">&#39;pipeline.jpeg&#39;</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="s1">&#39;pipeline.jpeg&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -623,14 +623,14 @@ display(Image(&#39;pipeline.jpeg&#39;))
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># let&#39;s make some data
-x, y = make_moons(200, noise=0.5, random_state=random_seed)
-data = {&#39;X&#39;: CPUData(x), &#39;y&#39;: CPUData(y)}
-result = comparator.get_score(data, [
-    MetricWrapper(accuracy, name=&#39;accuracy&#39;),
-    MetricWrapper(roc_auc, name=&#39;roc-auc&#39;)
-])
-result.head()
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># let&#39;s make some data</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">make_moons</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_seed</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">CPUData</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">CPUData</span><span class="p">(</span><span class="n">y</span><span class="p">)}</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">comparator</span><span class="o">.</span><span class="n">get_score</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">[</span>
+    <span class="n">MetricWrapper</span><span class="p">(</span><span class="n">accuracy</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;accuracy&#39;</span><span class="p">),</span>
+    <span class="n">MetricWrapper</span><span class="p">(</span><span class="n">roc_auc</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;roc-auc&#39;</span><span class="p">)</span>
+<span class="p">])</span>
+<span class="n">result</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>

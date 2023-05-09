@@ -1,0 +1,174 @@
+:py:mod:`bosk.block.zoo.routing.cs 2`
+=====================================
+
+.. py:module:: bosk.block.zoo.routing.cs 2
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.routing.cs 2.CSBlock
+   bosk.block.zoo.routing.cs 2.CSFilterBlock
+   bosk.block.zoo.routing.cs 2.CSJoinBlock
+
+
+
+
+.. py:class:: CSBlock(eps = 1.0)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Confidence screening block.
+
+   :param eps: Confidence threshold.
+
+   .. attribute:: eps
+
+      Confidence threshold.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Feature data array.
+
+   Output slots
+   ------------
+
+       - best: Best data subsample.
+       - mask: Mask for the rest of the data array.
+
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:method:: fit(inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: CSFilterBlock(input_names)
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Confidence screening filtering block.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - mask: Mask array.
+       - `input_names[0]`: Features data array 0.
+       - ...
+       - `input_names[n]`: Features data array n.
+
+   Output slots
+   ------------
+
+       - `input_names[0]`: Features data array 0 subset.
+       - ...
+       - `input_names[n]`: Features data array n subset.
+
+   .. attribute:: input_names
+
+      List of input names.
+
+   .. py:attribute:: meta
+      :annotation: :bosk.block.meta.BlockMeta
+
+      
+
+   .. py:method:: fit(inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+
+.. py:class:: CSJoinBlock
+
+   Bases: :py:obj:`bosk.block.base.BaseBlock`
+
+   Confidence screening joining (merging) block.
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       The fit step is bypassed.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - best: Best data subsample.
+       - refined: Refined data subsample (corresponding to `mask == True`).
+       - mask: Mask of the refined part.
+
+   Output slots
+   ------------
+
+       - output: Output merged data array.
+
+
+   .. py:attribute:: meta
+      
+
+      
+
+   .. py:method:: fit(inputs)
+
+      The block bypasses the fit step.
+
+
+   .. py:method:: transform(inputs)
+
+      Transform the given input data, i.e. compute values for each output slot.
+
+      :param inputs: Block input data for the transforming stage.
+
+      :returns: Outputs calculated for the given inputs.
+
+
+

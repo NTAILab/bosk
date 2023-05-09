@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Bosk usage examples" href="examples.html" /><link rel="prev" title="Installing bosk" href="install.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" />
 
     <meta name="generator" content="sphinx-5.3.0, furo 2022.09.29"/>
-        <title>Getting started - bosk 1.0 documentation</title>
+        <title>Installing bosk - bosk 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
@@ -155,9 +155,9 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <ul class="current">
+  <ul>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation guide</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">Bosk usage examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="basic_examples.html">Basic bosk usage user guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="notebooks/basic_forest.html">Making basic deep forest</a></li>
@@ -342,136 +342,65 @@
           </label>
         </div>
         <article role="main">
-          <section id="getting-started">
-<h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this heading">#</a></h1>
-<p>After <a class="reference internal" href="install.html"><span class="doc">installation</span></a> of the bosk framework, lets consider
-the basic primitives.</p>
-<section id="basic-primitives">
-<h2>Basic primitives<a class="headerlink" href="#basic-primitives" title="Permalink to this heading">#</a></h2>
-<ul class="simple">
-<li><p><a class="reference internal" href="getting_started%202.html#block"><span class="std std-ref">Block</span></a> – basic computational node, which has multiple inputs and outputs (slots) and can be trained with <cite>fit</cite>, and then can transform inputs with <cite>transform</cite> to obtain outputs;</p></li>
-<li><p><a class="reference internal" href="getting_started%202.html#pipeline"><span class="std std-ref">Pipeline</span></a> – Deep Forest itself, represented as a graph, defined on block slots. It represents both <cite>fit</cite> and <cite>transform</cite> stage;</p></li>
-<li><p><a class="reference internal" href="getting_started%202.html#executor"><span class="std std-ref">Executor</span></a> – subject, that executes the pipeline given some input data to obtain output.
-Can be used to train the forest, or to evaluate predictions.</p></li>
-</ul>
-<section id="block">
-<span id="id1"></span><h3>Block<a class="headerlink" href="#block" title="Permalink to this heading">#</a></h3>
-<p>Any block can be fitted on some data and then used to transform the data.</p>
-<p>Blocks may have different number of inputs and outputs.
-Information about inputs, outputs and other block properties
-is stored in <a class="reference internal" href="autoapi/bosk/block/meta/index.html#bosk.block.meta.BlockMeta" title="bosk.block.meta.BlockMeta"><code class="xref py py-class docutils literal notranslate"><span class="pre">bosk.block.meta.BlockMeta</span></code></a>.
-The meta information may be shared between different instances of the same block class.
-Each input is described by a <a class="reference internal" href="autoapi/bosk/block/meta/index.html#bosk.block.meta.InputSlotMeta" title="bosk.block.meta.InputSlotMeta"><code class="xref py py-class docutils literal notranslate"><span class="pre">bosk.block.meta.InputSlotMeta</span></code></a> and
-each output is described by a <a class="reference internal" href="autoapi/bosk/block/meta/index.html#bosk.block.meta.OutputSlotMeta" title="bosk.block.meta.OutputSlotMeta"><code class="xref py py-class docutils literal notranslate"><span class="pre">bosk.block.meta.OutputSlotMeta</span></code></a>.</p>
-<p>To connect blocks to each other, every block has <cite>slots</cite>:
-<code class="xref py py-class docutils literal notranslate"><span class="pre">BlockInputSlot</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">BlockOutputSlot</span></code>,
-which correspond to meta information. But the slots are unique for each block (i.e. block class instance).</p>
-<p>Every block class should be derived from <a class="reference internal" href="autoapi/bosk/block/base/index.html#bosk.block.base.BaseBlock" title="bosk.block.base.BaseBlock"><code class="xref py py-class docutils literal notranslate"><span class="pre">bosk.block.base.BaseBlock</span></code></a>,
-define meta information and implement the <code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">transform()</span></code> methods.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Block prediction is always performed with the <code class="xref py py-meth docutils literal notranslate"><span class="pre">transform()</span></code> method, not with “predict”
-or something else.</p>
-</div>
-<p>List of available blocks can be found in the <a class="reference internal" href="autoapi/bosk/block/zoo/index.html#module-bosk.block.zoo" title="bosk.block.zoo"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo</span></code></a>.</p>
-</section>
-<section id="pipeline">
-<span id="id2"></span><h3>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this heading">#</a></h3>
-<p>Pipelines are represented as sets of nodes (blocks) and connections between them.</p>
-<p>There are tree ways to define a pipeline:</p>
-<ol class="arabic simple">
-<li><p>Manually, by defining a list of nodes and connections.</p></li>
-<li><p>Using the <a class="reference internal" href="getting_started%202.html#functional-pipeline-builder"><span class="std std-ref">builder in functional style</span></a>.</p></li>
-<li><p><a class="reference internal" href="getting_started%202.html#automatic-pipeline"><span class="std std-ref">Automatically</span></a>, building Deep Forest layerwise with predefined layer structure.</p></li>
-</ol>
-<p>Here we will consider only the second and the third options, since they are more convinient.</p>
-<section id="functional-style-pipeline-definition">
-<span id="functional-pipeline-builder"></span><h4>Functional-style Pipeline Definition<a class="headerlink" href="#functional-style-pipeline-definition" title="Permalink to this heading">#</a></h4>
-<p>Deep Forest can be built manually by using
-<cite>FunctionalPipelineBuilder</cite>.
-It allows to create arbitrary complex pipeline
-by combining block placeholders (wrappers).</p>
-<p>For example, to create Deep Forest with two layers, the following code can be used:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bosk.executor</span> <span class="kn">import</span> <span class="n">TopologicalExecutor</span>
-<span class="kn">from</span> <span class="nn">bosk.pipeline.builder.functional</span> <span class="kn">import</span> <span class="n">FunctionalPipelineBuilder</span>
-<span class="kn">from</span> <span class="nn">bosk.executor.sklearn_interface</span> <span class="kn">import</span> <span class="n">BoskPipelineClassifier</span>
-
-<span class="c1"># make a pipeline</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">FunctionalPipelineBuilder</span><span class="p">()</span>
-<span class="c1"># placeholders for input features `X` and target variable `y`</span>
-<span class="n">x_</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)()</span>
-<span class="n">y_</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">TargetInput</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)()</span>
-<span class="c1"># make random forests for the first layer</span>
-<span class="n">rf_</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">123</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">x_</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y_</span><span class="p">)</span>
-<span class="n">et_</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">123</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">x_</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y_</span><span class="p">)</span>
-<span class="c1"># concatenate predictions of forests with `X`</span>
-<span class="n">concat_</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;rf&#39;</span><span class="p">,</span> <span class="s1">&#39;et&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">x_</span><span class="p">,</span> <span class="n">rf</span><span class="o">=</span><span class="n">rf_</span><span class="p">,</span> <span class="n">et</span><span class="o">=</span><span class="n">et_</span><span class="p">)</span>
-<span class="c1"># make the second layer</span>
-<span class="n">rf2_</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">456</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat_</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y_</span><span class="p">)</span>
-<span class="n">et2_</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">456</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat_</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y_</span><span class="p">)</span>
-<span class="n">concat2_</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;rf2&#39;</span><span class="p">,</span> <span class="s1">&#39;et2&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">x_</span><span class="p">,</span> <span class="n">rf2</span><span class="o">=</span><span class="n">rf2_</span><span class="p">,</span> <span class="n">et2</span><span class="o">=</span><span class="n">et2_</span><span class="p">)</span>
-<span class="c1"># make the final model</span>
-<span class="n">proba_</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">12345</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat2_</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y_</span><span class="p">)</span>
-<span class="c1"># use its predictions as a pipeline output</span>
-<span class="n">b</span><span class="o">.</span><span class="n">Output</span><span class="p">(</span><span class="s1">&#39;proba&#39;</span><span class="p">)(</span><span class="n">proba_</span><span class="p">)</span>
-<span class="c1"># build pipeline</span>
-<span class="n">pipeline</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
-<span class="c1"># wrap pipeline into a scikit-learn model</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">BoskPipelineClassifier</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">executor_cls</span><span class="o">=</span><span class="n">RecursiveExecutor</span><span class="p">)</span>
-<span class="c1"># fit the model</span>
-<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
-<span class="c1"># predict with the model</span>
-<span class="n">test_preds</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+          <section id="installing-bosk">
+<h1>Installing bosk<a class="headerlink" href="#installing-bosk" title="Permalink to this heading">#</a></h1>
+<p>Please, read this guide carefully, because the package depends on the JAX,
+which cannot be installed automatically.</p>
+<p>If it is needed to install bosk without JAX support, start with
+<a class="reference internal" href="#install-package"><span class="std std-ref">Package Installation</span></a>.</p>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this heading">#</a></h2>
+<section id="environment">
+<h3>Environment<a class="headerlink" href="#environment" title="Permalink to this heading">#</a></h3>
+<p>Make sure that the python &gt;= 3.9 envoronment is ready.</p>
+<p>For example, with <a class="reference external" href="https://www.anaconda.com/distribution/">Anaconda</a>
+the environment can be created and activated by running:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">bosk_env</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.10</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">bosk_env</span>
 </pre></div>
 </div>
 </section>
-<section id="automatic-layerwise-deep-forest-construction">
-<span id="automatic-pipeline"></span><h4>Automatic layerwise Deep Forest construction<a class="headerlink" href="#automatic-layerwise-deep-forest-construction" title="Permalink to this heading">#</a></h4>
-<p>The bosk framework also allows to build Deep Forests fully automatically
-given only data and set of optional parameters.</p>
-<p>For example, the following code creates Deep Forest with at most three layers
-with 2 block of each type in layer, using 2-fold cross-validation:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bosk.auto.deep_forest</span> <span class="kn">import</span> <span class="n">ClassicalDeepForestConstructor</span>
-<span class="kn">from</span> <span class="nn">bosk.executor</span> <span class="kn">import</span> <span class="n">TopologicalExecutor</span>
-<span class="kn">from</span> <span class="nn">bosk.executor.sklearn_interface</span> <span class="kn">import</span> <span class="n">BoskPipelineClassifier</span>
-
- <span class="n">constructor</span> <span class="o">=</span> <span class="n">ClassicalDeepForestConstructor</span><span class="p">(</span>
-     <span class="n">TopologicalExecutor</span><span class="p">,</span>
-     <span class="n">rf_params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
-     <span class="n">max_iter</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-     <span class="n">layer_width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-     <span class="n">cv</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-     <span class="n">random_state</span><span class="o">=</span><span class="mi">12345</span><span class="p">,</span>
- <span class="p">)</span>
- <span class="c1"># construct Deep Forest automatically based on data</span>
- <span class="n">pipeline</span> <span class="o">=</span> <span class="n">constructor</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
- <span class="c1"># make a scikit-learn model</span>
- <span class="n">model</span> <span class="o">=</span> <span class="n">BoskPipelineClassifier</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">executor_cls</span><span class="o">=</span><span class="n">TopologicalExecutor</span><span class="p">)</span>
- <span class="n">model</span><span class="o">.</span><span class="n">_classifier_init</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
- <span class="n">test_preds</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+<section id="jax-installation">
+<span id="install-jax"></span><h3>JAX installation<a class="headerlink" href="#jax-installation" title="Permalink to this heading">#</a></h3>
+<p>Bosk uses JAX for GPU computations, but JAX installation is not trivial.</p>
+<p><strong>CPU-only system</strong></p>
+<p>If there is no GPU available, install the CPU JAX version:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="s2">&quot;jax[cpu]&quot;</span>
 </pre></div>
 </div>
-</section>
-</section>
-<section id="executor">
-<span id="id3"></span><h3>Executor<a class="headerlink" href="#executor" title="Permalink to this heading">#</a></h3>
-<p>Executor is the subject that fits the pipelines and evaluate its outputs.</p>
-<p>A pipeline executor acts like a function and can be applied
-to a dictionary of input values.</p>
-<p>The output of the executor is a special dictionary of output values,
-which contain wrapped data (<a class="reference internal" href="autoapi/bosk/data/index.html#bosk.data.BaseData" title="bosk.data.BaseData"><code class="xref py py-class docutils literal notranslate"><span class="pre">bosk.data.BaseData</span></code></a>).
-In order to obtain NumPy arrays as output, the <cite>.numpy()</cite> method should be called
-on the result.</p>
-<p>Example of usage:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">make_pipeline</span><span class="p">()</span>  <span class="c1"># make a pipeline somehow</span>
-<span class="n">fitter</span> <span class="o">=</span> <span class="n">TopologicalExecutor</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="n">Stage</span><span class="o">.</span><span class="n">FIT</span><span class="p">)</span>
-<span class="n">fitter</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X_train</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y_train</span><span class="p">})</span>  <span class="c1"># fit on dictionary of input numpy arrays</span>
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">TopologicalExecutor</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="n">Stage</span><span class="o">.</span><span class="n">TRANSFORM</span><span class="p">)</span>
-<span class="n">predictions</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X_test</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>  <span class="c1"># result: dictionary of output numpy arrays</span>
+<p><strong>GPU system</strong></p>
+<p>Please, follow <a class="reference external" href="https://github.com/google/jax#pip-installation-gpu-cuda-installed-via-pip-easier">The official JAX installation guide</a>
+or run the following command to install CUDA12 version:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="s2">&quot;jax[cuda12_pip]&quot;</span> <span class="o">-</span><span class="n">f</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">storage</span><span class="o">.</span><span class="n">googleapis</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">jax</span><span class="o">-</span><span class="n">releases</span><span class="o">/</span><span class="n">jax_cuda_releases</span><span class="o">.</span><span class="n">html</span>
 </pre></div>
 </div>
-<p>Executors and more detailed description are listed in <a class="reference internal" href="autoapi/bosk/executor/index.html#module-bosk.executor" title="bosk.executor"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor</span></code></a>.</p>
-<p>You can find more examples on the <a class="reference internal" href="examples.html"><span class="doc">Bosk usage examples</span></a> page.</p>
+<p>Note that pip wheels are available only for linux, for other platforms either adapters
+like Windows Subsystem for Linux can be used or JAX can be built manually.</p>
+</section>
+</section>
+<section id="package-installation">
+<span id="install-package"></span><h2>Package Installation<a class="headerlink" href="#package-installation" title="Permalink to this heading">#</a></h2>
+<p>To install the bosk package directly from GitHub run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">ssh</span><span class="p">:</span><span class="o">//</span><span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">NTAILab</span><span class="o">/</span><span class="n">bosk</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>Alternatively the repo can be cloned and installed manually:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">NTAILab</span><span class="o">/</span><span class="n">bosk</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">bosk</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+</pre></div>
+</div>
+<section id="dev-installation">
+<h3>Dev Installation<a class="headerlink" href="#dev-installation" title="Permalink to this heading">#</a></h3>
+<p>For development purpose it is more convenient to install the package in develop mode,
+to automatically update package on changes (actually it uses symlinks):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">NTAILab</span><span class="o">/</span><span class="n">bosk</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">bosk</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">develop</span>
+</pre></div>
+</div>
 </section>
 </section>
 </section>
@@ -481,26 +410,8 @@ on the result.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="examples.html">
-              <div class="page-info">
-                <div class="context">
-                  <span>Next</span>
-                </div>
-                <div class="title">Bosk usage examples</div>
-              </div>
-              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
-            </a>
-          <a class="prev-page" href="install.html">
-              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
-              <div class="page-info">
-                <div class="context">
-                  <span>Previous</span>
-                </div>
-                
-                <div class="title">Installing bosk</div>
-                
-              </div>
-            </a>
+          
+          
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
@@ -533,15 +444,14 @@ on the result.</p>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Getting started</a><ul>
-<li><a class="reference internal" href="#basic-primitives">Basic primitives</a><ul>
-<li><a class="reference internal" href="#block">Block</a></li>
-<li><a class="reference internal" href="#pipeline">Pipeline</a><ul>
-<li><a class="reference internal" href="#functional-style-pipeline-definition">Functional-style Pipeline Definition</a></li>
-<li><a class="reference internal" href="#automatic-layerwise-deep-forest-construction">Automatic layerwise Deep Forest construction</a></li>
+<li><a class="reference internal" href="#">Installing bosk</a><ul>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a><ul>
+<li><a class="reference internal" href="#environment">Environment</a></li>
+<li><a class="reference internal" href="#jax-installation">JAX installation</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#executor">Executor</a></li>
+<li><a class="reference internal" href="#package-installation">Package Installation</a><ul>
+<li><a class="reference internal" href="#dev-installation">Dev Installation</a></li>
 </ul>
 </li>
 </ul>

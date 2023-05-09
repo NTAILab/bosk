@@ -11,8 +11,10 @@ Submodules
    :maxdepth: 1
 
    _jax_util/index.rst
+   _jax_util 2/index.rst
    ferns/index.rst
    jax/index.rst
+   jax 2/index.rst
    mgs_ferns/index.rst
 
 

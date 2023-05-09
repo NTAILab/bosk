@@ -21,6 +21,7 @@ Submodules
    :maxdepth: 1
 
    cs/index.rst
+   cs 2/index.rst
    cv/index.rst
 
 

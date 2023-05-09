@@ -350,11 +350,11 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from bosk.executor.recursive import RecursiveExecutor
-from bosk.executor.timer import TimerBlockExecutor
-from bosk.stages import Stage
-from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
-from sklearn.datasets import make_moons
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bosk.executor.recursive</span> <span class="kn">import</span> <span class="n">RecursiveExecutor</span>
+<span class="kn">from</span> <span class="nn">bosk.executor.timer</span> <span class="kn">import</span> <span class="n">TimerBlockExecutor</span>
+<span class="kn">from</span> <span class="nn">bosk.stages</span> <span class="kn">import</span> <span class="n">Stage</span>
+<span class="kn">from</span> <span class="nn">bosk.pipeline.builder.functional</span> <span class="kn">import</span> <span class="n">FunctionalPipelineBuilder</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">make_moons</span>
 </pre></div>
 </div>
 </div>
@@ -363,24 +363,24 @@ from sklearn.datasets import make_moons
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>n_estimators = 15
-b = FunctionalPipelineBuilder()
-# that we do as it was described above
-X, y = b.Input()(), b.TargetInput()()
-rf_1 = b.RFC(n_estimators=n_estimators)(X=X, y=y)
-et_1 = b.ETC(n_estimators=n_estimators)(X=X, y=y)
-concat_1 = b.Concat([&#39;X&#39;, &#39;rf_1&#39;, &#39;et_1&#39;])(X=X, rf_1=rf_1, et_1=et_1)
-rf_2 = b.RFC(n_estimators=n_estimators)(X=concat_1, y=y)
-et_2 = b.ETC(n_estimators=n_estimators)(X=concat_1, y=y)
-stack = b.Stack([&#39;rf_2&#39;, &#39;et_2&#39;], axis=1)(rf_2=rf_2, et_2=et_2)
-average = b.Average(axis=1)(X=stack)
-argmax = b.Argmax(axis=1)(X=average)
-rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
-roc_auc = b.RocAuc()(gt_y=y, pred_probas=average)
-pipeline = b.build(
-    {&#39;X&#39;: X, &#39;y&#39;: y},
-    {&#39;labels&#39;: argmax, &#39;probas&#39;: average, &#39;rf_1_roc-auc&#39;: rf_1_roc_auc, &#39;roc-auc&#39;: roc_auc}
-)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">n_estimators</span> <span class="o">=</span> <span class="mi">15</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">FunctionalPipelineBuilder</span><span class="p">()</span>
+<span class="c1"># that we do as it was described above</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Input</span><span class="p">()(),</span> <span class="n">b</span><span class="o">.</span><span class="n">TargetInput</span><span class="p">()()</span>
+<span class="n">rf_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">et_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">concat_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_1&#39;</span><span class="p">,</span> <span class="s1">&#39;et_1&#39;</span><span class="p">])(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">rf_1</span><span class="o">=</span><span class="n">rf_1</span><span class="p">,</span> <span class="n">et_1</span><span class="o">=</span><span class="n">et_1</span><span class="p">)</span>
+<span class="n">rf_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">et_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">stack</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Stack</span><span class="p">([</span><span class="s1">&#39;rf_2&#39;</span><span class="p">,</span> <span class="s1">&#39;et_2&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">rf_2</span><span class="o">=</span><span class="n">rf_2</span><span class="p">,</span> <span class="n">et_2</span><span class="o">=</span><span class="n">et_2</span><span class="p">)</span>
+<span class="n">average</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Average</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">stack</span><span class="p">)</span>
+<span class="n">argmax</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">average</span><span class="p">)</span>
+<span class="n">rf_1_roc_auc</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RocAuc</span><span class="p">()(</span><span class="n">gt_y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">pred_probas</span><span class="o">=</span><span class="n">rf_1</span><span class="p">)</span>
+<span class="n">roc_auc</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RocAuc</span><span class="p">()(</span><span class="n">gt_y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">pred_probas</span><span class="o">=</span><span class="n">average</span><span class="p">)</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">build</span><span class="p">(</span>
+    <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">},</span>
+    <span class="p">{</span><span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="n">argmax</span><span class="p">,</span> <span class="s1">&#39;probas&#39;</span><span class="p">:</span> <span class="n">average</span><span class="p">,</span> <span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">:</span> <span class="n">rf_1_roc_auc</span><span class="p">,</span> <span class="s1">&#39;roc-auc&#39;</span><span class="p">:</span> <span class="n">roc_auc</span><span class="p">}</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -389,14 +389,14 @@ pipeline = b.build(
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fit_exec = RecursiveExecutor(pipeline, Stage.FIT)
-# let&#39;s make some data to train our model
-X, y = make_moons(noise=0.5)
-# now we need to create a dictionary to map the data to the
-# pipeline&#39;s inputs
-full_data = {&#39;X&#39;: X, &#39;y&#39;: y}
-# to run the executor we need to pass the data
-fit_res = fit_exec(full_data)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fit_exec</span> <span class="o">=</span> <span class="n">RecursiveExecutor</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">Stage</span><span class="o">.</span><span class="n">FIT</span><span class="p">)</span>
+<span class="c1"># let&#39;s make some data to train our model</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">make_moons</span><span class="p">(</span><span class="n">noise</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="c1"># now we need to create a dictionary to map the data to the</span>
+<span class="c1"># pipeline&#39;s inputs</span>
+<span class="n">full_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">}</span>
+<span class="c1"># to run the executor we need to pass the data</span>
+<span class="n">fit_res</span> <span class="o">=</span> <span class="n">fit_exec</span><span class="p">(</span><span class="n">full_data</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -405,7 +405,7 @@ fit_res = fit_exec(full_data)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>print(list(fit_res.keys()))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">fit_res</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
 </pre></div>
 </div>
 </div>
@@ -422,13 +422,13 @@ fit_res = fit_exec(full_data)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># let&#39;s specify inputs and outputs
-tf_exec = RecursiveExecutor(pipeline, Stage.TRANSFORM, [&#39;X&#39;], [&#39;probas&#39;])
-# let&#39;s try to break out inputs requirement
-try:
-    tf_exec(full_data)
-except AssertionError as e:
-    print(e)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># let&#39;s specify inputs and outputs</span>
+<span class="n">tf_exec</span> <span class="o">=</span> <span class="n">RecursiveExecutor</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">Stage</span><span class="o">.</span><span class="n">TRANSFORM</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">])</span>
+<span class="c1"># let&#39;s try to break out inputs requirement</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">tf_exec</span><span class="p">(</span><span class="n">full_data</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -445,10 +445,10 @@ Input &#34;y&#34; is not in the executor&#39;s inputs set
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># now let&#39;s make the right dictionary
-tf_data = {&#39;X&#39;: X}
-tf_res = tf_exec(tf_data)
-print(list(tf_res.keys()))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># now let&#39;s make the right dictionary</span>
+<span class="n">tf_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X</span><span class="p">}</span>
+<span class="n">tf_res</span> <span class="o">=</span> <span class="n">tf_exec</span><span class="p">(</span><span class="n">tf_data</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">tf_res</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
 </pre></div>
 </div>
 </div>
@@ -466,22 +466,22 @@ using custom <code class="docutils literal notranslate"><span class="pre">block_
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>timer_block_exec = TimerBlockExecutor()
-tf_exec = RecursiveExecutor(pipeline, Stage.TRANSFORM,
-                            outputs=[&#39;labels&#39;],
-                            block_executor=timer_block_exec)
-tf_exec(tf_data)
-# this block executor stores cpu execution time
-# for each executed block
-# let&#39;s find the most complex block
-max_time_block = None
-max_time = 0
-for block, time in timer_block_exec.blocks_time.items():
-    if time &gt; max_time:
-        max_time = time
-        max_time_block = block
-print(f&#39;The most complex block is {max_time_block} (id { hash(max_time_block)}).&#39;,
-      f&#39;Execution time is {round(max_time, 5)} s.&#39;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">timer_block_exec</span> <span class="o">=</span> <span class="n">TimerBlockExecutor</span><span class="p">()</span>
+<span class="n">tf_exec</span> <span class="o">=</span> <span class="n">RecursiveExecutor</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">Stage</span><span class="o">.</span><span class="n">TRANSFORM</span><span class="p">,</span>
+                            <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">],</span>
+                            <span class="n">block_executor</span><span class="o">=</span><span class="n">timer_block_exec</span><span class="p">)</span>
+<span class="n">tf_exec</span><span class="p">(</span><span class="n">tf_data</span><span class="p">)</span>
+<span class="c1"># this block executor stores cpu execution time</span>
+<span class="c1"># for each executed block</span>
+<span class="c1"># let&#39;s find the most complex block</span>
+<span class="n">max_time_block</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">max_time</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">block</span><span class="p">,</span> <span class="n">time</span> <span class="ow">in</span> <span class="n">timer_block_exec</span><span class="o">.</span><span class="n">blocks_time</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">time</span> <span class="o">&gt;</span> <span class="n">max_time</span><span class="p">:</span>
+        <span class="n">max_time</span> <span class="o">=</span> <span class="n">time</span>
+        <span class="n">max_time_block</span> <span class="o">=</span> <span class="n">block</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The most complex block is </span><span class="si">{</span><span class="n">max_time_block</span><span class="si">}</span><span class="s1"> (id </span><span class="si">{</span> <span class="nb">hash</span><span class="p">(</span><span class="n">max_time_block</span><span class="p">)</span><span class="si">}</span><span class="s1">).&#39;</span><span class="p">,</span>
+      <span class="sa">f</span><span class="s1">&#39;Execution time is </span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">max_time</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="si">}</span><span class="s1"> s.&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

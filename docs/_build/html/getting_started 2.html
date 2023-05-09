@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Bosk usage examples" href="examples.html" /><link rel="prev" title="Installing bosk" href="install.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" />
 
     <meta name="generator" content="sphinx-5.3.0, furo 2022.09.29"/>
         <title>Getting started - bosk 1.0 documentation</title>
@@ -155,9 +155,9 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <ul class="current">
+  <ul>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation guide</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">Bosk usage examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="basic_examples.html">Basic bosk usage user guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="notebooks/basic_forest.html">Making basic deep forest</a></li>
@@ -349,9 +349,9 @@ the basic primitives.</p>
 <section id="basic-primitives">
 <h2>Basic primitives<a class="headerlink" href="#basic-primitives" title="Permalink to this heading">#</a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="getting_started%202.html#block"><span class="std std-ref">Block</span></a> – basic computational node, which has multiple inputs and outputs (slots) and can be trained with <cite>fit</cite>, and then can transform inputs with <cite>transform</cite> to obtain outputs;</p></li>
-<li><p><a class="reference internal" href="getting_started%202.html#pipeline"><span class="std std-ref">Pipeline</span></a> – Deep Forest itself, represented as a graph, defined on block slots. It represents both <cite>fit</cite> and <cite>transform</cite> stage;</p></li>
-<li><p><a class="reference internal" href="getting_started%202.html#executor"><span class="std std-ref">Executor</span></a> – subject, that executes the pipeline given some input data to obtain output.
+<li><p><a class="reference internal" href="#block"><span class="std std-ref">Block</span></a> – basic computational node, which has multiple inputs and outputs (slots) and can be trained with <cite>fit</cite>, and then can transform inputs with <cite>transform</cite> to obtain outputs;</p></li>
+<li><p><a class="reference internal" href="#pipeline"><span class="std std-ref">Pipeline</span></a> – Deep Forest itself, represented as a graph, defined on block slots. It represents both <cite>fit</cite> and <cite>transform</cite> stage;</p></li>
+<li><p><a class="reference internal" href="#executor"><span class="std std-ref">Executor</span></a> – subject, that executes the pipeline given some input data to obtain output.
 Can be used to train the forest, or to evaluate predictions.</p></li>
 </ul>
 <section id="block">
@@ -368,11 +368,8 @@ each output is described by a <a class="reference internal" href="autoapi/bosk/b
 which correspond to meta information. But the slots are unique for each block (i.e. block class instance).</p>
 <p>Every block class should be derived from <a class="reference internal" href="autoapi/bosk/block/base/index.html#bosk.block.base.BaseBlock" title="bosk.block.base.BaseBlock"><code class="xref py py-class docutils literal notranslate"><span class="pre">bosk.block.base.BaseBlock</span></code></a>,
 define meta information and implement the <code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">transform()</span></code> methods.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Block prediction is always performed with the <code class="xref py py-meth docutils literal notranslate"><span class="pre">transform()</span></code> method, not with “predict”
+<p><em>Note</em>, that block prediction is always performed with the <code class="xref py py-meth docutils literal notranslate"><span class="pre">transform()</span></code> method, not with “predict”
 or something else.</p>
-</div>
 <p>List of available blocks can be found in the <a class="reference internal" href="autoapi/bosk/block/zoo/index.html#module-bosk.block.zoo" title="bosk.block.zoo"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo</span></code></a>.</p>
 </section>
 <section id="pipeline">
@@ -381,8 +378,8 @@ or something else.</p>
 <p>There are tree ways to define a pipeline:</p>
 <ol class="arabic simple">
 <li><p>Manually, by defining a list of nodes and connections.</p></li>
-<li><p>Using the <a class="reference internal" href="getting_started%202.html#functional-pipeline-builder"><span class="std std-ref">builder in functional style</span></a>.</p></li>
-<li><p><a class="reference internal" href="getting_started%202.html#automatic-pipeline"><span class="std std-ref">Automatically</span></a>, building Deep Forest layerwise with predefined layer structure.</p></li>
+<li><p>Using the <a class="reference internal" href="#functional-pipeline-builder"><span class="std std-ref">builder in functional style</span></a>.</p></li>
+<li><p><a class="reference internal" href="#automatic-pipeline"><span class="std std-ref">Automatically</span></a>, building Deep Forest layerwise with predefined layer structure.</p></li>
 </ol>
 <p>Here we will consider only the second and the third options, since they are more convinient.</p>
 <section id="functional-style-pipeline-definition">
@@ -471,7 +468,6 @@ on the result.</p>
 </pre></div>
 </div>
 <p>Executors and more detailed description are listed in <a class="reference internal" href="autoapi/bosk/executor/index.html#module-bosk.executor" title="bosk.executor"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor</span></code></a>.</p>
-<p>You can find more examples on the <a class="reference internal" href="examples.html"><span class="doc">Bosk usage examples</span></a> page.</p>
 </section>
 </section>
 </section>
@@ -481,26 +477,8 @@ on the result.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="examples.html">
-              <div class="page-info">
-                <div class="context">
-                  <span>Next</span>
-                </div>
-                <div class="title">Bosk usage examples</div>
-              </div>
-              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
-            </a>
-          <a class="prev-page" href="install.html">
-              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
-              <div class="page-info">
-                <div class="context">
-                  <span>Previous</span>
-                </div>
-                
-                <div class="title">Installing bosk</div>
-                
-              </div>
-            </a>
+          
+          
         </div>
         <div class="bottom-of-page">
           <div class="left-details">

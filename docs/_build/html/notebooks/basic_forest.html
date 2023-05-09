@@ -362,20 +362,20 @@ input one.</p>
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from bosk.pipeline.base import BasePipeline, Connection
-from bosk.painter.graphviz import GraphvizPainter
-from bosk.executor.recursive import RecursiveExecutor
-from bosk.stages import Stage
-from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
-from bosk.block.zoo.data_conversion import ConcatBlock, AverageBlock, ArgmaxBlock, StackBlock
-from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
-from bosk.block.zoo.metrics import RocAucBlock
-from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
-from sklearn.datasets import make_moons, load_digits
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_auc_score
-import numpy as np
-from IPython.display import Image
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bosk.pipeline.base</span> <span class="kn">import</span> <span class="n">BasePipeline</span><span class="p">,</span> <span class="n">Connection</span>
+<span class="kn">from</span> <span class="nn">bosk.painter.graphviz</span> <span class="kn">import</span> <span class="n">GraphvizPainter</span>
+<span class="kn">from</span> <span class="nn">bosk.executor.recursive</span> <span class="kn">import</span> <span class="n">RecursiveExecutor</span>
+<span class="kn">from</span> <span class="nn">bosk.stages</span> <span class="kn">import</span> <span class="n">Stage</span>
+<span class="kn">from</span> <span class="nn">bosk.block.zoo.models.classification</span> <span class="kn">import</span> <span class="n">RFCBlock</span><span class="p">,</span> <span class="n">ETCBlock</span>
+<span class="kn">from</span> <span class="nn">bosk.block.zoo.data_conversion</span> <span class="kn">import</span> <span class="n">ConcatBlock</span><span class="p">,</span> <span class="n">AverageBlock</span><span class="p">,</span> <span class="n">ArgmaxBlock</span><span class="p">,</span> <span class="n">StackBlock</span>
+<span class="kn">from</span> <span class="nn">bosk.block.zoo.input_plugs</span> <span class="kn">import</span> <span class="n">InputBlock</span><span class="p">,</span> <span class="n">TargetInputBlock</span>
+<span class="kn">from</span> <span class="nn">bosk.block.zoo.metrics</span> <span class="kn">import</span> <span class="n">RocAucBlock</span>
+<span class="kn">from</span> <span class="nn">bosk.pipeline.builder.functional</span> <span class="kn">import</span> <span class="n">FunctionalPipelineBuilder</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">make_moons</span><span class="p">,</span> <span class="n">load_digits</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">roc_auc_score</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Image</span>
 </pre></div>
 </div>
 </div>
@@ -383,30 +383,30 @@ from IPython.display import Image
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>random_state = 42
-n_estimators = 7
-EXEC_CLS = RecursiveExecutor
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">random_state</span> <span class="o">=</span> <span class="mi">42</span>
+<span class="n">n_estimators</span> <span class="o">=</span> <span class="mi">7</span>
+<span class="n">EXEC_CLS</span> <span class="o">=</span> <span class="n">RecursiveExecutor</span>
 
 
-def get_plain_dataset():
-    all_X, all_y = make_moons(noise=1, random_state=random_state)
-    train_X, test_X, train_y, test_y = train_test_split(
-        all_X, all_y, test_size=0.2, random_state=random_state)
-    return train_X, test_X, train_y, test_y
+<span class="k">def</span> <span class="nf">get_plain_dataset</span><span class="p">():</span>
+    <span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span> <span class="o">=</span> <span class="n">make_moons</span><span class="p">(</span><span class="n">noise</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+    <span class="n">train_X</span><span class="p">,</span> <span class="n">test_X</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">test_y</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+        <span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">train_X</span><span class="p">,</span> <span class="n">test_X</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">test_y</span>
 
 
-def get_image_dataset():
-    digits = load_digits()
-    all_X = digits.data
-    all_y = digits.target
-    train_X, test_X, train_y, test_y = train_test_split(
-        all_X, all_y, test_size=0.2, random_state=random_state)
-    return train_X, test_X, train_y, test_y
+<span class="k">def</span> <span class="nf">get_image_dataset</span><span class="p">():</span>
+    <span class="n">digits</span> <span class="o">=</span> <span class="n">load_digits</span><span class="p">()</span>
+    <span class="n">all_X</span> <span class="o">=</span> <span class="n">digits</span><span class="o">.</span><span class="n">data</span>
+    <span class="n">all_y</span> <span class="o">=</span> <span class="n">digits</span><span class="o">.</span><span class="n">target</span>
+    <span class="n">train_X</span><span class="p">,</span> <span class="n">test_X</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">test_y</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+        <span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">train_X</span><span class="p">,</span> <span class="n">test_X</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">test_y</span>
 
 
-def draw_pipeline(pipeline: BasePipeline, rankdir: str = &#39;LR&#39;):
-    GraphvizPainter(figure_dpi=100, figure_rankdir=rankdir).from_pipeline(pipeline).render(&#39;deep_forest.jpeg&#39;)
-    display(Image(filename=&#39;deep_forest.jpeg&#39;))
+<span class="k">def</span> <span class="nf">draw_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">:</span> <span class="n">BasePipeline</span><span class="p">,</span> <span class="n">rankdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;LR&#39;</span><span class="p">):</span>
+    <span class="n">GraphvizPainter</span><span class="p">(</span><span class="n">figure_dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">figure_rankdir</span><span class="o">=</span><span class="n">rankdir</span><span class="p">)</span><span class="o">.</span><span class="n">from_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">&#39;deep_forest.jpeg&#39;</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;deep_forest.jpeg&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -418,80 +418,80 @@ def draw_pipeline(pipeline: BasePipeline, rankdir: str = &#39;LR&#39;):
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># using manual connections
-# firstly we need to create blocks of the pipeline
-# we&#39;ve got input plugs for predictors and labels
-input_x = InputBlock()
-input_y = TargetInputBlock()
-# some deep forest&#39;s layers with random forests and extra trees classifiers
-rf_1 = RFCBlock(n_estimators=n_estimators)
-et_1 = ETCBlock(n_estimators=n_estimators)
-concat_1 = ConcatBlock([&#39;rf_1&#39;, &#39;et_1&#39;, &#39;X&#39;], axis=1)
-rf_2 = RFCBlock(n_estimators=n_estimators)
-et_2 = ETCBlock(n_estimators=n_estimators)
-stack = StackBlock([&#39;rf_2&#39;, &#39;et_2&#39;], axis=1)
-# blocks for results calcalating (probas and classes)
-average = AverageBlock(axis=1)
-argmax = ArgmaxBlock(axis=1)
-# and some metrics: total roc-auc and for the particular random forest
-roc_auc = RocAucBlock()
-roc_auc_rf_1 = RocAucBlock()
-# we need to manually declare our pipeline: set of blocks,
-# connections between them, input slots and output ones
-pipeline = BasePipeline(
-    nodes=[
-        input_x,
-        input_y,
-        rf_1,
-        et_1,
-        concat_1,
-        rf_2,
-        et_2,
-        stack,
-        average,
-        argmax,
-        roc_auc,
-        roc_auc_rf_1
-    ],
-    connections=[
-        # input X
-        Connection(input_x.slots.outputs[&#39;X&#39;], rf_1.slots.inputs[&#39;X&#39;]),
-        Connection(input_x.slots.outputs[&#39;X&#39;], et_1.slots.inputs[&#39;X&#39;]),
-        Connection(input_x.slots.outputs[&#39;X&#39;], concat_1.slots.inputs[&#39;X&#39;]),
-        # input y
-        Connection(input_y.slots.outputs[&#39;y&#39;], rf_1.slots.inputs[&#39;y&#39;]),
-        Connection(input_y.slots.outputs[&#39;y&#39;], et_1.slots.inputs[&#39;y&#39;]),
-        Connection(input_y.slots.outputs[&#39;y&#39;], rf_2.slots.inputs[&#39;y&#39;]),
-        Connection(input_y.slots.outputs[&#39;y&#39;], et_2.slots.inputs[&#39;y&#39;]),
-        # layers connection
-        Connection(rf_1.slots.outputs[&#39;output&#39;], concat_1.slots.inputs[&#39;rf_1&#39;]),
-        Connection(et_1.slots.outputs[&#39;output&#39;], concat_1.slots.inputs[&#39;et_1&#39;]),
-        Connection(concat_1.slots.outputs[&#39;output&#39;], rf_2.slots.inputs[&#39;X&#39;]),
-        Connection(concat_1.slots.outputs[&#39;output&#39;], et_2.slots.inputs[&#39;X&#39;]),
-        Connection(rf_2.slots.outputs[&#39;output&#39;], stack.slots.inputs[&#39;rf_2&#39;]),
-        Connection(et_2.slots.outputs[&#39;output&#39;], stack.slots.inputs[&#39;et_2&#39;]),
-        Connection(stack.slots.outputs[&#39;output&#39;], average.slots.inputs[&#39;X&#39;]),
-        Connection(average.slots.outputs[&#39;output&#39;], argmax.slots.inputs[&#39;X&#39;]),
-        Connection(average.slots.outputs[&#39;output&#39;], roc_auc.slots.inputs[&#39;pred_probas&#39;]),
-        Connection(input_y.slots.outputs[&#39;y&#39;], roc_auc.slots.inputs[&#39;gt_y&#39;]),
-        Connection(rf_1.slots.outputs[&#39;output&#39;], roc_auc_rf_1.slots.inputs[&#39;pred_probas&#39;]),
-        Connection(input_y.slots.outputs[&#39;y&#39;], roc_auc_rf_1.slots.inputs[&#39;gt_y&#39;]),
-    ],
-    inputs={
-        &#39;X&#39;: input_x.slots.inputs[&#39;X&#39;],
-        &#39;y&#39;: input_y.slots.inputs[&#39;y&#39;],
-    },
-    outputs={
-        &#39;probas&#39;: average.slots.outputs[&#39;output&#39;],
-        &#39;rf_1_roc-auc&#39;: roc_auc_rf_1.slots.outputs[&#39;roc-auc&#39;],
-        &#39;roc-auc&#39;: roc_auc.slots.outputs[&#39;roc-auc&#39;],
-        &#39;labels&#39;: argmax.slots.outputs[&#39;output&#39;]
-    }
-)
-pipeline.set_random_state(random_state)
-# let&#39;s draw our pipeline to see, what we&#39;ve got
-GraphvizPainter(figure_dpi=100).from_pipeline(pipeline).render(&#39;deep_forest.jpeg&#39;)
-display(Image(filename=&#39;deep_forest.jpeg&#39;))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># using manual connections</span>
+<span class="c1"># firstly we need to create blocks of the pipeline</span>
+<span class="c1"># we&#39;ve got input plugs for predictors and labels</span>
+<span class="n">input_x</span> <span class="o">=</span> <span class="n">InputBlock</span><span class="p">()</span>
+<span class="n">input_y</span> <span class="o">=</span> <span class="n">TargetInputBlock</span><span class="p">()</span>
+<span class="c1"># some deep forest&#39;s layers with random forests and extra trees classifiers</span>
+<span class="n">rf_1</span> <span class="o">=</span> <span class="n">RFCBlock</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)</span>
+<span class="n">et_1</span> <span class="o">=</span> <span class="n">ETCBlock</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)</span>
+<span class="n">concat_1</span> <span class="o">=</span> <span class="n">ConcatBlock</span><span class="p">([</span><span class="s1">&#39;rf_1&#39;</span><span class="p">,</span> <span class="s1">&#39;et_1&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">rf_2</span> <span class="o">=</span> <span class="n">RFCBlock</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)</span>
+<span class="n">et_2</span> <span class="o">=</span> <span class="n">ETCBlock</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)</span>
+<span class="n">stack</span> <span class="o">=</span> <span class="n">StackBlock</span><span class="p">([</span><span class="s1">&#39;rf_2&#39;</span><span class="p">,</span> <span class="s1">&#39;et_2&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="c1"># blocks for results calcalating (probas and classes)</span>
+<span class="n">average</span> <span class="o">=</span> <span class="n">AverageBlock</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">argmax</span> <span class="o">=</span> <span class="n">ArgmaxBlock</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="c1"># and some metrics: total roc-auc and for the particular random forest</span>
+<span class="n">roc_auc</span> <span class="o">=</span> <span class="n">RocAucBlock</span><span class="p">()</span>
+<span class="n">roc_auc_rf_1</span> <span class="o">=</span> <span class="n">RocAucBlock</span><span class="p">()</span>
+<span class="c1"># we need to manually declare our pipeline: set of blocks,</span>
+<span class="c1"># connections between them, input slots and output ones</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">BasePipeline</span><span class="p">(</span>
+    <span class="n">nodes</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">input_x</span><span class="p">,</span>
+        <span class="n">input_y</span><span class="p">,</span>
+        <span class="n">rf_1</span><span class="p">,</span>
+        <span class="n">et_1</span><span class="p">,</span>
+        <span class="n">concat_1</span><span class="p">,</span>
+        <span class="n">rf_2</span><span class="p">,</span>
+        <span class="n">et_2</span><span class="p">,</span>
+        <span class="n">stack</span><span class="p">,</span>
+        <span class="n">average</span><span class="p">,</span>
+        <span class="n">argmax</span><span class="p">,</span>
+        <span class="n">roc_auc</span><span class="p">,</span>
+        <span class="n">roc_auc_rf_1</span>
+    <span class="p">],</span>
+    <span class="n">connections</span><span class="o">=</span><span class="p">[</span>
+        <span class="c1"># input X</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_x</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="n">rf_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_x</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="n">et_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_x</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="n">concat_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]),</span>
+        <span class="c1"># input y</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_y</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">rf_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_y</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">et_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_y</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">rf_2</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_y</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">et_2</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]),</span>
+        <span class="c1"># layers connection</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">rf_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">concat_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;rf_1&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">et_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">concat_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;et_1&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">concat_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">rf_2</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">concat_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">et_2</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">rf_2</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">stack</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;rf_2&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">et_2</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">stack</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;et_2&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">stack</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">average</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">average</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">argmax</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">average</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">roc_auc</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;pred_probas&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_y</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">roc_auc</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;gt_y&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">rf_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">roc_auc_rf_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;pred_probas&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_y</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">roc_auc_rf_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;gt_y&#39;</span><span class="p">]),</span>
+    <span class="p">],</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">input_x</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">input_y</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span>
+    <span class="p">},</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;probas&#39;</span><span class="p">:</span> <span class="n">average</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">:</span> <span class="n">roc_auc_rf_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;roc-auc&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;roc-auc&#39;</span><span class="p">:</span> <span class="n">roc_auc</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;roc-auc&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="n">argmax</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+<span class="n">pipeline</span><span class="o">.</span><span class="n">set_random_state</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+<span class="c1"># let&#39;s draw our pipeline to see, what we&#39;ve got</span>
+<span class="n">GraphvizPainter</span><span class="p">(</span><span class="n">figure_dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">from_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">&#39;deep_forest.jpeg&#39;</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;deep_forest.jpeg&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -506,34 +506,34 @@ display(Image(filename=&#39;deep_forest.jpeg&#39;))
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># now let&#39;s fit and test our deep forest
-# we can define inputs and outputs which we will use
-# during execution process. In TopologicalExecutor
-# it is not necessary.
-fit_executor = EXEC_CLS(
-    pipeline,
-    stage=Stage.FIT,
-    inputs=[&#39;X&#39;, &#39;y&#39;],
-    outputs=[&#39;probas&#39;, &#39;rf_1_roc-auc&#39;, &#39;roc-auc&#39;]
-)
-transform_executor = EXEC_CLS(
-    pipeline,
-    stage=Stage.TRANSFORM,
-    inputs=[&#39;X&#39;],
-    outputs=[&#39;probas&#39;, &#39;labels&#39;]
-)
-train_X, test_X, train_y, test_y = get_plain_dataset()
-# To run the executor we must build a dictionary
-# with input names as keys and data as values.
-# Result of the executor call is a dictionary with
-# output names as keys and BaseData as values,
-# we shall convert BaseData to a usual numpy array
-fit_result = fit_executor({&#39;X&#39;: train_X, &#39;y&#39;: train_y}).numpy()
-# To fit next layer we must obtain outcomes on the current one,
-# thus the fit executor must simply give transformed training data
-# on the output. Let&#39;s check it
-train_result = transform_executor({&#39;X&#39;: train_X}).numpy()
-print(&quot;Fit probas == probas on train:&quot;, np.allclose(fit_result[&#39;probas&#39;], train_result[&#39;probas&#39;]))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># now let&#39;s fit and test our deep forest</span>
+<span class="c1"># we can define inputs and outputs which we will use</span>
+<span class="c1"># during execution process. In TopologicalExecutor</span>
+<span class="c1"># it is not necessary.</span>
+<span class="n">fit_executor</span> <span class="o">=</span> <span class="n">EXEC_CLS</span><span class="p">(</span>
+    <span class="n">pipeline</span><span class="p">,</span>
+    <span class="n">stage</span><span class="o">=</span><span class="n">Stage</span><span class="o">.</span><span class="n">FIT</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">],</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">,</span> <span class="s1">&#39;roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">transform_executor</span> <span class="o">=</span> <span class="n">EXEC_CLS</span><span class="p">(</span>
+    <span class="n">pipeline</span><span class="p">,</span>
+    <span class="n">stage</span><span class="o">=</span><span class="n">Stage</span><span class="o">.</span><span class="n">TRANSFORM</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">,</span> <span class="s1">&#39;labels&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">train_X</span><span class="p">,</span> <span class="n">test_X</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">test_y</span> <span class="o">=</span> <span class="n">get_plain_dataset</span><span class="p">()</span>
+<span class="c1"># To run the executor we must build a dictionary</span>
+<span class="c1"># with input names as keys and data as values.</span>
+<span class="c1"># Result of the executor call is a dictionary with</span>
+<span class="c1"># output names as keys and BaseData as values,</span>
+<span class="c1"># we shall convert BaseData to a usual numpy array</span>
+<span class="n">fit_result</span> <span class="o">=</span> <span class="n">fit_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">train_X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">train_y</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="c1"># To fit next layer we must obtain outcomes on the current one,</span>
+<span class="c1"># thus the fit executor must simply give transformed training data</span>
+<span class="c1"># on the output. Let&#39;s check it</span>
+<span class="n">train_result</span> <span class="o">=</span> <span class="n">transform_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">train_X</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Fit probas == probas on train:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">],</span> <span class="n">train_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">]))</span>
 </pre></div>
 </div>
 </div>
@@ -549,18 +549,18 @@ Fit probas == probas on train: True
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Now let&#39;s look at roc-auc scores we&#39;ve got.
-# Obviously, the external score must be the same with the
-# obtained during the fit process.
-print(&quot;Train ROC-AUC:&quot;, roc_auc_score(train_y, train_result[&#39;probas&#39;][:, 1]))
-print(
-    &quot;Train ROC-AUC calculated by fit executor:&quot;,
-    fit_result[&#39;roc-auc&#39;]
-)
-print(
-    &quot;Train ROC-AUC for RF_1:&quot;,
-    fit_result[&#39;rf_1_roc-auc&#39;]
-)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Now let&#39;s look at roc-auc scores we&#39;ve got.</span>
+<span class="c1"># Obviously, the external score must be the same with the</span>
+<span class="c1"># obtained during the fit process.</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Train ROC-AUC:&quot;</span><span class="p">,</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">train_y</span><span class="p">,</span> <span class="n">train_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;Train ROC-AUC calculated by fit executor:&quot;</span><span class="p">,</span>
+    <span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;Train ROC-AUC for RF_1:&quot;</span><span class="p">,</span>
+    <span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -578,9 +578,9 @@ Train ROC-AUC for RF_1: 0.9892676767676768
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># And, finally, we can calculate the roc-auc for the test data
-test_result = transform_executor({&#39;X&#39;: test_X}).numpy()
-print(&quot;Test ROC-AUC:&quot;, roc_auc_score(test_y, test_result[&#39;probas&#39;][:, 1]))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># And, finally, we can calculate the roc-auc for the test data</span>
+<span class="n">test_result</span> <span class="o">=</span> <span class="n">transform_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">test_X</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Test ROC-AUC:&quot;</span><span class="p">,</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">test_y</span><span class="p">,</span> <span class="n">test_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]))</span>
 </pre></div>
 </div>
 </div>
@@ -597,29 +597,29 @@ Test ROC-AUC: 0.8571428571428572
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># firstly we must obtain the functional builder object
-b = FunctionalPipelineBuilder()
-# that we do as it was described above
-X, y = b.Input()(), b.TargetInput()()
-rf_1 = b.RFC(n_estimators=n_estimators)(X=X, y=y)
-et_1 = b.ETC(n_estimators=n_estimators)(X=X, y=y)
-concat_1 = b.Concat([&#39;X&#39;, &#39;rf_1&#39;, &#39;et_1&#39;])(X=X, rf_1=rf_1, et_1=et_1)
-rf_2 = b.RFC(n_estimators=n_estimators)(X=concat_1, y=y)
-et_2 = b.ETC(n_estimators=n_estimators)(X=concat_1, y=y)
-stack = b.Stack([&#39;rf_2&#39;, &#39;et_2&#39;], axis=1)(rf_2=rf_2, et_2=et_2)
-average = b.Average(axis=1)(X=stack)
-argmax = b.Argmax(axis=1)(X=average)
-rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
-roc_auc = b.RocAuc()(gt_y=y, pred_probas=average)
-pipeline = b.build(
-    {&#39;X&#39;: X, &#39;y&#39;: y},
-    {&#39;labels&#39;: argmax, &#39;probas&#39;: average, &#39;rf_1_roc-auc&#39;: rf_1_roc_auc, &#39;roc-auc&#39;: roc_auc}
-)
-pipeline.set_random_state(random_state)
-# let&#39;s draw our pipeline to see, what we&#39;ve got
-draw_pipeline(pipeline)
-# as we can see, the code became much shorter
-# with the same result
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># firstly we must obtain the functional builder object</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">FunctionalPipelineBuilder</span><span class="p">()</span>
+<span class="c1"># that we do as it was described above</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Input</span><span class="p">()(),</span> <span class="n">b</span><span class="o">.</span><span class="n">TargetInput</span><span class="p">()()</span>
+<span class="n">rf_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">et_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">concat_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_1&#39;</span><span class="p">,</span> <span class="s1">&#39;et_1&#39;</span><span class="p">])(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">rf_1</span><span class="o">=</span><span class="n">rf_1</span><span class="p">,</span> <span class="n">et_1</span><span class="o">=</span><span class="n">et_1</span><span class="p">)</span>
+<span class="n">rf_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">et_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">stack</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Stack</span><span class="p">([</span><span class="s1">&#39;rf_2&#39;</span><span class="p">,</span> <span class="s1">&#39;et_2&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">rf_2</span><span class="o">=</span><span class="n">rf_2</span><span class="p">,</span> <span class="n">et_2</span><span class="o">=</span><span class="n">et_2</span><span class="p">)</span>
+<span class="n">average</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Average</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">stack</span><span class="p">)</span>
+<span class="n">argmax</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">average</span><span class="p">)</span>
+<span class="n">rf_1_roc_auc</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RocAuc</span><span class="p">()(</span><span class="n">gt_y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">pred_probas</span><span class="o">=</span><span class="n">rf_1</span><span class="p">)</span>
+<span class="n">roc_auc</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RocAuc</span><span class="p">()(</span><span class="n">gt_y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">pred_probas</span><span class="o">=</span><span class="n">average</span><span class="p">)</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">build</span><span class="p">(</span>
+    <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">},</span>
+    <span class="p">{</span><span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="n">argmax</span><span class="p">,</span> <span class="s1">&#39;probas&#39;</span><span class="p">:</span> <span class="n">average</span><span class="p">,</span> <span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">:</span> <span class="n">rf_1_roc_auc</span><span class="p">,</span> <span class="s1">&#39;roc-auc&#39;</span><span class="p">:</span> <span class="n">roc_auc</span><span class="p">}</span>
+<span class="p">)</span>
+<span class="n">pipeline</span><span class="o">.</span><span class="n">set_random_state</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+<span class="c1"># let&#39;s draw our pipeline to see, what we&#39;ve got</span>
+<span class="n">draw_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span>
+<span class="c1"># as we can see, the code became much shorter</span>
+<span class="c1"># with the same result</span>
 </pre></div>
 </div>
 </div>
@@ -634,35 +634,35 @@ draw_pipeline(pipeline)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># to end this example, let&#39;s do the same tests as above
-# and ensure ourselves that the results are the same
-fit_executor = EXEC_CLS(
-    pipeline,
-    stage=Stage.FIT,
-    inputs=[&#39;X&#39;, &#39;y&#39;],
-    outputs=[&#39;probas&#39;, &#39;rf_1_roc-auc&#39;, &#39;roc-auc&#39;]
-)
-transform_executor = EXEC_CLS(
-    pipeline,
-    stage=Stage.TRANSFORM,
-    inputs=[&#39;X&#39;],
-    outputs=[&#39;probas&#39;, &#39;labels&#39;]
-)
-train_X, test_X, train_y, test_y = get_plain_dataset()
-fit_result = fit_executor({&#39;X&#39;: train_X, &#39;y&#39;: train_y}).numpy()
-train_result = transform_executor({&#39;X&#39;: train_X}).numpy()
-print(&quot;Fit probas == probas on train:&quot;, np.allclose(fit_result[&#39;probas&#39;], train_result[&#39;probas&#39;]))
-print(&quot;Train ROC-AUC:&quot;, roc_auc_score(train_y, train_result[&#39;probas&#39;][:, 1]))
-print(
-    &quot;Train ROC-AUC calculated by fit executor:&quot;,
-    fit_result[&#39;roc-auc&#39;]
-)
-print(
-    &quot;Train ROC-AUC for RF_1:&quot;,
-    fit_result[&#39;rf_1_roc-auc&#39;]
-)
-test_result = transform_executor({&#39;X&#39;: test_X}).numpy()
-print(&quot;Test ROC-AUC:&quot;, roc_auc_score(test_y, test_result[&#39;probas&#39;][:, 1]))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># to end this example, let&#39;s do the same tests as above</span>
+<span class="c1"># and ensure ourselves that the results are the same</span>
+<span class="n">fit_executor</span> <span class="o">=</span> <span class="n">EXEC_CLS</span><span class="p">(</span>
+    <span class="n">pipeline</span><span class="p">,</span>
+    <span class="n">stage</span><span class="o">=</span><span class="n">Stage</span><span class="o">.</span><span class="n">FIT</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">],</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">,</span> <span class="s1">&#39;roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">transform_executor</span> <span class="o">=</span> <span class="n">EXEC_CLS</span><span class="p">(</span>
+    <span class="n">pipeline</span><span class="p">,</span>
+    <span class="n">stage</span><span class="o">=</span><span class="n">Stage</span><span class="o">.</span><span class="n">TRANSFORM</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">,</span> <span class="s1">&#39;labels&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">train_X</span><span class="p">,</span> <span class="n">test_X</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">test_y</span> <span class="o">=</span> <span class="n">get_plain_dataset</span><span class="p">()</span>
+<span class="n">fit_result</span> <span class="o">=</span> <span class="n">fit_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">train_X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">train_y</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">train_result</span> <span class="o">=</span> <span class="n">transform_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">train_X</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Fit probas == probas on train:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">],</span> <span class="n">train_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Train ROC-AUC:&quot;</span><span class="p">,</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">train_y</span><span class="p">,</span> <span class="n">train_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;Train ROC-AUC calculated by fit executor:&quot;</span><span class="p">,</span>
+    <span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;Train ROC-AUC for RF_1:&quot;</span><span class="p">,</span>
+    <span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">test_result</span> <span class="o">=</span> <span class="n">transform_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">test_X</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Test ROC-AUC:&quot;</span><span class="p">,</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">test_y</span><span class="p">,</span> <span class="n">test_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]))</span>
 </pre></div>
 </div>
 </div>

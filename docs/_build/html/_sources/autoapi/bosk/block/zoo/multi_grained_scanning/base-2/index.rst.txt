@@ -1,0 +1,73 @@
+:py:mod:`bosk.block.zoo.multi_grained_scanning.base 2`
+======================================================
+
+.. py:module:: bosk.block.zoo.multi_grained_scanning.base 2
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.zoo.multi_grained_scanning.base 2.MultiGrainedScanningBlock
+
+
+
+
+.. py:class:: MultiGrainedScanningBlock(models, window_size, stride, shape_sample = None)
+
+   Bases: :py:obj:`abc.ABC`
+
+   Base Multi Grained Scanning Block.
+
+   It takes `X` of shape `(n_samples, n_channels)`
+   as an input and returns the tensor of shape `(n_samples, n_out_channels)`.
+
+   :param models: Tuple of underlying models.
+   :param window_size: Size of the sliding window.
+   :param stride: Stride of the sliding window.
+   :param shape_sample: Input data spatial dimensions (shape).
+
+   Input slots
+   -----------
+
+   Fit inputs
+   ~~~~~~~~~~
+
+       - X: Data tensor of shape `(n_samples, n_channels)`.
+       - y: Target variable values of shape `(n_samples, [n_outputs])`.
+
+   Transform inputs
+   ~~~~~~~~~~~~~~~~
+
+       - X: Data tensor of shape `(n_samples, n_channels)`.
+
+   Output slots
+   ------------
+
+       - output: Prediction tensor of shape `(n_samples, n_out_channels)`.
+
+
+   .. py:method:: fit(X, y)
+
+
+   .. py:method:: _window_slicing_fit(X, y)
+
+
+   .. py:method:: _window_slicing_data(X, y=None)
+      :abstractmethod:
+
+
+   .. py:method:: _window_slicing_predict(X)
+
+
+   .. py:method:: transform(X)
+
+
+   .. py:method:: set_random_state(seed)
+
+
+
