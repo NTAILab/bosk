@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "bosk"
+version = "1.0.0"
+authors = [
+  { name="NTAILab" },
+]
+description = "Deep Forest Framework"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dynamic = ["dependencies"]
+[tool.setuptools.dynamic]
+dependencies = { file = "requirements.txt" }
+readme = { file = "README.md" }
+
+[project.urls]
+"Homepage" = "https://github.com/ntailab/bosk"
+"Documentation" = "https://ntailab.github.io/bosk/"
