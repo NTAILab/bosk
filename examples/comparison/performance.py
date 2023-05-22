@@ -193,7 +193,9 @@ def main():
     ).drop('index', axis=1)
     by = set(melted.columns).difference(['value', 'fold #'])
     agg_over_folds = melted.groupby(by=list(by)).agg({'value': ['mean', 'std']}).reset_index()
-    agg_over_folds.columns = ['_'.join(col) if len(col[1]) > 0 else col[0] for col in agg_over_folds.columns]  # droplevel with concat
+    agg_over_folds.columns = [
+        '_'.join(col) if len(col[1]) > 0 else col[0] for col in agg_over_folds.columns
+    ]  # droplevel with concat
     agg_over_folds.loc[:, 'value'] = agg_over_folds[['value_mean', 'value_std']].apply(
         lambda ms: f'{ms[0]:.3f} ± {ms[1]:.3f}',
         axis=1
