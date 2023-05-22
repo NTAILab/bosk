@@ -55,7 +55,7 @@ class FitTransformClass(Protocol):
 
 def auto_block(_implicit_cls=None,  # noqa: C901
                execution_props: Optional[BlockExecutionProperties] = None,
-               random_state_field: str | None = 'random_state',
+               random_state_field: Optional[str] = 'random_state',
                auto_state: bool = False):
     """Decorator for conversion from a fit-transform class into a block.
 
@@ -208,7 +208,7 @@ def auto_block(_implicit_cls=None,  # noqa: C901
                 self.__set_instance_state(state['__instance'])
                 self.slots = state['slots']
 
-            def set_random_state(self, seed: Optional[int | Generator]) -> None:
+            def set_random_state(self, seed: Optional[Union[int, Generator]]) -> None:
                 """Set random state (seed).
 
                 If `random_state_field` is defined and the wrapped class has corresponding

@@ -160,8 +160,8 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
         """
         return self._get_block_init(block_cls)(*args, **kwargs)
 
-    def build(self, inputs: Mapping[str, SlotOrBlockWrapper] | Literal['auto'] = 'auto',
-              outputs: Mapping[str, SlotOrBlockWrapper] | Literal['auto'] = 'auto') -> BasePipeline:
+    def build(self, inputs: Union[Mapping[str, SlotOrBlockWrapper], Literal['auto']] = 'auto',
+              outputs: Union[Mapping[str, SlotOrBlockWrapper], Literal['auto']] = 'auto') -> BasePipeline:
         """Build and get pipeline.
 
         Args:
