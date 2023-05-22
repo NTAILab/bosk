@@ -105,7 +105,8 @@ class TopologicalExecutor(BaseExecutor):
         inner_stack.extend(reversed(order))
         return inner_stack
 
-    def _get_backward_aj_list(self, feasible_set: None | Set[BaseBlock] = None) -> Mapping[BaseBlock, Set[BaseBlock]]:
+    def _get_backward_aj_list(self,
+                              feasible_set: Optional[Set[BaseBlock]] = None) -> Mapping[BaseBlock, Set[BaseBlock]]:
         """The internal helper method for making backwards adjacency list
         (block to block, from the end to the start) of the pipeline.
 
@@ -123,7 +124,8 @@ class TopologicalExecutor(BaseExecutor):
                 backward_aj_list[inp_slot.parent_block].add(out_slot.parent_block)
         return backward_aj_list
 
-    def _get_forward_aj_list(self, feasible_set: None | Set[BaseBlock] = None) -> Mapping[BaseBlock, Set[BaseBlock]]:
+    def _get_forward_aj_list(self,
+                             feasible_set: Optional[Set[BaseBlock]] = None) -> Mapping[BaseBlock, Set[BaseBlock]]:
         """The internal helper method for making adjacency list (block to block) of the pipeline.
 
         Args:
