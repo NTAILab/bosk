@@ -17,6 +17,8 @@ ResultT = TypeVar('ResultT')
 Required to constrain `ParallelEngine.Instance.staramap` result.
 """
 
+OutSlotToData = Mapping[BlockOutputSlot, BaseData]
+
 
 class ParallelEngine(ABC):
     """Parallel execution engine interface.
@@ -262,7 +264,7 @@ class GreedyParallelExecutor(BaseExecutor):
         return outputs
 
     def _compute_all_non_threadsafe(self, blocks: Sequence[BaseBlock],
-                                    computed_values: Mapping[BlockInputSlot, BaseData]) -> Mapping[BlockOutputSlot, BaseData]:
+                                    computed_values: Mapping[BlockInputSlot, BaseData]) -> OutSlotToData:
         """Filter blocks that are not plain and cannot be computed in parallel, and compute them.
 
         Args:
