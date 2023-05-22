@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from numpy.random import Generator
-from typing import List, Dict
+from typing import List, Dict, Union
 from .connection import Connection
 from ..block.base import BaseBlock, BlockInputSlot, BlockOutputSlot
 from ..utility import get_random_generator, get_rand_int
@@ -41,7 +41,7 @@ class BasePipeline:
 
         visitor.visit(self)
 
-    def set_random_state(self, seed: int | Generator) -> None:
+    def set_random_state(self, seed: Union[int, Generator]) -> None:
         """Set random seed for each block in the pipeline."""
         gen = get_random_generator(seed)
         for block in self.nodes:

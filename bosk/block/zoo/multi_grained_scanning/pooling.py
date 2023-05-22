@@ -28,7 +28,6 @@ AGGREGATION_FUNCTIONS = {
 }
 
 
-
 class PoolingBlock(BaseBlock):
     """Pooling Block implements n-dimensional downsampling with an aggregation operation.
 

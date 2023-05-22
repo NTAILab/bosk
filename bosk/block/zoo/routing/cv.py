@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Optional
+from typing import Optional, Union
 from sklearn.model_selection import StratifiedKFold
 
 from ...base import BaseBlock
@@ -164,5 +164,5 @@ class SubsetTrainWrapperBlock(BaseBlock):
         block_inputs = self._exclude_training_indices(inputs)
         return self.block.transform(block_inputs)
 
-    def set_random_state(self, seed: Optional[int | np.random.Generator]) -> None:
+    def set_random_state(self, seed: Optional[Union[int, np.random.Generator]]) -> None:
         return self.block.set_random_state(seed)

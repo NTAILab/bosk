@@ -3,11 +3,11 @@
 """
 import numpy as np
 from numpy.random import Generator
-from typing import Callable, Optional, Tuple, TypeVar
+from typing import Callable, Optional, Tuple, TypeVar, Union
 from time import process_time
 
 
-def get_random_generator(seed: Optional[int | Generator]) -> Generator:
+def get_random_generator(seed: Optional[Union[int, Generator]]) -> Generator:
     """Utility function to obtain random generator from a seed number.
 
     Args:

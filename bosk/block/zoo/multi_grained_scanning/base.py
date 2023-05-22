@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Tuple, Optional
+from typing import Any, Tuple, Optional, Union
 
 import numpy as np
 from numpy.random import Generator
@@ -84,7 +84,7 @@ class MultiGrainedScanningBlock(ABC):
     def transform(self, X) -> CPUData:
         return CPUData(self._window_slicing_predict(X))
 
-    def set_random_state(self, seed: Optional[int | Generator]) -> None:
+    def set_random_state(self, seed: Optional[Union[int, Generator]]) -> None:
         gen = get_random_generator(seed)
         for model in self._models:
             if hasattr(model, 'random_state'):
