@@ -1,11 +1,10 @@
 from typing import Optional
 
-import jax.numpy as jnp
 import numpy as np
 
 from ...auto import auto_block
 from ...meta import BlockExecutionProperties
-from ....data import BaseData, CPUData, GPUData
+from ....data import BaseData, CPUData, GPUData, jnp
 
 
 __all__ = ['WeightsBlock']
