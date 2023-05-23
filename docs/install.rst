@@ -31,7 +31,7 @@ If it is needed to install bosk without JAX support, go to
 Bosk uses JAX for GPU computations, but JAX installation is not trivial.
 Officially JAX is only distributed for Linux and Mac OS, so, unfortunatelly,
 Windows users should use `WSL <https://docs.microsoft.com/en-us/windows/wsl/about>`_
-to install JAX and use bosk.
+to install JAX and use bosk with GPU support.
 
 **CPU-only system**
 
