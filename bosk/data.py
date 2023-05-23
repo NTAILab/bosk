@@ -1,6 +1,14 @@
 from typing import Any, Union
-import jax.numpy as jnp
 import numpy as np
+import warnings
+
+
+try:
+    import jax.numpy as jnp
+except ModuleNotFoundError:
+    warnings.warn("Cannot import jax library, please install it or don't use GPU blocks")
+    jnp = np  # type: ignore
+
 
 
 class BaseData:

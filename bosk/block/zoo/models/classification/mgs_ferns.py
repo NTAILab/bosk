@@ -406,7 +406,7 @@ class MGSRandomFernsBlock(BaseBlock):
         spatial_size = reduce(mul, bucket_indices.shape[1:-1], 1)
         flattened_y = jnp.tile(y[:, np.newaxis], (1, spatial_size)).reshape((-1, *y.shape[1:]))
 
-        group_data_indices: List[jnp.ndarray] | List[slice]
+        group_data_indices: Union[List[jnp.ndarray], List[slice]]
         if not self.bootstrap:
             group_data_indices = [slice(None, None) for _ in range(self.n_groups)]
         else:

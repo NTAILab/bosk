@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, List, Literal, Mapping, Sequence, Type
+from typing import Callable, List, Literal, Mapping, Sequence, Type, Union
 
 import numpy as np
 
@@ -66,7 +66,7 @@ class EarlyStoppingCV(GrowingStrategy):
         patience: Number of epochs to wait before stopping.
 
     """
-    def __init__(self, mode: Literal['any'] | Literal['all'] = 'all', patience: int = 1):
+    def __init__(self, mode: Union[Literal['any'], Literal['all']] = 'all', patience: int = 1):
         self.mode = mode
         self.patience = patience
 

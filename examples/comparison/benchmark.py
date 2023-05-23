@@ -1,5 +1,5 @@
 from bosk.auto.deep_forest import ClassicalDeepForestConstructor
-from bosk.block.zoo.models.classification.classification_models import CatBoostClassifierBlock, XGBClassifierBlock
+from bosk.block.zoo.models.classification import CatBoostClassifierBlock, XGBClassifierBlock
 from bosk.comparison.cross_val import CVComparator
 from bosk.comparison.base import BaseForeignModel
 from bosk.comparison.metric import MetricWrapper
@@ -53,7 +53,7 @@ def make_foreign_model(make_base_estimator: callable, name: str) -> BaseForeignM
 
 RFCModel = make_foreign_model(RandomForestClassifier, 'RFCModel')
 CatBoostModel = make_foreign_model(partial(CatBoostClassifier, verbose=0), 'CatBoostModel')
-XGBoostModel = make_foreign_model(partial(XGBClassifier), 'XGBoostModel')
+XGBoostModel = make_foreign_model(XGBClassifier, 'XGBoostModel')
 MLPModel = make_foreign_model(MLPClassifier, 'MLPModel')
 
 
