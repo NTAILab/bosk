@@ -9,6 +9,7 @@ The quick self-sufficient example of the bosk usage is available below. You can 
 machine and run it after the bosk :doc:`installation <install>`.
 
 .. code-block:: python
+   
    from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
    from bosk.executor.topological import TopologicalExecutor
    from bosk.stages import Stage

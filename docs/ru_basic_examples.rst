@@ -10,6 +10,6 @@
    :maxdepth: 1
    :caption: Базовые примеры:
 
-   Создание базового Глубокого леса <notebooks/basic_forest.ipynb>
-   Пример использования исполнителя <notebooks/executor_basics.ipynb>
+   Создание базового Глубокого леса <notebooks/ru_basic_forest.ipynb>
+   Пример использования исполнителя <notebooks/ru_executor_basics.ipynb>
 

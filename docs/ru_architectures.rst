@@ -33,6 +33,7 @@ Bosk разработан с учетом этих требований к ги�
 .. toctree::
    :maxdepth: 1
 
-   Базовый Глубокий лес <notebooks/basic_forest.ipynb>
-   Механизм confidence screening <notebooks/conf_screening.ipynb>
-   Многозернистое сканирование <notebooks/mg_scanning.ipynb>
+   Базовый Глубокий лес <notebooks/ru_basic_forest.ipynb>
+   Механизм confidence screening <notebooks/ru_conf_screening.ipynb>
+   Многозернистое сканирование <notebooks/ru_mg_scanning.ipynb>
+   notebooks/ru_regressor.ipynb

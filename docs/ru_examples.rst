@@ -11,6 +11,7 @@
 Его можно скопировать на локальную машину и запустить после :doc:`установки пакета <ru_install>`.
 
 .. code-block:: python
+   
    from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
    from bosk.executor.topological import TopologicalExecutor
    from bosk.stages import Stage

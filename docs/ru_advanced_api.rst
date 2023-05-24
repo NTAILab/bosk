@@ -8,7 +8,7 @@
    :maxdepth: 1
    :caption: Продвинутые примеры использования bosk:
 
-   Использование autoblock <notebooks/autoblock.ipynb>
-   Сравнение моделей <notebooks/comparison_example.ipynb>
-   Интерфейс Scikit-learn <notebooks/sklearn_interface.ipynb>
-   Пример сериализации <notebooks/serializing.ipynb>
+   Использование autoblock <notebooks/ru_autoblock.ipynb>
+   Сравнение моделей <notebooks/ru_comparison_example.ipynb>
+   Интерфейс Scikit-learn <notebooks/ru_sklearn_interface.ipynb>
+   Пример сериализации <notebooks/ru_serializing.ipynb>
