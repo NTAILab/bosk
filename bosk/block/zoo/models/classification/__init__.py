@@ -1,7 +1,3 @@
-from .ferns import RandomFernsBlock
-from .mgs_ferns import MGSRandomFernsBlock
-from .jax import RFCGBlock, ETCGBlock
-
 from catboost import CatBoostClassifier
 from xgboost import XGBClassifier
 from sklearn.ensemble import (
@@ -11,7 +7,14 @@ from sklearn.ensemble import (
 
 from ....auto import auto_block
 from ....meta import BlockExecutionProperties
-from .....data import CPUData
+from .....data import CPUData, np, jnp
+
+
+if jnp != np:
+    from .ferns import RandomFernsBlock
+    from .mgs_ferns import MGSRandomFernsBlock
+    from .jax import RFCGBlock, ETCGBlock
+
 
 
 __all__ = [
