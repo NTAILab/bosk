@@ -62,3 +62,4 @@ Contents
    getting_started
    examples
    contribution
+   autoapi/index
