@@ -28,3 +28,4 @@ Architectures examples
    Basic deep forest <notebooks/basic_forest.ipynb>
    Confidence screening <notebooks/conf_screening.ipynb>
    Multigrained scanning <notebooks/mg_scanning.ipynb>
+   Regression <notebooks/regressor.ipynb>
