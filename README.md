@@ -27,8 +27,7 @@ Bosk позволяет разрабатывать новые архитекту
 ### Установка JAX
 
 В Bosk используется библиотека JAX для выполнения вывчислений на ГПУ, однако ее установка не тривиальна. Официально JAX распространяется только для Linux и Mac OS, поэтому, к сожалению,
-пользователям Windows следует использовать `WSL <https://docs.microsoft.com/en-us/windows/wsl/about>`_ 
-для установки JAX и использования bosk с поддержкой вычислений на ГПУ.
+пользователям Windows следует использовать [WSL](https://docs.microsoft.com/en-us/windows/wsl/about) для установки JAX и использования bosk с поддержкой вычислений на ГПУ.
 
 **Установка только для ЦПУ**
 
@@ -44,11 +43,11 @@ Bosk позволяет разрабатывать новые архитекту
 
 Для установки пакета bosk напрямую из GitHub выполните:
 
-    pip install git+ssh://git@github.com:NTAILab/bosk.git
+    pip install git+https://github.com/NTAILab/bosk.git
 
 Также Вы можете вручную скопировать репозиторий и установить bosk:
 
-    git clone git@github.com:NTAILab/bosk.git
+    git clone https://github.com/NTAILab/bosk.git
     cd bosk
     pip install -r requirements.txt
     python setup.py install
@@ -92,7 +91,7 @@ test_preds = model.predict(X_test)
 
 ### Документация
 
-Больше информации о bosk Вы можете найти в нашей [документации](https://ntailab.github.io/bosk/index.html)
+Больше информации о bosk Вы можете найти в нашей [документации](https://ntailab.github.io/bosk/index.html).
 
 ### Как стать участником проекта
 

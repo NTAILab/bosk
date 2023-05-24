@@ -60,11 +60,11 @@ Package Installation
 
 To install the bosk package directly from GitHub run::
 
-    pip install git+ssh://git@github.com:NTAILab/bosk.git
+    pip install git+https://github.com/NTAILab/bosk.git
 
 Alternatively the repo can be cloned and installed manually::
 
-    git clone git@github.com:NTAILab/bosk.git
+    git clone https://github.com/NTAILab/bosk.git
     cd bosk
     pip install -r requirements.txt
     python setup.py install
@@ -77,7 +77,7 @@ Dev Installation
 For development purpose it is more convenient to install the package in develop mode,
 to automatically update package on changes (actually it uses symlinks)::
 
-    git clone git@github.com:NTAILab/bosk.git
+    git clone https://github.com/NTAILab/bosk.git
     cd bosk
     pip install -r requirements.txt
     python setup.py develop

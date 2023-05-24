@@ -58,11 +58,11 @@ Bosk использует JAX для вычислений на графичес�
 
 Для установки пакета bosk напрямую из GitHub выполните::
 
-    pip install git+ssh://git@github.com:NTAILab/bosk.git
+    pip install git+https://github.com/NTAILab/bosk.git
 
 Также Вы можете вручную скопировать репозиторий и установить bosk::
 
-    git clone git@github.com:NTAILab/bosk.git
+    git clone https://github.com/NTAILab/bosk.git
     cd bosk
     pip install -r requirements.txt
     python setup.py install
@@ -75,7 +75,7 @@ Bosk использует JAX для вычислений на графичес�
 Если Вы планируете вносить изменения в bosk, будет удобнее установить пакет в режиме
 разработчика, чтобы Python сам регистрировал вносимые изменения при запуске::
 
-    git clone git@github.com:NTAILab/bosk.git
+    git clone https://github.com/NTAILab/bosk.git
     cd bosk
     pip install -r requirements.txt
     python setup.py develop
