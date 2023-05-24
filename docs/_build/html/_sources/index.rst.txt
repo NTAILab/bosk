@@ -1,64 +1,75 @@
-Welcome to bosk's documentation!
-================================
+Добро пожаловать в документацию проекта bosk!
+=============================================
 
-Bosk is a framework for Deep Forest construction.
+*English version is located* :doc:`here <en_index>`.
 
-Following common principle of deep neural network frameworks, we consider models as
-general computational graphs with some additional functionality,
-in contrast to defining strictly layerwise structure.
-In bosk a Deep Forest structure corresponds to two separate computational graphs:
-one for fitting (training) and one for transforming (predicting).
+Bosk (в переводе чаща леса) - это фреймворк для построения моделей
+Глубоких лесов.
 
-This framework helps to construct new Deep Forests avoiding writing
-error prone routine code, and provides tools for pipeline execution and debugging,
-as well as a wide set of ready to use building blocks.
-It supports both fully manual pipeline and automatical layerwise Deep Forest building.
+Опираясь на общеупотребимый способ описания моделей машинного обучения
+в фреймворках, модели внутри bosk представляют из себя вычислительные графы
+общего вида и не имеют строго определенной многослойной структуры.
+В bosk каждая модель инкапсулирует в себе два различных вычислительных
+графа: первый отвечает за стадию обучения модели, второй - предсказания.
 
-Quick example
-~~~~~~~~~~~~~
+Наш фреймворк позволяет разрабатывать новые архитектуры глубоких
+лесов, не прибегая к написанию подверженного ошибкам монотонного рутинного кода,
+а также содержит полезные инструменты для выполнения и отладки вычислительных графов.
+Помимо этого, в bosk представлено большое количество готовых к использованию
+стандартных исполнительных блоков.
+Фреймворк поддерживает как ручное задание вычислительного графа Глубокого леса,
+так и его автоматическое построение в формате слой за слоем.
 
-For example, to define Deep Forest with one layer, consisting of two forests
-(Random Forest and Extremely Randomized Trees), which output probabilities
-are concatenated with input feature vector and passed to the final
-forest, the following code could be used:
+Краткий пример
+~~~~~~~~~~~~~~~
+
+Предположим, мы хотим создать однослойный Глубокий лес, содержащий в себе
+два вида лесов: случайный лес (Random Forest) и модель сверхслучайных деревьев
+(Extremely Randomized Trees). Вероятности, предсказанные обоими моделями,
+будут сконкатенированы с вектором входных признаков и переданы в финальный
+лес. Для того, чтобы определить описанную модель, можно предлдожить следующий код:
 
 .. code-block:: python
 
-   # make a pipeline
+   # создание построителя конвейера
    b = FunctionalPipelineBuilder()
-   # placeholders for input features `x` and target variable `y`
+   # блоки для маршрутизации входных данных:
+   # `x` для вектора факторов и `y`
+   # для откликов
    x = b.Input('x')()
    y = b.TargetInput('y')()
-   # random forests
+   # блоки моделей лесов
    random_forest = b.RFC(max_depth=5)
    extra_trees = b.ETC(n_estimators=200)
-   # concatenation
+   # блок конкатенации
    cat = b.Concat(['x', 'rf', 'et'])
-   # layer that concatenates random forests outputs
+   # слой, конкатенирующий выходные векторы лесов
+   # и вектор входных признаков
    layer_1 = cat(x=x, rf=rf(X=x, y=y), et=extra_trees(X=x, y=y))
-   # forest for the final prediction
+   # лес для осуществления итогового предсказания
    final_extra_trees = b.ETC()
-   # pipeline output
+   # выход конвейера
    b.Output('proba')(final_extra_trees(X=layer_1, y=y))
-   # build pipeline
+   # создание конвейера
    pipeline = b.build()
 
-   # wrap pipeline into a scikit-learn model
+   # scikit-learn обертка для конвейера
    model = BoskPipelineClassifier(pipeline, executor_cls=RecursiveExecutor)
-   # fit the model
+   # обучаем модель
    model.fit(X_train, y_train)
-   # predict with the model
+   # осуществляем предсказание
    test_preds = model.predict(X_test)
 
-For more examples look at :doc:`getting_started`
+Больше примеров Вы можете найти :doc:`здесь <ru_getting_started>`.
 
-Contents
-~~~~~~~~~~~~~
+Содержание
+~~~~~~~~~~
 
 .. toctree::
    :maxdepth: 1
 
-   Installation guide <install>
-   getting_started
-   examples
-   contribution
+   Инструкция по установке <ru_install>
+   Вводная инструкция <ru_getting_started>
+   Примеры <ru_examples>
+   ru_contribution
+   English version <en_index>

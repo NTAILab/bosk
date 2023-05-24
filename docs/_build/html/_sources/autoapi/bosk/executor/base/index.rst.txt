@@ -181,12 +181,12 @@ Classes
       
 
    .. py:attribute:: __inputs
-      :annotation: :None | FrozenSet[str]
+      :annotation: :Optional[FrozenSet[str]]
 
       
 
    .. py:attribute:: __outputs
-      :annotation: :None | FrozenSet[str]
+      :annotation: :Optional[FrozenSet[str]]
 
       
 

@@ -1,0 +1,230 @@
+{
+ "cells": [
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Информация по использованию исполнителей\n",
+    "\n",
+    "Конвейеры bosk можно обучать и выполнять с помощью различных менеджеров, называемых *исполнителями*. В этом руководстве пользователя мы объясним семантику интерфейса исполнителя и покажем, как Вы можете настроить его поведение. Конкретный класс, который мы будем использовать, это `RecursiveExecutor`. `RecursiveExecutor` — это простой исполнитель, который для каждого вывода рекурсивно вычисляет данные и, таким образом, проходит вычислительный граф в обратном направлении."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from bosk.executor.recursive import RecursiveExecutor\n",
+    "from bosk.executor.timer import TimerBlockExecutor\n",
+    "from bosk.stages import Stage\n",
+    "from bosk.pipeline.builder.functional import FunctionalPipelineBuilder\n",
+    "from sklearn.datasets import make_moons"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Определим простой Глубокий лес"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "n_estimators = 15\n",
+    "b = FunctionalPipelineBuilder()\n",
+    "X, y = b.Input()(), b.TargetInput()()\n",
+    "rf_1 = b.RFC(n_estimators=n_estimators)(X=X, y=y)\n",
+    "et_1 = b.ETC(n_estimators=n_estimators)(X=X, y=y)\n",
+    "concat_1 = b.Concat(['X', 'rf_1', 'et_1'])(X=X, rf_1=rf_1, et_1=et_1)\n",
+    "rf_2 = b.RFC(n_estimators=n_estimators)(X=concat_1, y=y)\n",
+    "et_2 = b.ETC(n_estimators=n_estimators)(X=concat_1, y=y)\n",
+    "stack = b.Stack(['rf_2', 'et_2'], axis=1)(rf_2=rf_2, et_2=et_2)\n",
+    "average = b.Average(axis=1)(X=stack)\n",
+    "argmax = b.Argmax(axis=1)(X=average)\n",
+    "rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)\n",
+    "roc_auc = b.RocAuc()(gt_y=y, pred_probas=average)\n",
+    "pipeline = b.build(\n",
+    "    {'X': X, 'y': y},\n",
+    "    {'labels': argmax, 'probas': average, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}\n",
+    ")"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Теперь мы можем запустить этот конвейер с помощью `RecursiveExecutor`. Как было сказано в \"Базовом примере использования bosk\", для каждого этапа мы должны создать новый экземпляр исполнителя. Самый простой способ создать исполнитель — передать конвейер и вычислительную стадию."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fit_exec = RecursiveExecutor(pipeline, Stage.FIT)\n",
+    "# сгенерируем данные для обучения модели\n",
+    "X, y = make_moons(noise=0.5)\n",
+    "# теперь нужно создать словарь для\n",
+    "# сопоставления данных и входов\n",
+    "full_data = {'X': X, 'y': y}\n",
+    "# для запуска исполнителя просто передаем данные\n",
+    "fit_res = fit_exec(full_data)"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Хорошо понимать, что для обучения слоя нам нужно передать ему данные от предыдущего. Таким образом, на этапе обучения обучается каждый блок, после чего вызывается метод преобразования. Поэтому на этапе обучения у нас есть преобразование обучающих данных в качестве вывода исполнителя."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "['labels', 'probas', 'rf_1_roc-auc', 'roc-auc']\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(list(fit_res.keys()))"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Сделаем еще один исполнитель для этапа преобразования, но теперь обратим внимание на аргументы `inputs` и `outputs`. Они устанавливают ограничение на соответствующие атрибуты конвейера. Передавая входные данные, вы устанавливаете жесткие требования к входным значениям для выполнения вычислительного графа. Это означает, что если вы укажете `inputs`, входные данные должны содержать только эти ключи. `outputs` определяют выходы графа, которые будут обработаны."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Input \"y\" is not in the executor's inputs set\n"
+     ]
+    }
+   ],
+   "source": [
+    "# давайте уточним входы и выходы\n",
+    "tf_exec = RecursiveExecutor(pipeline, Stage.TRANSFORM, ['X'], ['probas'])\n",
+    "# попробуем нарушить требование к входам\n",
+    "try:\n",
+    "    tf_exec(full_data)\n",
+    "except AssertionError as e:\n",
+    "    print(e)"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Нужно сказать, что если бы мы не указали входные данные, то исключение не было бы возбуждено, даже если бы у нас были какие-то ключи кроме `X` и `y` во входном словаре."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "['probas']\n"
+     ]
+    }
+   ],
+   "source": [
+    "# теперь сделаем правильный словарь\n",
+    "tf_data = {'X': X}\n",
+    "tf_res = tf_exec(tf_data)\n",
+    "print(list(tf_res.keys()))"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Теперь нам нужно обсудить аргументы `slot_handler` и `block_executor`. Они необходимы для выполнения пользовательской настройки поведения исполнителя. Как видно из названий, `slot_handler` отвечает за политику обработки слотов, а `block_executor` – за блоки. Пользователь может реализовать свои собственные наследники `BaseSlotHandler` и `BaseBlockExecutor` соответственно и, таким образом, реализовать некоторую дополнительную логику во время выполнения конвейера. В приведенном ниже примере мы будем измерять время выполнения блоков с помощью пользовательского `block_executor`."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "The most complex block is RFCBlock (id 8759314183514). Execution time is 0.00369 s.\n"
+     ]
+    }
+   ],
+   "source": [
+    "timer_block_exec = TimerBlockExecutor()\n",
+    "tf_exec = RecursiveExecutor(pipeline, Stage.TRANSFORM, \n",
+    "                            outputs=['labels'],\n",
+    "                            block_executor=timer_block_exec)\n",
+    "tf_exec(tf_data)\n",
+    "# this block executor stores cpu execution time\n",
+    "# for each executed block\n",
+    "# let's find the most complex block\n",
+    "max_time_block = None\n",
+    "max_time = 0\n",
+    "for block, time in timer_block_exec.blocks_time.items():\n",
+    "    if time > max_time:\n",
+    "        max_time = time\n",
+    "        max_time_block = block\n",
+    "print(f'The most complex block is {max_time_block} (id { hash(max_time_block)}).',\n",
+    "      f'Execution time is {round(max_time, 5)} s.')"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.6"
+  },
+  "orig_nbformat": 4
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

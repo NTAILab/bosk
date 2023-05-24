@@ -26,6 +26,7 @@ Attributes
 .. autoapisummary::
 
    bosk.executor.parallel.greedy.ResultT
+   bosk.executor.parallel.greedy.OutSlotToData
 
 
 .. py:data:: ResultT
@@ -34,6 +35,11 @@ Attributes
    Execution result generic typevar.
 
    Required to constrain `ParallelEngine.Instance.staramap` result.
+
+.. py:data:: OutSlotToData
+   
+
+   
 
 .. py:class:: ParallelEngine
 

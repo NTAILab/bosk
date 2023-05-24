@@ -25,6 +25,19 @@ Functions
 
 
 
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   bosk.block.repo.zoo.IGNORE_IMPORT_ERROR_PACKAGES
+
+
+.. py:data:: IGNORE_IMPORT_ERROR_PACKAGES
+   :annotation: = ['jax']
+
+   
+
 .. py:function:: import_submodules_contents(module)
 
    Import contents of all submodules.

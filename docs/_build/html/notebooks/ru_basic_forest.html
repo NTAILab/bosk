@@ -1,0 +1,787 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Информация по использованию исполнителей" href="ru_executor_basics.html" /><link rel="prev" title="Базовая инструкция по использованию bosk" href="../ru_basic_examples.html" />
+
+    <meta name="generator" content="sphinx-5.3.0, furo 2022.09.29"/>
+        <title>Базовый пример использования bosk - bosk 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">bosk 1.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">bosk 1.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../ru_install.html">Инструкция по установке</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ru_getting_started.html">Вводная инструкция</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../ru_examples.html">Примеры</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="../ru_basic_examples.html">Базовая инструкция по использованию bosk</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Создание базового Глубокого леса</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ru_executor_basics.html">Пример использования исполнителя</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current has-children"><a class="reference internal" href="../ru_architectures.html">Примеры архитектур модели Глубокого леса</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">Базовый Глубокий лес</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ru_conf_screening.html">Механизм confidence screening</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ru_mg_scanning.html">Многозернистое сканирование</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ru_regressor.html">Композиция регрессоров</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../ru_advanced_api.html">Продвинутые примеры использования bosk</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="ru_autoblock.html">Использование autoblock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ru_comparison_example.html">Сравнение моделей</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ru_sklearn_interface.html">Интерфейс Scikit-learn</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ru_serializing.html">Пример сериализации</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../ru_contribution.html">Как стать участником проекта</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../en_index.html">English version</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../install.html">Installation guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html">Getting started</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples.html">Bosk usage examples</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../basic_examples.html">Basic bosk usage user guide</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="basic_forest.html">Making basic deep forest</a></li>
+<li class="toctree-l4"><a class="reference internal" href="executor_basics.html">Executors usage guide</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../architectures.html">Deep Forest architectures examples</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="basic_forest.html">Basic deep forest</a></li>
+<li class="toctree-l4"><a class="reference internal" href="conf_screening.html">Confidence screening</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mg_scanning.html">Multigrained scanning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="regressor.html">Regression</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../advanced_api.html">Advanced bosk usage examples</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoblock.html">Autoblock usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="comparison_example.html">Models comparison</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sklearn_interface.html">Scikit-learn interface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="serializing.html">Serialization guide</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contribution.html">Contributing guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../autoapi/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../autoapi/bosk/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/bosk/auto/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/auto/builders/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.builders</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/auto/deep_forest/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.deep_forest</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/auto/growing_strategies/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.growing_strategies</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/auto/layers/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.layers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/auto/metrics/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.metrics</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/auto/validation/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.auto.validation</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/bosk/block/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/bosk/block/repo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/repo/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo.base</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/repo/scope/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo.scope</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/repo/zoo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.repo.zoo</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/bosk/block/zoo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/data_conversion/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.data_conversion</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/data_weighting/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.data_weighting</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/debugging/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.debugging</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/gpu_blocks/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.gpu_blocks</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/input_plugs/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.input_plugs</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/metrics/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.metrics</span></code></a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/bosk/block/zoo/models/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l6 has-children"><a class="reference internal" href="../autoapi/bosk/block/zoo/models/classification/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l7"><a class="reference internal" href="../autoapi/bosk/block/zoo/models/classification/_jax_util/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification._jax_util</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="../autoapi/bosk/block/zoo/models/classification/ferns/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification.ferns</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="../autoapi/bosk/block/zoo/models/classification/jax/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification.jax</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="../autoapi/bosk/block/zoo/models/classification/mgs_ferns/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification.mgs_ferns</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/models/regression/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.models.regression</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/_convolution_helpers/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning._convolution_helpers</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/_pooling_impl/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning._pooling_impl</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.base</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/mil/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.mil</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/multi_grained_scanning_1d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_1d</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/multi_grained_scanning_2d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_2d</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/multi_grained_scanning_nd/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.multi_grained_scanning_nd</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/multi_grained_scanning/pooling/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.multi_grained_scanning.pooling</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/output_plugs/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.output_plugs</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/block/zoo/preprocessing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.preprocessing</span></code></a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/bosk/block/zoo/routing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.routing</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/routing/cs/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.routing.cs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/bosk/block/zoo/routing/cv/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.zoo.routing.cv</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/block/auto/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.auto</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/block/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/block/functional/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.functional</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/block/meta/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.block.meta</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/bosk/comparison/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/comparison/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/comparison/cross_val/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison.cross_val</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/comparison/metric/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.comparison.metric</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/bosk/executor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/bosk/executor/parallel/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/executor/parallel/dask/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.dask</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/executor/parallel/greedy/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.greedy</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/executor/parallel/networkx/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.networkx</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/executor/parallel/topsort/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.parallel.topsort</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/executor/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/executor/block/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.block</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/executor/recursive/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.recursive</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/executor/sklearn_interface/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.sklearn_interface</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/executor/timer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.timer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/executor/topological/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.topological</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/executor/utility/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.executor.utility</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/bosk/painter/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/painter/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/painter/graphviz/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter.graphviz</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/painter/topological/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.painter.topological</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/bosk/pipeline/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-24" name="toctree-checkbox-24" role="switch" type="checkbox"/><label for="toctree-checkbox-24"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/bosk/pipeline/builder/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.builder</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-25" name="toctree-checkbox-25" role="switch" type="checkbox"/><label for="toctree-checkbox-25"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/builder/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.builder.base</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/builder/functional/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.builder.functional</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/bosk/pipeline/converter/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.converter</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-26" name="toctree-checkbox-26" role="switch" type="checkbox"/><label for="toctree-checkbox-26"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/converter/dask/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.converter.dask</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/converter/nx/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.converter.nx</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/bosk/pipeline/serializer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-27" name="toctree-checkbox-27" role="switch" type="checkbox"/><label for="toctree-checkbox-27"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/serializer/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.base</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/serializer/joblib/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.joblib</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/serializer/onnx/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.onnx</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/serializer/skops/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.skops</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/bosk/pipeline/serializer/zip/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.serializer.zip</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/pipeline/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/pipeline/connection/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.connection</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/pipeline/dynamic/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.pipeline.dynamic</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/bosk/visitor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.visitor</span></code></a><input class="toctree-checkbox" id="toctree-checkbox-28" name="toctree-checkbox-28" role="switch" type="checkbox"/><label for="toctree-checkbox-28"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/visitor/base/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.visitor.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/bosk/visitor/group/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.visitor.group</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/bosk/data/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/bosk/exceptions/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.exceptions</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/bosk/stages/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.stages</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/bosk/utility/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosk.utility</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="Базовый-пример-использования-bosk">
+<h1>Базовый пример использования bosk<a class="headerlink" href="#Базовый-пример-использования-bosk" title="Permalink to this heading">#</a></h1>
+<p>В этом примере мы рассмотрим, как реализовать классический глубокий лес в рамках набора инструментов, реализованного в bosk.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bosk.pipeline.base</span> <span class="kn">import</span> <span class="n">BasePipeline</span><span class="p">,</span> <span class="n">Connection</span>
+<span class="kn">from</span> <span class="nn">bosk.painter.graphviz</span> <span class="kn">import</span> <span class="n">GraphvizPainter</span>
+<span class="kn">from</span> <span class="nn">bosk.executor.recursive</span> <span class="kn">import</span> <span class="n">RecursiveExecutor</span>
+<span class="kn">from</span> <span class="nn">bosk.stages</span> <span class="kn">import</span> <span class="n">Stage</span>
+<span class="kn">from</span> <span class="nn">bosk.block.zoo.models.classification</span> <span class="kn">import</span> <span class="n">RFCBlock</span><span class="p">,</span> <span class="n">ETCBlock</span>
+<span class="kn">from</span> <span class="nn">bosk.block.zoo.data_conversion</span> <span class="kn">import</span> <span class="n">ConcatBlock</span><span class="p">,</span> <span class="n">AverageBlock</span><span class="p">,</span> <span class="n">ArgmaxBlock</span><span class="p">,</span> <span class="n">StackBlock</span>
+<span class="kn">from</span> <span class="nn">bosk.block.zoo.input_plugs</span> <span class="kn">import</span> <span class="n">InputBlock</span><span class="p">,</span> <span class="n">TargetInputBlock</span>
+<span class="kn">from</span> <span class="nn">bosk.block.zoo.metrics</span> <span class="kn">import</span> <span class="n">RocAucBlock</span>
+<span class="kn">from</span> <span class="nn">bosk.pipeline.builder.functional</span> <span class="kn">import</span> <span class="n">FunctionalPipelineBuilder</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">make_moons</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">roc_auc_score</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Image</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">random_state</span> <span class="o">=</span> <span class="mi">42</span>
+<span class="n">n_estimators</span> <span class="o">=</span> <span class="mi">7</span>
+<span class="n">EXEC_CLS</span> <span class="o">=</span> <span class="n">RecursiveExecutor</span>
+
+
+<span class="k">def</span> <span class="nf">get_plain_dataset</span><span class="p">():</span>
+    <span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span> <span class="o">=</span> <span class="n">make_moons</span><span class="p">(</span><span class="n">noise</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+    <span class="n">train_X</span><span class="p">,</span> <span class="n">test_X</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">test_y</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+        <span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">train_X</span><span class="p">,</span> <span class="n">test_X</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">test_y</span>
+
+
+<span class="k">def</span> <span class="nf">draw_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">:</span> <span class="n">BasePipeline</span><span class="p">,</span> <span class="n">rankdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;LR&#39;</span><span class="p">):</span>
+    <span class="n">GraphvizPainter</span><span class="p">(</span><span class="n">figure_dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">figure_rankdir</span><span class="o">=</span><span class="n">rankdir</span><span class="p">)</span><span class="o">.</span><span class="n">from_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">&#39;deep_forest.jpeg&#39;</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;deep_forest.jpeg&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<p>Сперва мы будем использовать функциональный API для реализации классического глубокого леса с двумя слоями. Этот инструмент делает процесс создания соединений лаконичным. Мы просто создаем блоки и при их последующем вызове указываем, какие слоты блока мы хотим соединить с другими блоками. Название аргумента соответствует слоту, а значение указывает, какой блок мы хотим использовать в качестве входа для слота. Обратите внимание, что в этом примере все блоки имеют только один выходной слот,
+поэтому нам не нужно указывать, какой именно выходной слот использовать.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># создание объекта, конструирующего конвейер</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">FunctionalPipelineBuilder</span><span class="p">()</span>
+<span class="c1"># далее мы выполняем описанные выше действия</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Input</span><span class="p">()(),</span> <span class="n">b</span><span class="o">.</span><span class="n">TargetInput</span><span class="p">()()</span>
+<span class="n">rf_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">et_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">concat_1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Concat</span><span class="p">([</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_1&#39;</span><span class="p">,</span> <span class="s1">&#39;et_1&#39;</span><span class="p">])(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">rf_1</span><span class="o">=</span><span class="n">rf_1</span><span class="p">,</span> <span class="n">et_1</span><span class="o">=</span><span class="n">et_1</span><span class="p">)</span>
+<span class="n">rf_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">et_2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">ETC</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">concat_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">stack</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Stack</span><span class="p">([</span><span class="s1">&#39;rf_2&#39;</span><span class="p">,</span> <span class="s1">&#39;et_2&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">rf_2</span><span class="o">=</span><span class="n">rf_2</span><span class="p">,</span> <span class="n">et_2</span><span class="o">=</span><span class="n">et_2</span><span class="p">)</span>
+<span class="n">average</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Average</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">stack</span><span class="p">)</span>
+<span class="n">argmax</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">Argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">X</span><span class="o">=</span><span class="n">average</span><span class="p">)</span>
+<span class="n">rf_1_roc_auc</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RocAuc</span><span class="p">()(</span><span class="n">gt_y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">pred_probas</span><span class="o">=</span><span class="n">rf_1</span><span class="p">)</span>
+<span class="n">roc_auc</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">RocAuc</span><span class="p">()(</span><span class="n">gt_y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">pred_probas</span><span class="o">=</span><span class="n">average</span><span class="p">)</span>
+<span class="c1"># создаем конвейер</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">build</span><span class="p">(</span>
+    <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">},</span>
+    <span class="p">{</span><span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="n">argmax</span><span class="p">,</span> <span class="s1">&#39;probas&#39;</span><span class="p">:</span> <span class="n">average</span><span class="p">,</span> <span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">:</span> <span class="n">rf_1_roc_auc</span><span class="p">,</span> <span class="s1">&#39;roc-auc&#39;</span><span class="p">:</span> <span class="n">roc_auc</span><span class="p">}</span>
+<span class="p">)</span>
+<span class="n">pipeline</span><span class="o">.</span><span class="n">set_random_state</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+<span class="c1"># давайте изобразим наш конвейер</span>
+<span class="n">draw_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_ru_basic_forest_4_0.jpg" src="../_images/notebooks_ru_basic_forest_4_0.jpg" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># теперь давайте обучим и протестируем глубокий лес</span>
+<span class="c1"># мы можем определить нужные входы и выходы</span>
+<span class="c1"># в параметрах исполнителя</span>
+<span class="n">fit_executor</span> <span class="o">=</span> <span class="n">EXEC_CLS</span><span class="p">(</span>
+    <span class="n">pipeline</span><span class="p">,</span>
+    <span class="n">stage</span><span class="o">=</span><span class="n">Stage</span><span class="o">.</span><span class="n">FIT</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">],</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">,</span> <span class="s1">&#39;roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">transform_executor</span> <span class="o">=</span> <span class="n">EXEC_CLS</span><span class="p">(</span>
+    <span class="n">pipeline</span><span class="p">,</span>
+    <span class="n">stage</span><span class="o">=</span><span class="n">Stage</span><span class="o">.</span><span class="n">TRANSFORM</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">,</span> <span class="s1">&#39;labels&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">train_X</span><span class="p">,</span> <span class="n">test_X</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">test_y</span> <span class="o">=</span> <span class="n">get_plain_dataset</span><span class="p">()</span>
+<span class="c1"># Для запуска исполнителя нам нужно создать словарь,</span>
+<span class="c1"># в котором ключами будут имена входов, а значениями данные.</span>
+<span class="c1"># Результатом выполнения конвейера станет словарь с</span>
+<span class="c1"># именами выходов в качестве ключей и BaseData в качестве значений,</span>
+<span class="c1"># поэтому нам следует конвертировать BaseData в numpy массив</span>
+<span class="n">fit_result</span> <span class="o">=</span> <span class="n">fit_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">train_X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">train_y</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="c1"># Для обучения следующего слоя нам необходимо получить выход текущего,</span>
+<span class="c1"># поэтому обучающий исполнитель на своем выходе должен дать преобразованные</span>
+<span class="c1"># обучающие данные. Давайте проверим это</span>
+<span class="n">train_result</span> <span class="o">=</span> <span class="n">transform_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">train_X</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Fit probas == probas on train:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">],</span> <span class="n">train_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">]))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Fit probas == probas on train: True
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Теперь давайте посмотрим на метрики.</span>
+<span class="c1"># Очевидно, что внешняя оценка должна совпадать</span>
+<span class="c1"># с полученной в процессе обучения.</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Train ROC-AUC:&quot;</span><span class="p">,</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">train_y</span><span class="p">,</span> <span class="n">train_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;Train ROC-AUC calculated by fit executor:&quot;</span><span class="p">,</span>
+    <span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;Train ROC-AUC for RF_1:&quot;</span><span class="p">,</span>
+    <span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Train ROC-AUC: 1.0
+Train ROC-AUC calculated by fit executor: 1.0
+Train ROC-AUC for RF_1: 0.9892676767676768
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># И, наконец, мы можем поработать с тестовой выборкой</span>
+<span class="n">test_result</span> <span class="o">=</span> <span class="n">transform_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">test_X</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Test ROC-AUC:&quot;</span><span class="p">,</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">test_y</span><span class="p">,</span> <span class="n">test_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Test ROC-AUC: 0.8571428571428572
+</pre></div></div>
+</div>
+<section id="Заметка-о-конвейерах">
+<h2>Заметка о конвейерах<a class="headerlink" href="#Заметка-о-конвейерах" title="Permalink to this heading">#</a></h2>
+<p>Конвейер — это вычислительный граф в фреймворке bosk. В настоящее время наш фреймворк имеет только один тип конвейера: <code class="docutils literal notranslate"><span class="pre">BasePipeline</span></code>. <code class="docutils literal notranslate"><span class="pre">BasePipeline</span></code> — это класс данных, который содержит узлы графа (т. е. вычислительные блоки) и ребра (т. е. соединения). Поскольку вычислительный граф направлен и ацикличен, <code class="docutils literal notranslate"><span class="pre">BasePipeline</span></code> также содержит статическую информацию о входах и выходах (их имена и расположение). Несмотря на то, что нами не предусмотрена проверка на инъекцию, мы настоятельно
+рекомендуем правильно помечать входы и выходы: разным слотам должны соответствовать разные имена.</p>
+<p>Для маршрутизации данных по конвейеру была добавлена концепция слотов. Каждый блок имеет список входных и выходных слотов с уникальными (для данного блока) именами, куда могут направляться данные. Обычно выходной слот один, но это не обязательно. Таким образом, конвейер bosk может быть описан либо в терминах блоков, либо - слотов, так как каждый слот имеет ссылку на его родительский блок. Тем не менее, для построения конвейера вы должны работать только с точки зрения слотов и направлять данные
+из слота выходного блока во входной.</p>
+</section>
+<section id="Заметка-об-исполнителях">
+<h2>Заметка об исполнителях<a class="headerlink" href="#Заметка-об-исполнителях" title="Permalink to this heading">#</a></h2>
+<p>Исполнитель — это менеджер, который выполняет обработку вычислительного графа (то есть конвейера). Один конвейер может вести себя по-разному в зависимости от этапа вычислений. Например, чтобы соответствовать классической модели глубокого леса, нам нужно передать предикторы и отклики, но после процесса обучения нам нужно передать только новые предикторы. Для каждого из этих этапов пользователь должен создать отдельный исполнитель.</p>
+<p>Конвейеры могут выполняться в последовательном или параллельном режиме (с точки зрения количества одновременно выполняемых вычислительных блоков; в обоих случаях для каждого блока может потребоваться несколько рабочих процессов). Мы рекомендуем запускать конвейеры в последовательном режиме, предоставляя как можно больше потоков каждому блоку, и использовать параллельное выполнение конвейера только в том случае, если у вас есть несколько устройств для обработки разных блоков (например, некоторые
+блоки в конвейере выполняются на ЦПУ, а некоторые - на ГПУ). Для последовательного выполнения мы предлагаем использовать <code class="docutils literal notranslate"><span class="pre">TopologicalExecutor</span></code>, для параллельного – <code class="docutils literal notranslate"><span class="pre">GreedyParallelExecutor</span></code>. В этом примере мы будем использовать <code class="docutils literal notranslate"><span class="pre">RecursiveExecutor</span></code>, так как построенные конвейеры будут простыми.</p>
+</section>
+<section id="Ручное-создание-конвейера">
+<h2>Ручное создание конвейера<a class="headerlink" href="#Ручное-создание-конвейера" title="Permalink to this heading">#</a></h2>
+<p>Функциональный API — это удобный способ построения моделей в bosk. Однако, есть способ задать вычислительный граф вручную. Давайте реализуем тот же глубокий лес с помощью этой техники.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># используем ручное соединение</span>
+<span class="c1"># для начала нам нужно создать блоки для графа</span>
+<span class="c1"># входные для факторов и откликов</span>
+<span class="n">input_x</span> <span class="o">=</span> <span class="n">InputBlock</span><span class="p">()</span>
+<span class="n">input_y</span> <span class="o">=</span> <span class="n">TargetInputBlock</span><span class="p">()</span>
+<span class="c1"># несколько слоев глубокого леса со случайными лесами и</span>
+<span class="c1"># сверхслучайными деревьями</span>
+<span class="n">rf_1</span> <span class="o">=</span> <span class="n">RFCBlock</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)</span>
+<span class="n">et_1</span> <span class="o">=</span> <span class="n">ETCBlock</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)</span>
+<span class="n">concat_1</span> <span class="o">=</span> <span class="n">ConcatBlock</span><span class="p">([</span><span class="s1">&#39;rf_1&#39;</span><span class="p">,</span> <span class="s1">&#39;et_1&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">rf_2</span> <span class="o">=</span> <span class="n">RFCBlock</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)</span>
+<span class="n">et_2</span> <span class="o">=</span> <span class="n">ETCBlock</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">)</span>
+<span class="n">stack</span> <span class="o">=</span> <span class="n">StackBlock</span><span class="p">([</span><span class="s1">&#39;rf_2&#39;</span><span class="p">,</span> <span class="s1">&#39;et_2&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="c1"># блоки для вычисления результатов</span>
+<span class="n">average</span> <span class="o">=</span> <span class="n">AverageBlock</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">argmax</span> <span class="o">=</span> <span class="n">ArgmaxBlock</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="c1"># и блоки-метрики</span>
+<span class="n">roc_auc</span> <span class="o">=</span> <span class="n">RocAucBlock</span><span class="p">()</span>
+<span class="n">roc_auc_rf_1</span> <span class="o">=</span> <span class="n">RocAucBlock</span><span class="p">()</span>
+<span class="c1"># нужно вручную задать наш конвейер: список блоков и соединений,</span>
+<span class="c1"># входы и выходы</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">BasePipeline</span><span class="p">(</span>
+    <span class="n">nodes</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">input_x</span><span class="p">,</span>
+        <span class="n">input_y</span><span class="p">,</span>
+        <span class="n">rf_1</span><span class="p">,</span>
+        <span class="n">et_1</span><span class="p">,</span>
+        <span class="n">concat_1</span><span class="p">,</span>
+        <span class="n">rf_2</span><span class="p">,</span>
+        <span class="n">et_2</span><span class="p">,</span>
+        <span class="n">stack</span><span class="p">,</span>
+        <span class="n">average</span><span class="p">,</span>
+        <span class="n">argmax</span><span class="p">,</span>
+        <span class="n">roc_auc</span><span class="p">,</span>
+        <span class="n">roc_auc_rf_1</span>
+    <span class="p">],</span>
+    <span class="n">connections</span><span class="o">=</span><span class="p">[</span>
+        <span class="c1"># вход X</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_x</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="n">rf_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_x</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="n">et_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_x</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="n">concat_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]),</span>
+        <span class="c1"># вход y</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_y</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">rf_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_y</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">et_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_y</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">rf_2</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_y</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">et_2</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]),</span>
+        <span class="c1"># слои</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">rf_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">concat_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;rf_1&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">et_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">concat_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;et_1&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">concat_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">rf_2</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">concat_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">et_2</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">rf_2</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">stack</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;rf_2&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">et_2</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">stack</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;et_2&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">stack</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">average</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">average</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">argmax</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">average</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">roc_auc</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;pred_probas&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_y</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">roc_auc</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;gt_y&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">rf_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">roc_auc_rf_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;pred_probas&#39;</span><span class="p">]),</span>
+        <span class="n">Connection</span><span class="p">(</span><span class="n">input_y</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">roc_auc_rf_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;gt_y&#39;</span><span class="p">]),</span>
+    <span class="p">],</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">input_x</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">input_y</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span>
+    <span class="p">},</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;probas&#39;</span><span class="p">:</span> <span class="n">average</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">:</span> <span class="n">roc_auc_rf_1</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;roc-auc&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;roc-auc&#39;</span><span class="p">:</span> <span class="n">roc_auc</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;roc-auc&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="n">argmax</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+<span class="n">pipeline</span><span class="o">.</span><span class="n">set_random_state</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+<span class="c1"># давайте нарисуем конвейер и убедимся, что результат одинаков</span>
+<span class="n">GraphvizPainter</span><span class="p">(</span><span class="n">figure_dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">from_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">&#39;deep_forest.jpeg&#39;</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;deep_forest.jpeg&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_ru_basic_forest_11_0.jpg" src="../_images/notebooks_ru_basic_forest_11_0.jpg" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># для завершения этого примера выполним те же тесты, что и выше</span>
+<span class="c1"># и убедимся в том, что результаты одинаковы.</span>
+<span class="n">fit_executor</span> <span class="o">=</span> <span class="n">EXEC_CLS</span><span class="p">(</span>
+    <span class="n">pipeline</span><span class="p">,</span>
+    <span class="n">stage</span><span class="o">=</span><span class="n">Stage</span><span class="o">.</span><span class="n">FIT</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">],</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">,</span> <span class="s1">&#39;roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">transform_executor</span> <span class="o">=</span> <span class="n">EXEC_CLS</span><span class="p">(</span>
+    <span class="n">pipeline</span><span class="p">,</span>
+    <span class="n">stage</span><span class="o">=</span><span class="n">Stage</span><span class="o">.</span><span class="n">TRANSFORM</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">,</span> <span class="s1">&#39;labels&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">train_X</span><span class="p">,</span> <span class="n">test_X</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">test_y</span> <span class="o">=</span> <span class="n">get_plain_dataset</span><span class="p">()</span>
+<span class="n">fit_result</span> <span class="o">=</span> <span class="n">fit_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">train_X</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">train_y</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">train_result</span> <span class="o">=</span> <span class="n">transform_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">train_X</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Fit probas == probas on train:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">],</span> <span class="n">train_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Train ROC-AUC:&quot;</span><span class="p">,</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">train_y</span><span class="p">,</span> <span class="n">train_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;Train ROC-AUC calculated by fit executor:&quot;</span><span class="p">,</span>
+    <span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;Train ROC-AUC for RF_1:&quot;</span><span class="p">,</span>
+    <span class="n">fit_result</span><span class="p">[</span><span class="s1">&#39;rf_1_roc-auc&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">test_result</span> <span class="o">=</span> <span class="n">transform_executor</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">test_X</span><span class="p">})</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Test ROC-AUC:&quot;</span><span class="p">,</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">test_y</span><span class="p">,</span> <span class="n">test_result</span><span class="p">[</span><span class="s1">&#39;probas&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Fit probas == probas on train: True
+Train ROC-AUC: 1.0
+Train ROC-AUC calculated by fit executor: 1.0
+Train ROC-AUC for RF_1: 0.9892676767676768
+Test ROC-AUC: 0.8571428571428572
+</pre></div></div>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="ru_executor_basics.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Информация по использованию исполнителей</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="../ru_basic_examples.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Базовая инструкция по использованию bosk</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022-2023, NTAILab
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Базовый пример использования bosk</a><ul>
+<li><a class="reference internal" href="#Заметка-о-конвейерах">Заметка о конвейерах</a></li>
+<li><a class="reference internal" href="#Заметка-об-исполнителях">Заметка об исполнителях</a></li>
+<li><a class="reference internal" href="#Ручное-создание-конвейера">Ручное создание конвейера</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/scripts/furo.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>
