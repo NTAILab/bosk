@@ -1,12 +1,14 @@
-Bosk usage examples
-===================
+Примеры использования bosk
+==========================
 
-On this page you can find various examples of the bosk usage with the comments and illustrations.
-All listed below files and even more can be found in our `GitHub <https://github.com/NTAILab/bosk>`_
-repository in the ``examples`` folder.
+На этой странице вы можете найти различные примеры
+использования bosk с комментариями и иллюстрациями. 
+Все перечисленные ниже файлы (и не только) можно найти
+в нашем репозитории `GitHub <https://github.com/NTAILab/bosk>`_ 
+в папке ``examples``.
 
-The quick self-sufficient example of the bosk usage is available below. You can copy it to the local
-machine and run it after the bosk :doc:`installation <install>`.
+Ниже Вы можете увидеть краткий самодостаточный пример использования bosk.
+Его можно скопировать на локальную машину и запустить после :doc:`установки пакета <ru_install>`.
 
 .. code-block:: python
    
@@ -20,9 +22,10 @@ machine and run it after the bosk :doc:`installation <install>`.
    n_estimators = 20
    random_state = 42
 
-   # firstly we must obtain the functional builder object
+   # создание объекта, конструирующего конвейер
    b = FunctionalPipelineBuilder()
-   # we get blocks wrappers and connect with each other
+   # создание оберток вычислительных блоков
+   # и их соединение в функциональном стиле
    X, y = b.Input()(), b.TargetInput()()
    rf_1 = b.RFC(n_estimators=n_estimators)(X=X, y=y)
    et_1 = b.ETC(n_estimators=n_estimators)(X=X, y=y)
@@ -34,21 +37,21 @@ machine and run it after the bosk :doc:`installation <install>`.
    argmax = b.Argmax(axis=1)(X=average)
    rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
    roc_auc = b.RocAuc()(gt_y=y, pred_probas=average)
-   # after defining the graph structure we obtain
-   # the pipeline object from the builder
+   # после задания структуры вычислительного графа
+   # мы создаем конвейер
    pipeline = b.build(
       {'X': X, 'y': y},
       {'labels': argmax, 'probas': average, 'rf_1_roc-auc': rf_1_roc_auc, 'roc-auc': roc_auc}
    )
-   # we can set a random state for the pipeline
+   # у нашей модели можно задать случайное зерно
    pipeline.set_random_state(random_state)
 
-   # let's get some data
-   # than train and test our pipeline
+   # давайте сгенерируем данные
+   # для обучения и тестирования конвейера
    all_X, all_y = make_moons(noise=1, random_state=random_state)
    train_X, test_X, train_y, test_y = train_test_split(
       all_X, all_y, test_size=0.2, random_state=random_state)
-   # creating executors
+   # создание исполнителей
    fit_executor = TopologicalExecutor(
       pipeline,
       stage=Stage.FIT,
@@ -61,7 +64,7 @@ machine and run it after the bosk :doc:`installation <install>`.
       inputs=['X'],
       outputs=['probas', 'labels']
    )
-   # executing our pipeline and obtaining metrics
+   # выполнение нашего конвейера и расчет метрик
    fit_result = fit_executor({'X': train_X, 'y': train_y}).numpy()
    print(
       "Train ROC-AUC calculated by fit executor:",
@@ -70,11 +73,10 @@ machine and run it after the bosk :doc:`installation <install>`.
    test_result = transform_executor({'X': test_X}).numpy()
    print("Test ROC-AUC:", roc_auc_score(test_y, test_result['probas'][:, 1]))
 
-
 .. toctree::
    :maxdepth: 2
-   :caption: Bosk usage examples:
+   :caption: Примеры использования bosk:
 
-   basic_examples
-   architectures
-   advanced_api
+   ru_basic_examples
+   ru_architectures
+   ru_advanced_api

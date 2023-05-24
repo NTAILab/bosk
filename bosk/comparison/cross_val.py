@@ -11,7 +11,7 @@ from bosk.utility import timer_wrap
 from collections import defaultdict
 from copy import deepcopy
 import numpy as np
-from typing import List, Dict, Literal, Optional, Tuple, Type
+from typing import List, Dict, Literal, Optional, Tuple, Type, Union
 from sklearn.model_selection import BaseCrossValidator
 from pandas import DataFrame
 import logging
@@ -41,8 +41,8 @@ class CVComparator(BaseComparator):
 
     """
 
-    def __init__(self, pipelines: Optional[BasePipeline | List[BasePipeline]],
-                 foreign_models: Optional[BaseForeignModel | List[BaseForeignModel]],
+    def __init__(self, pipelines: Optional[Union[BasePipeline, List[BasePipeline]]],
+                 foreign_models: Optional[Union[BaseForeignModel, List[BaseForeignModel]]],
                  cv_strat: BaseCrossValidator,
                  exec_cls: Type[BaseExecutor] = TopologicalExecutor,
                  exec_kw=None,
@@ -64,7 +64,9 @@ class CVComparator(BaseComparator):
             self.exec_kw = exec_kw
         self.measure_blk_time = get_blocks_times
         self.block_hlr_cls = TimerBlockExecutor if get_blocks_times else DefaultBlockExecutor
-        self.warn_context: Literal['ignore'] | Literal['default'] = 'ignore' if suppress_exec_warn else 'default'
+        self.warn_context: Union[Literal['ignore'], Literal['default']] = (
+            'ignore' if suppress_exec_warn else 'default'
+        )
 
     def _write_metrics_info_to_dict(self, df_dict, metrics,
                                     train_data_dict, train_pred_dict,
@@ -77,7 +79,7 @@ class CVComparator(BaseComparator):
                 metric.get_score(test_data_dict, test_pred_dict))
 
     # copy isomorphism is returned only for blocks' time measuring case
-    def _get_copy_pipeline(self, pip_num: int) -> Tuple[BasePipeline, Dict[BaseBlock, BaseBlock] | None]:
+    def _get_copy_pipeline(self, pip_num: int) -> Tuple[BasePipeline, Optional[Dict[BaseBlock, BaseBlock]]]:
         orig_pip = self._optim_pipelines[pip_num]
         pip_copy = deepcopy(orig_pip)
         if not self.measure_blk_time:

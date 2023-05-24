@@ -1,11 +1,10 @@
 from typing import List, Optional, Tuple
 
-import jax.numpy as jnp
 import numpy as np
 
 from ...base import BaseBlock, BlockInputData, TransformOutputData
 from ...meta import BlockMeta, DynamicBlockMetaStub, make_simple_meta, BlockExecutionProperties
-from ....data import BaseData, GPUData, CPUData
+from ....data import BaseData, GPUData, CPUData, jnp
 
 
 __all__ = [

@@ -110,8 +110,8 @@ class BaseExecutor(ABC):
     __slot_handler: BaseSlotHandler
     __block_executor: BaseBlockExecutor
     __stage: Stage
-    __inputs: None | FrozenSet[str]
-    __outputs: None | FrozenSet[str]
+    __inputs: Optional[FrozenSet[str]]
+    __outputs: Optional[FrozenSet[str]]
 
     def __init__(self, pipeline: BasePipeline,
                  stage: Stage,

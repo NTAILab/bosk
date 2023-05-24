@@ -1,7 +1,7 @@
 from abc import ABC, ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from numpy.random import Generator
-from typing import Mapping, Set, TypeVar, Optional
+from typing import Mapping, Set, TypeVar, Optional, Union
 
 from .meta import BaseSlotMeta, BlockMeta, InputSlotMeta, OutputSlotMeta
 from ..data import BaseData
@@ -236,7 +236,7 @@ class BaseBlock(ABC):
         """
         visitor.visit(self)
 
-    def set_random_state(self, seed: Optional[int | Generator]) -> None:
+    def set_random_state(self, seed: Optional[Union[int, Generator]]) -> None:
         """Set random seed for the block using numpy
         random generator or integer value.
         """

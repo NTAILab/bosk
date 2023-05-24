@@ -26,7 +26,12 @@ Example of usage:
 from .base import BaseSlotHandler, DefaultSlotHandler
 from .block import BaseBlockExecutor, DefaultBlockExecutor, FitBlacklistBlockExecutor
 from .timer import TimerBlockExecutor
-from .sklearn_interface import BaseBoskPipelineWrapper, BoskPipelineClassifier, BoskPipelineRegressor, BoskPipelineTransformer
+from .sklearn_interface import (
+    BaseBoskPipelineWrapper,
+    BoskPipelineClassifier,
+    BoskPipelineRegressor,
+    BoskPipelineTransformer,
+)
 from .recursive import RecursiveExecutor
 from .topological import TopologicalExecutor
 from .parallel import GreedyParallelExecutor

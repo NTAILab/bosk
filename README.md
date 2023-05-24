@@ -1,77 +1,139 @@
 # bosk
 
-Bosk is a Python framework for Deep Forest construction. Compatible with [scikit-learn](https://scikit-learn.org).
+[[English version]](README_EN.md)
+[[Документация]](https://ntailab.github.io/bosk/index.html)
 
-## About bosk
+**Bosk** - это фреймворк для создания моделей Глубоких лесов, написанный на языке Python. Совместим с [scikit-learn](https://scikit-learn.org).
 
-Following common principle of deep neural network frameworks, we consider models as general computational graphs with some additional functionality, in contrast to defining strictly layerwise structure. In bosk a Deep Forest structure corresponds to two separate computational graphs: one for fitting (training) and one for transforming (predicting).
+## О фреймворке
 
-This framework helps to construct new Deep Forests avoiding writing error prone routine code, and provides tools for pipeline execution and debugging, as well as a wide set of ready to use building blocks. It supports both fully manual pipeline and automatical layerwise Deep Forest building.
+**Bosk** – открытая библиотека для разработки и применения новых алгоритмов машинного обучения на основе *глубоких лесов*.
 
-## Installation
+*Глубокие леса* – вид моделей машинного обучения,
+совмещающих обучение представлениям (автоматическое создание более удобных для обучения векторов признаков) с алгоритмами, не требующими обратного распространения ошибки, такими как случайные леса и градиентный бустинг.
+Иными словами, *глубокие леса* являются аналогом глубоких нейронных сетей, причём их построение осуществляется послойно, а блоками могут выступать любые модели машинного обучения.
 
-Python 3.9+ is required.
+Модели **Bosk** – *глубокие леса*, представимые в виде графов, узлы которых составляют *вычислительные блоки*,
+например: базовые леса-классификаторы, операции конкатенации и т.д.
+Каждой модели соответствует два различных вычислительных
+графа: первый для стадии обучения модели, а второй – для предсказания.
 
-### JAX installation
+Без использования фреймворка разработчикам глубоких лесов требуется
+вручную реализовывать и поддерживать согласованность участков кода для каждой стадии.
+**Bosk** позволяет разрабатывать новые архитектуры глубоких
+лесов, не прибегая к написанию рутинного кода отдельно для стадий обучения и предсказания:
+модель **Bosk** задаётся **один раз**,
+фреймворк **автоматически** определяет какие вычислительные графы
+потребуются для каждого из этапов.
 
-Bosk uses JAX for GPU computations, but JAX installation is not trivial.
-Officially JAX is distributed only for Linux and Mac OS, so, unfortunatelly, Windows users should use [WSL](https://docs.microsoft.com/en-us/windows/wsl/about) to install JAX and use bosk.
+**Bosk** содержит полезные инструменты для выполнения и отладки вычислительных графов.
+Помимо этого, в **Bosk** представлено большое количество готовых к использованию
+стандартных блоков. Фреймворк поддерживает как ручное задание вычислительного графа *глубокого леса*,
+так и его автоматическое послойное построение.
 
-**CPU-only system**
+### Перечень направлений прикладного использования
 
-If there is no GPU available, install the CPU JAX version
+Основными направлениями применения **Bosk** являются:
 
-    pip install --upgrade "jax[cpu]"
+- Разработка принципиально новых архитектур глубокого леса – гибкая платформа позволяет строить сложные схемы, легко расширять набор базовых блоков;
+- Построение (в том числе автоматизированное) моделей для решения конкретных прикладных задач машинного обучения – платформа позволяет легко строить глубокие леса по заданному набору данных, сохранять и загружать модели для последующего предсказания;
+- Сравнение различных архитектур глубокого леса – модуль тестирования позволяет оценивать точность и производительность различных моделей, избегая повторения одинаковых вычислений, что может использоваться как в исследовательских целях, так и для выбора наиболее подходящего решения прикладной задачи;
+- Разработка высокоуровневых алгоритмов для решения новых прикладных задач машинного обучения – расширяемая архитектура не ограничена задачами классификации и регрессии, для новых видов задач легко могут быть адаптированы соответствующие базовые блоки.
 
-**GPU system**
 
-If you are interested in GPU installation, please, visit our [install guide](https://ntailab.github.io/bosk/install.html#jax-installation) in the documentation.
+## Установка
 
-### Package Installation
+Для корректной работы пакета необходим Python версии не ниже 3.9.
 
-To install the bosk package directly from GitHub run:
+В Bosk используется библиотека JAX для выполнения вычислений на ГПУ (видеокарте), однако ее установка не тривиальна и не может быть выполнена автоматически при установке пакета.
 
-    pip install git+ssh://git@github.com:NTAILab/bosk.git
+**Bosk может быть запущен без установки JAX**,
+однако блоки, выполняющиеся на ГПУ будут недоступны.
+Для установки без JAX достаточно выполнить пункт [установка пакета](#установка-пакета).
 
-If you are interested in manual or developement-mode installation, please, visit our [install guide](https://ntailab.github.io/bosk/install.html#package-installation) in the documentation.
+### Установка JAX
 
-### Examples
+Официально JAX распространяется только для Linux и Mac OS, поэтому, к сожалению,
+пользователям Windows следует использовать [WSL](https://docs.microsoft.com/en-us/windows/wsl/about) для установки JAX и использования bosk с поддержкой вычислений на ГПУ.
 
-For the quick overview let's make a Deep Forest with one layer, consisting of two forests (Random Forest and Extremely Randomized Trees), which output probabilities are concatenated with input feature vector and passed to the final forest. The following code could be used:
+**Установка только для ЦПУ**
+
+Если на Вашей системе нет графического процессора, Вы можете установить версию JAX для ЦПУ:
+
+```bash
+pip install --upgrade "jax[cpu]==0.4.10"
+```
+
+**Установка с поддержкой вычислений на ГПУ**
+
+Если Вы заинтересованы в установке bosk с поддержкой вычислений на ГПУ, пожалуйста, прочитайте наше [руководство по установке](https://ntailab.github.io/bosk/ru_install.html#jax-installation) в документации.
+
+### Установка пакета
+
+Для установки пакета bosk напрямую из GitHub выполните:
+
+```bash
+pip install git+https://github.com/NTAILab/bosk.git
+```
+
+Также Вы можете вручную склонировать репозиторий и установить bosk:
+
+```bash
+git clone https://github.com/NTAILab/bosk.git
+cd bosk
+pip install -r requirements.txt
+python setup.py install
+```
+
+## Примеры
+
+### Примеры новых вариантов использования кода
+
+Примеры новых вариантов использования кода включают скрипты и блокноты с кодом и тектовыми пояснениями и диаграммами, располагаются в [директории examples](examples/).
+Также вы можете обратиться к нашей [документации](https://ntailab.github.io/bosk/ru_examples.html), в которую включены данные примеры.
+
+### Простой пример
+
+Для краткого обзора возможностей фреймворка рассмотрим однослойный Глубокий лес, содержащий в себе два вида лесов: случайный лес (Random Forest) и модель сверхслучайных деревьев (Extremely Randomized Trees).
+Вектора вероятностей, предсказываемые каждой из моделей, конкатенируются с вектором входных признаков и передаются в финальный лес.
 
 ```python
-# make a pipeline
+# создание построителя конвейера
 b = FunctionalPipelineBuilder()
-# placeholders for input features `x` and target variable `y`
+# блоки для маршрутизации входных данных:
+# `x` для вектора факторов и `y`
+# для откликов
 x = b.Input('x')()
 y = b.TargetInput('y')()
-# random forests
+# блоки моделей лесов
 random_forest = b.RFC(max_depth=5)
 extra_trees = b.ETC(n_estimators=200)
-# concatenation
+# блок конкатенации
 cat = b.Concat(['x', 'rf', 'et'])
-# layer that concatenates random forests outputs
+# слой, конкатенирующий выходные векторы лесов
+# и вектор входных признаков
 layer_1 = cat(x=x, rf=rf(X=x, y=y), et=extra_trees(X=x, y=y))
-# forest for the final prediction
+# лес для осуществления итогового предсказания
 final_extra_trees = b.ETC()
-# pipeline output
+# выход конвейера
 b.Output('proba')(final_extra_trees(X=layer_1, y=y))
-# build pipeline
+# создание конвейера
 pipeline = b.build()
 
-# wrap pipeline into a scikit-learn model
+# scikit-learn обертка для конвейера
 model = BoskPipelineClassifier(pipeline, executor_cls=RecursiveExecutor)
-# fit the model
+# обучаем модель
 model.fit(X_train, y_train)
-# predict with the model
+# осуществляем предсказание
 test_preds = model.predict(X_test)
 ```
-For more examples visit our [documentation](https://ntailab.github.io/bosk/examples.html). Also, you can find example scripts and Jupyter notebooks in the [examples folder](examples/).
 
-### Documentation
+Для того, чтобы увидеть больше примеров, Вы можете обратиться к нашей [документации](https://ntailab.github.io/bosk/ru_examples.html). Также Вы можете найти Jupyter блокноты с примерами в  [директории с примерами](examples/).
 
-More information about bosk can be found in our [documentation](https://ntailab.github.io/bosk/index.html).
+## Документация
 
-### Contribution
+Больше информации о bosk Вы можете найти в нашей [документации](https://ntailab.github.io/bosk/index.html).
 
-We are glad to see new contributors. Please, look at the [contribution guide](https://ntailab.github.io/bosk/contribution.html) to get started and read the guidelines.
+## Как стать участником проекта
+
+Мы всегда рады вкладу сообщества в наш проект. Пожалуйста, прочитайте [инструкцию](https://ntailab.github.io/bosk/ru_contribution.html), чтобы узнать, как стать участником bosk.

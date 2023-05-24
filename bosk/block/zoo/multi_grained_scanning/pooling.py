@@ -1,12 +1,10 @@
 from operator import mul
 import numpy as np
-from jax import numpy as jnp
-from jax import lax
 from typing import Literal, Optional, Sequence, Tuple, Union, NamedTuple
 from functools import partial, reduce
 from ...base import BaseBlock, BlockInputData, TransformOutputData
 from ...meta import make_simple_meta, BlockExecutionProperties
-from ....data import CPUData, GPUData
+from ....data import CPUData, GPUData, jnp
 from ._convolution_helpers import (
     _PoolingIndices,
     _ConvolutionParams,
@@ -20,13 +18,16 @@ from ._pooling_impl import (
 )
 
 
+if jnp != jnp:
+    from jax import lax
+
+
 AGGREGATION_FUNCTIONS = {
     'max': partial(np.max, axis=-1),
     'min': partial(np.min, axis=-1),
     'mean': partial(np.mean, axis=-1),
     'sum': partial(np.sum, axis=-1),
 }
-
 
 
 class PoolingBlock(BaseBlock):
@@ -179,7 +180,7 @@ class PoolingBlock(BaseBlock):
         strides = self.helper_.check_stride(tuple(spatial_dims), kernel_size)
         window_strides = (1, 1, *strides)
         # prepare padding
-        padding: str | Tuple[Tuple[int, int], ...]
+        padding: Union[str, Tuple[Tuple[int, int], ...]]
         if self.params.padding is None:
             padding = 'valid'
         elif isinstance(self.params.padding, str):
