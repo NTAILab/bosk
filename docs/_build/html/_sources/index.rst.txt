@@ -72,4 +72,5 @@ Bosk (в переводе чаща леса) - это фреймворк для 
    Вводная инструкция <ru_getting_started>
    Примеры <ru_examples>
    ru_contribution
+   ru_autoapi_index
    English version <en_index>
