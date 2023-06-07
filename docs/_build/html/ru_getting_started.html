@@ -538,16 +538,18 @@
 <ol class="arabic simple">
 <li><p>Вручную, задав список узлов и связей.</p></li>
 <li><p>С помощью <a class="reference internal" href="#functional-pipeline-builder"><span class="std std-ref">построения в функциональном стиле</span></a>.</p></li>
-<li><p><a class="reference internal" href="#automatic-pipeline"><span class="std std-ref">Автоматически</span></a>, строя Глубокий лес слой за слоем</p></li>
+<li><p><a class="reference internal" href="#automatic-pipeline"><span class="std std-ref">Автоматически</span></a>, строя Глубокий лес слой за слоем с заранее определенной структурой последнего.</p></li>
 </ol>
-<blockquote>
-<div><p>с заранее определенной структурой последнего.</p>
-</div></blockquote>
 <p>Далее мы опишем лишь последние два способа, так как они более удобны и предпочтительны.</p>
 <section id="functional-pipeline-builder">
 <span id="id8"></span><h4>Создание конвейера в функциональном стиле<a class="headerlink" href="#functional-pipeline-builder" title="Permalink to this heading">#</a></h4>
 <p>Глубокий лес может быть создан в ручном режиме с помощью <cite>FunctionalPipelineBuilder</cite>.
 Он позволяет создавать конвейеры любой сложности с помощью комбинаций оберток блоков.</p>
+<p>В данном примере обучающие данные представлены в виде <cite>X_train</cite> – матрицы размера N×M,
+состоящей из N векторов признаков размерности M,
+и вектора целевых значений  <cite>y_train</cite> размерности N, содержащего метки классов.
+Также нам дана матрица <cite>X_test</cite> размера K×M, содержащая K векторов признаков,
+для которых необходимо предсказать вероятности классов.</p>
 <p>Например, для создания Глубокого леса с двумя слоями можно использовать следующий код:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bosk.pipeline.builder.functional</span> <span class="kn">import</span> <span class="n">FunctionalPipelineBuilder</span>
 <span class="kn">from</span> <span class="nn">bosk.executor.sklearn_interface</span> <span class="kn">import</span> <span class="n">BoskPipelineClassifier</span>
@@ -581,7 +583,7 @@
 
 <span class="c1"># для примера, сгенерируем набор обучающих и тестовых данных:</span>
 <span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span> <span class="o">=</span> <span class="n">make_moons</span><span class="p">(</span><span class="n">noise</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
    <span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
 
 <span class="c1"># обучение модели</span>
@@ -595,6 +597,12 @@
 <span id="id9"></span><h4>Автоматическое создание конвейера слой за слоем<a class="headerlink" href="#automatic-pipeline" title="Permalink to this heading">#</a></h4>
 <p>Наш фреймворк также позволяет автоматизировать процесс создания Глубоких лесов,
 требуется лишь задать данные для обучения и набор параметров.</p>
+<p>Как и прежде, в данном примере обучающие данные представлены
+в виде <cite>X_train</cite> – матрицы размера N×M,
+состоящей из N векторов признаков размерности M,
+и вектора целевых значений  <cite>y_train</cite> размерности N, содержащего метки классов.
+Также нам дана матрица <cite>X_test</cite> размера K×M, содержащая K векторов признаков,
+для которых необходимо предсказать вероятности классов.</p>
 <p>Например, следующий код создает Глубокий лес с максимальной глубиной в три слоя
 с блоками двух типов на каждом. Используется кросс-валидация с двумя фолдами.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bosk.auto.deep_forest</span> <span class="kn">import</span> <span class="n">ClassicalDeepForestConstructor</span>
@@ -613,7 +621,7 @@
 <span class="p">)</span>
 <span class="c1"># для примера, сгенерируем набор обучающих и тестовых данных:</span>
 <span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span> <span class="o">=</span> <span class="n">make_moons</span><span class="p">(</span><span class="n">noise</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
    <span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
 <span class="c1"># создание глубокого леса автоматически основываясь на данных</span>
 <span class="n">pipeline</span> <span class="o">=</span> <span class="n">constructor</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
