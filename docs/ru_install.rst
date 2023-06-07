@@ -18,6 +18,26 @@
     conda create -n bosk_env python=3.10
     conda activate bosk_env
 
+Установка Graphviz
+~~~~~~~~~~~~~~~~~~
+
+Bosk использует библиотеку Graphviz для визуализации вычислительных графов.
+Для корректной работы данного инструмента требуется установка бинарной зависимости **graphviz**.
+
+
+В Linux **graphviz** можно установить с помощью пакетного менеджера. Например,
+в Ubuntu может быть использован следующий код::
+
+    sudo apt install graphviz
+
+
+В случае использования Anaconda, **graphviz** может быть установлен с помощью команды::
+
+    conda install -c conda-forge graphviz
+
+
+Для прочих платформ инструкции по установке можно найти по `ссылке <https://graphviz.org/download/>`_.
+
 .. _install-jax:
 
 Установка JAX
