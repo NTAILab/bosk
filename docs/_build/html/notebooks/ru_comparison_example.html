@@ -503,6 +503,15 @@
           <section id="Руководство-по-сравнению-моделей-в-bosk">
 <h1>Руководство по сравнению моделей в bosk<a class="headerlink" href="#Руководство-по-сравнению-моделей-в-bosk" title="Permalink to this heading">#</a></h1>
 <p>Вы можете сравнивать разные модели в <code class="docutils literal notranslate"><span class="pre">bosk</span></code>: например, несколько Глубоких лесов <code class="docutils literal notranslate"><span class="pre">bosk</span></code> с разным количеством слоев и некоторые модели, созданные вне фреймворка. Для этого был разработан подпакет bosk.сomparison.</p>
+<p>Для выполнения этого примера у Вас должен быть установлен <code class="docutils literal notranslate"><span class="pre">Pytorch</span></code>. Если у вас не установлен <code class="docutils literal notranslate"><span class="pre">torch</span></code> пакет в <code class="docutils literal notranslate"><span class="pre">Python</span></code>, выполните следующую секцию:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>pip install torch
+</pre></div>
+</div>
+</div>
 <p>Давайте определим несколько моделей:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -745,7 +754,7 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_ru_comparison_example_12_0.jpg" src="../_images/notebooks_ru_comparison_example_12_0.jpg" />
+<img alt="../_images/notebooks_ru_comparison_example_15_0.jpg" src="../_images/notebooks_ru_comparison_example_15_0.jpg" />
 </div>
 </div>
 <p>И давайте посмотрим на первый и последний оптимизированные конвейеры стадии FIT.</p>
@@ -764,14 +773,14 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_ru_comparison_example_14_0.jpg" src="../_images/notebooks_ru_comparison_example_14_0.jpg" />
+<img alt="../_images/notebooks_ru_comparison_example_17_0.jpg" src="../_images/notebooks_ru_comparison_example_17_0.jpg" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_ru_comparison_example_14_1.jpg" src="../_images/notebooks_ru_comparison_example_14_1.jpg" />
+<img alt="../_images/notebooks_ru_comparison_example_17_1.jpg" src="../_images/notebooks_ru_comparison_example_17_1.jpg" />
 </div>
 </div>
 <p>Как мы видим, ни один из исходных блоков не будет выполняться в первом конвейере. В последнем из тренировочного процесса было исключено множество блоков. Итак, <code class="docutils literal notranslate"><span class="pre">BaseComparator</span></code> находит общую часть конвейеров, вырезает ее из них и вставляет дополнительные входные заглушки. Это позволяет нам запустить общую часть только один раз и использовать ее результаты выполнения в других конвейерах.</p>

@@ -549,9 +549,10 @@
 <p>Глубокий лес может быть создан в ручном режиме с помощью <cite>FunctionalPipelineBuilder</cite>.
 Он позволяет создавать конвейеры любой сложности с помощью комбинаций оберток блоков.</p>
 <p>Например, для создания Глубокого леса с двумя слоями можно использовать следующий код:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bosk.executor</span> <span class="kn">import</span> <span class="n">TopologicalExecutor</span>
-<span class="kn">from</span> <span class="nn">bosk.pipeline.builder.functional</span> <span class="kn">import</span> <span class="n">FunctionalPipelineBuilder</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bosk.pipeline.builder.functional</span> <span class="kn">import</span> <span class="n">FunctionalPipelineBuilder</span>
 <span class="kn">from</span> <span class="nn">bosk.executor.sklearn_interface</span> <span class="kn">import</span> <span class="n">BoskPipelineClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">make_moons</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
 
 <span class="c1"># создание построителя конвейера</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">FunctionalPipelineBuilder</span><span class="p">()</span>
@@ -576,7 +577,13 @@
 <span class="c1"># создание конвейера</span>
 <span class="n">pipeline</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="c1"># сделаем модель scikit-learn из нашего конвейера</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">BoskPipelineClassifier</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">executor_cls</span><span class="o">=</span><span class="n">RecursiveExecutor</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">BoskPipelineClassifier</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span>
+
+<span class="c1"># для примера, сгенерируем набор обучающих и тестовых данных:</span>
+<span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span> <span class="o">=</span> <span class="n">make_moons</span><span class="p">(</span><span class="n">noise</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+   <span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
 <span class="c1"># обучение модели</span>
 <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
 <span class="c1"># использование модели для вычисления предсказаний</span>
@@ -593,21 +600,27 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bosk.auto.deep_forest</span> <span class="kn">import</span> <span class="n">ClassicalDeepForestConstructor</span>
 <span class="kn">from</span> <span class="nn">bosk.executor</span> <span class="kn">import</span> <span class="n">TopologicalExecutor</span>
 <span class="kn">from</span> <span class="nn">bosk.executor.sklearn_interface</span> <span class="kn">import</span> <span class="n">BoskPipelineClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">make_moons</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
 
- <span class="n">constructor</span> <span class="o">=</span> <span class="n">ClassicalDeepForestConstructor</span><span class="p">(</span>
-     <span class="n">TopologicalExecutor</span><span class="p">,</span>
-     <span class="n">rf_params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
-     <span class="n">max_iter</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-     <span class="n">layer_width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-     <span class="n">cv</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-     <span class="n">random_state</span><span class="o">=</span><span class="mi">12345</span><span class="p">,</span>
- <span class="p">)</span>
- <span class="c1"># создание глубокого леса автоматически основываясь на данных</span>
- <span class="n">pipeline</span> <span class="o">=</span> <span class="n">constructor</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
- <span class="c1"># сделаем модель scikit-learn</span>
- <span class="n">model</span> <span class="o">=</span> <span class="n">BoskPipelineClassifier</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">executor_cls</span><span class="o">=</span><span class="n">TopologicalExecutor</span><span class="p">)</span>
- <span class="n">model</span><span class="o">.</span><span class="n">_classifier_init</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
- <span class="n">test_preds</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+<span class="n">constructor</span> <span class="o">=</span> <span class="n">ClassicalDeepForestConstructor</span><span class="p">(</span>
+    <span class="n">TopologicalExecutor</span><span class="p">,</span>
+    <span class="n">rf_params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+    <span class="n">max_iter</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">layer_width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">cv</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">random_state</span><span class="o">=</span><span class="mi">12345</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1"># для примера, сгенерируем набор обучающих и тестовых данных:</span>
+<span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span> <span class="o">=</span> <span class="n">make_moons</span><span class="p">(</span><span class="n">noise</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+   <span class="n">all_X</span><span class="p">,</span> <span class="n">all_y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+<span class="c1"># создание глубокого леса автоматически основываясь на данных</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">constructor</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+<span class="c1"># сделаем модель scikit-learn</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">BoskPipelineClassifier</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">executor_cls</span><span class="o">=</span><span class="n">TopologicalExecutor</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">_classifier_init</span><span class="p">(</span><span class="n">y_train</span><span class="p">)</span>
+<span class="n">test_preds</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>

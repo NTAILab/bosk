@@ -71,9 +71,10 @@
 
 .. code-block:: python
 
-   from bosk.executor import TopologicalExecutor
    from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
    from bosk.executor.sklearn_interface import BoskPipelineClassifier
+   from sklearn.datasets import make_moons
+   from sklearn.model_selection import train_test_split
 
    # создание построителя конвейера
    b = FunctionalPipelineBuilder()
@@ -98,7 +99,13 @@
    # создание конвейера
    pipeline = b.build()
    # сделаем модель scikit-learn из нашего конвейера
-   model = BoskPipelineClassifier(pipeline, executor_cls=RecursiveExecutor)
+   model = BoskPipelineClassifier(pipeline)
+
+   # для примера, сгенерируем набор обучающих и тестовых данных:
+   all_X, all_y = make_moons(noise=0.1)
+   X_train, X_test, y_train, y_test = train_test_split(
+      all_X, all_y, test_size=0.2)
+
    # обучение модели
    model.fit(X_train, y_train)
    # использование модели для вычисления предсказаний
@@ -120,21 +127,27 @@
    from bosk.auto.deep_forest import ClassicalDeepForestConstructor
    from bosk.executor import TopologicalExecutor
    from bosk.executor.sklearn_interface import BoskPipelineClassifier
-
-    constructor = ClassicalDeepForestConstructor(
-        TopologicalExecutor,
-        rf_params=dict(),
-        max_iter=3,
-        layer_width=2,
-        cv=2,
-        random_state=12345,
-    )
-    # создание глубокого леса автоматически основываясь на данных
-    pipeline = constructor.construct(X_train, y_train)
-    # сделаем модель scikit-learn
-    model = BoskPipelineClassifier(pipeline, executor_cls=TopologicalExecutor)
-    model._classifier_init(y.data)
-    test_preds = model.predict(X_test)
+   from sklearn.datasets import make_moons
+   from sklearn.model_selection import train_test_split
+ 
+   constructor = ClassicalDeepForestConstructor(
+       TopologicalExecutor,
+       rf_params=dict(),
+       max_iter=3,
+       layer_width=2,
+       cv=2,
+       random_state=12345,
+   )
+   # для примера, сгенерируем набор обучающих и тестовых данных:
+   all_X, all_y = make_moons(noise=0.1)
+   X_train, X_test, y_train, y_test = train_test_split(
+      all_X, all_y, test_size=0.2)
+   # создание глубокого леса автоматически основываясь на данных
+   pipeline = constructor.construct(X_train, y_train)
+   # сделаем модель scikit-learn
+   model = BoskPipelineClassifier(pipeline, executor_cls=TopologicalExecutor)
+   model._classifier_init(y_train)
+   test_preds = model.predict(X_test)
 
 .. _executor:
 
@@ -154,11 +167,11 @@ numpy массивы, Вы должны вызвать `.numpy()` метод.
 
 .. code-block:: python
 
-    pipeline = make_pipeline()  # создание конвейера каким-либо образом
-    fitter = TopologicalExecutor(pipeline, stage=Stage.FIT)
-    fitter({'X': X_train, 'y': y_train})  # обучение на словаре, состоящем из входных numpy массивов
-    predictor = TopologicalExecutor(pipeline, stage=Stage.TRANSFORM)
-    predictions = predictor({'X': X_test}).numpy()  # результат: словарь выходных numpy массивов
+  pipeline = make_pipeline()  # создание конвейера каким-либо образом
+  fitter = TopologicalExecutor(pipeline, stage=Stage.FIT)
+  fitter({'X': X_train, 'y': y_train})  # обучение на словаре, состоящем из входных numpy массивов
+  predictor = TopologicalExecutor(pipeline, stage=Stage.TRANSFORM)
+  predictions = predictor({'X': X_test}).numpy()  # результат: словарь выходных numpy массивов
 
 Список исполнителей и описание каждого из них находятся в подмодуле :py:mod:`bosk.executor`.
 

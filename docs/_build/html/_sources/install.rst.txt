@@ -20,6 +20,27 @@ the environment can be created and activated by running::
     conda create -n bosk_env python=3.10
     conda activate bosk_env
 
+
+Graphviz installation
+~~~~~~~~~~~~~~~~~~~~~
+
+Bosk uses Graphviz to vizualize computational graphs.
+This tool requires the binary dependency **graphviz** to be installed.
+
+
+On Linux the **graphviz** can be installed with a package manager. 
+For example, on Ubuntu the following terminal command can be used::
+
+    sudo apt install graphviz
+
+
+If using Anaconda, **graphviz** can be installed with the command::
+
+    conda install -c conda-forge graphviz
+
+
+Instructions for installing **graphviz** for other platforms can be found at `link <https://graphviz.org/download/>`_.
+
 .. _install-jax:
 
 JAX installation

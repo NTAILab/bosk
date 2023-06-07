@@ -503,6 +503,15 @@
           <section id="Пример-использования-автоблока">
 <h1>Пример использования автоблока<a class="headerlink" href="#Пример-использования-автоблока" title="Permalink to this heading">#</a></h1>
 <p>Вычислительные графы в bosk требуют, чтобы их узлы были экземплярами BaseBlock. Чтобы упростить включение пользовательских моделей, был разработан декоратор <code class="docutils literal notranslate"><span class="pre">auto_block</span></code>. Используя его, вы можете легко преобразовать свою пользовательскую модель в <code class="docutils literal notranslate"><span class="pre">BaseBlock</span></code>. Чтобы получить примеры преобразования моделей интерфейса scikit-learn, см. код подпакета <code class="docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification</span></code>.</p>
+<p>Для выполнения этого примера у Вас должен быть установлен <code class="docutils literal notranslate"><span class="pre">Pytorch</span></code>. Если у вас не установлен <code class="docutils literal notranslate"><span class="pre">torch</span></code> пакет в <code class="docutils literal notranslate"><span class="pre">Python</span></code>, выполните следующую секцию:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>pip install torch
+</pre></div>
+</div>
+</div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -615,7 +624,7 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_ru_autoblock_5_0.jpg" src="../_images/notebooks_ru_autoblock_5_0.jpg" />
+<img alt="../_images/notebooks_ru_autoblock_7_0.jpg" src="../_images/notebooks_ru_autoblock_7_0.jpg" />
 </div>
 </div>
 <p>Теперь давайте обучим конвейер в параллельном режиме и посмотрим, позволила ли наша ансамблевая модель добиться каких-то улучшений относительно базовых.</p>

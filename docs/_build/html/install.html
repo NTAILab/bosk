@@ -515,6 +515,21 @@ the environment can be created and activated by running:</p>
 </pre></div>
 </div>
 </section>
+<section id="graphviz-installation">
+<h3>Graphviz installation<a class="headerlink" href="#graphviz-installation" title="Permalink to this heading">#</a></h3>
+<p>Bosk uses Graphviz to vizualize computational graphs.
+This tool requires the binary dependency <strong>graphviz</strong> to be installed.</p>
+<p>On Linux the <strong>graphviz</strong> can be installed with a package manager.
+For example, on Ubuntu the following terminal command can be used:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span> <span class="n">install</span> <span class="n">graphviz</span>
+</pre></div>
+</div>
+<p>If using Anaconda, <strong>graphviz</strong> can be installed with the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">graphviz</span>
+</pre></div>
+</div>
+<p>Instructions for installing <strong>graphviz</strong> for other platforms can be found at <a class="reference external" href="https://graphviz.org/download/">link</a>.</p>
+</section>
 <section id="jax-installation">
 <span id="install-jax"></span><h3>JAX installation<a class="headerlink" href="#jax-installation" title="Permalink to this heading">#</a></h3>
 <p>If it is needed to install bosk without JAX support, go to
@@ -631,6 +646,7 @@ to automatically update package on changes (actually it uses symlinks):</p>
 <li><a class="reference internal" href="#">Installing bosk</a><ul>
 <li><a class="reference internal" href="#prerequisites">Prerequisites</a><ul>
 <li><a class="reference internal" href="#environment">Environment</a></li>
+<li><a class="reference internal" href="#graphviz-installation">Graphviz installation</a></li>
 <li><a class="reference internal" href="#jax-installation">JAX installation</a></li>
 </ul>
 </li>

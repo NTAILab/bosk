@@ -503,6 +503,15 @@
           <section id="Example-of-the-autoblock-usage">
 <h1>Example of the autoblock usage<a class="headerlink" href="#Example-of-the-autoblock-usage" title="Permalink to this heading">#</a></h1>
 <p>Computational graphs in bosk requires their nodes to be a <code class="docutils literal notranslate"><span class="pre">BaseBlock</span></code> instances. To make user models including easier, the <code class="docutils literal notranslate"><span class="pre">auto_block</span></code> decorator was developed. Using it, you can easily convert your custom model to the <code class="docutils literal notranslate"><span class="pre">BaseBlock</span></code>. To get examples of converting scikit-learn interface models, see the <code class="docutils literal notranslate"><span class="pre">bosk.block.zoo.models.classification</span></code> subpackage code.</p>
+<p>This exmaple requires the <code class="docutils literal notranslate"><span class="pre">Pytorch</span></code> to be installed. Make sure you have the <code class="docutils literal notranslate"><span class="pre">torch</span></code> package installed or run the following cell:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>pip install torch
+</pre></div>
+</div>
+</div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -614,7 +623,7 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_autoblock_5_0.jpg" src="../_images/notebooks_autoblock_5_0.jpg" />
+<img alt="../_images/notebooks_autoblock_7_0.jpg" src="../_images/notebooks_autoblock_7_0.jpg" />
 </div>
 </div>
 <p>Now let’s fit the pipeline in the parallel mode and see if our ensemble model brought some improvement to the basic models.</p>

@@ -503,6 +503,15 @@
           <section id="User-guide-of-the-models-comparison-using-bosk">
 <h1>User guide of the models comparison using bosk<a class="headerlink" href="#User-guide-of-the-models-comparison-using-bosk" title="Permalink to this heading">#</a></h1>
 <p>You may want to compare different models in <code class="docutils literal notranslate"><span class="pre">bosk</span></code>: for example, several <code class="docutils literal notranslate"><span class="pre">bosk</span></code> deep forests with the different layers number and some models outside of the framework. For this purposes the <code class="docutils literal notranslate"><span class="pre">bosk.comparison</span></code> subpackage was developed.</p>
+<p>This exmaple requires the <code class="docutils literal notranslate"><span class="pre">Pytorch</span></code> to be installed. Make sure you have the <code class="docutils literal notranslate"><span class="pre">torch</span></code> package installed or run the following cell:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>pip install torch
+</pre></div>
+</div>
+</div>
 <p>Let’s define some models:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -745,7 +754,7 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_comparison_example_12_0.jpg" src="../_images/notebooks_comparison_example_12_0.jpg" />
+<img alt="../_images/notebooks_comparison_example_15_0.jpg" src="../_images/notebooks_comparison_example_15_0.jpg" />
 </div>
 </div>
 <p>And let’s see the first and the last pipelines on the FIT stage</p>
@@ -764,14 +773,14 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_comparison_example_14_0.jpg" src="../_images/notebooks_comparison_example_14_0.jpg" />
+<img alt="../_images/notebooks_comparison_example_17_0.jpg" src="../_images/notebooks_comparison_example_17_0.jpg" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_comparison_example_14_1.jpg" src="../_images/notebooks_comparison_example_14_1.jpg" />
+<img alt="../_images/notebooks_comparison_example_17_1.jpg" src="../_images/notebooks_comparison_example_17_1.jpg" />
 </div>
 </div>
 <p>As we can see, none of the original blocks will be executed in the first pipeline. In the last one a lot of blocks were excluded from the training process. So, <code class="docutils literal notranslate"><span class="pre">BaseComparator</span></code> founds the common part of the pipelines, cuts it out of them and inserts additional input plugs. It allows us run the common part only once and use its results in other pipelines.</p>
