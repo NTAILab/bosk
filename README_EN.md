@@ -43,6 +43,11 @@ The main areas of application for **Bosk** are:
 
 For the package to work correctly, Python 3.9+ is required.
 
+Bosk uses Graphviz to vizualize computational graphs.
+This tool requires the binary dependency **graphviz** to be installed.
+
+Instructions for installing **graphviz** can be found at [link](https://graphviz.org/download/).
+
 Bosk uses the JAX library to perform computations on the GPU (video card), however its installation is not trivial and cannot be done automatically when the package is installed.
 
 **Bosk can be run without JAX installed**,
