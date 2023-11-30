@@ -16,6 +16,7 @@ from sklearn.metrics import roc_auc_score
 from bosk.block import BaseBlock
 from functools import wraps
 from typing import Mapping
+from collections import deque
 
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.pipeline.builder.eager import EagerPipelineBuilder
@@ -32,31 +33,32 @@ from bosk.block.zoo.data_conversion import AverageBlock, ConcatBlock, ArgmaxBloc
 from bosk.block.zoo.metrics import RocAucBlock
 
 
-global_active_builder = None
+global_active_builders = deque()
 
 
 def get_active_builder():
-    global global_active_builder
-    return global_active_builder
+    global global_active_builders
+    if len(global_active_builders) == 0:
+        return None
+    return global_active_builders[-1]
 
 
 def set_active_builder(value):
-    global global_active_builder
-    global_active_builder = value
+    global global_active_builders
+    if value is None:
+        global_active_builders.pop()
+    else:
+        global_active_builders.append(value)
 
 
 
 class ContextManagerBuilderMixin:
     def __enter__(self):
-        if get_active_builder() is not None:
-            raise Exception(
-                f'Nested pipeline builders with context manager interface are not allowed'
-            )
         set_active_builder(self)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        assert get_active_builder() is not None
+        assert get_active_builder() is self
         set_active_builder(None)
         return False
 
@@ -180,6 +182,15 @@ class RocAuc(PlaceholderFunction):
         self.block = RocAucBlock(*args, **kwargs)
 
 
+def nested_function_with_pipeline(train_X: np.ndarray, train_y: np.ndarray,
+                                  block_executor) -> np.ndarray:
+    with BetterEagerPipelineBuilder(block_executor) as b:
+        X, y = Input()(CPUData(train_X)), TargetInput()(CPUData(train_y))
+        rf = RFC(n_estimators=5, random_state=42)(X=X, y=y)
+        train_score = RocAuc()(gt_y=y, pred_probas=rf)
+        return train_score.get_output_data().data
+
+
 def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
     if forest_params is None:
         forest_params = dict()
@@ -272,6 +283,11 @@ def main_eager():
         stack_3 = Stack(['rf_3', 'et_3'], axis=1)(rf_3=rf_3, et_3=et_3)
         average_3 = Average(axis=1)(X=stack_3)
         argmax_3 = Argmax(axis=1)(X=average_3)
+
+        print(
+            'Here we can calculate roc-auc using another pipeline:',
+            nested_function_with_pipeline(train_X, train_y, block_executor)
+        )
 
         rf_1_roc_auc = RocAuc()(gt_y=y, pred_probas=rf_1)
         roc_auc = RocAuc()(gt_y=y, pred_probas=average_3)
