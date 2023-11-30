@@ -74,7 +74,6 @@ class BetterEagerPipelineBuilder(ContextManagerBuilderMixin, EagerPipelineBuilde
 class PlaceholderFunction:
     def __init__(self, block):
         self.block = block
-        self._get_builder()._register_block(self.block)
 
     def _get_builder(self):
         builder = get_active_builder()
@@ -85,47 +84,7 @@ class PlaceholderFunction:
 
     def __call__(self, *pfn_args, **pfn_kwargs):
         builder = self._get_builder()
-        if len(pfn_args) > 0:
-            assert len(pfn_kwargs) == 0, \
-                'Either unnamed or named arguments can be used, but not at the same time'
-            assert len(pfn_args) == 1, \
-                'Only one unnamed argument is supported (we can infer name only in this case)'
-            assert isinstance(self.block, BaseInputBlock)
-            pfn_kwargs = {
-                self.block.get_single_input().meta.name: pfn_args[0]
-            }
-        need_construct_eager = False
-        block_input_mapping: InputSlotToDataMapping = dict()
-        for input_name, input_block_wrap_or_data in pfn_kwargs.items():
-            block_input = self.block.slots.inputs[input_name]
-            is_functional = isinstance(input_block_wrap_or_data, FunctionalBlockWrapper)
-            is_eager = isinstance(input_block_wrap_or_data, EagerBlockWrapper)
-            if is_functional or is_eager:
-                builder._connections.append(
-                    Connection(
-                        src=input_block_wrap_or_data.get_output_slot(),
-                        dst=block_input,
-                    )
-                )
-                if is_eager:
-                    block_input_mapping[block_input] = input_block_wrap_or_data.get_output_data()
-            elif isinstance(input_block_wrap_or_data, BaseData):
-                block_input_mapping[block_input] = input_block_wrap_or_data
-                is_eager = True
-            else:
-                raise ValueError(
-                    f'Wrong placeholder input type: {type(input_block_wrap_or_data)}'
-                )
-            need_construct_eager |= is_eager
-        if need_construct_eager:
-            assert isinstance(builder, EagerPipelineBuilder), \
-                'Only eager pipeline builder can process Eager block wrappers'
-            block_wrapper = EagerBlockWrapper(self.block, executor=builder.block_executor)
-            if len(block_input_mapping) > 0:
-                block_wrapper.execute(block_input_mapping)
-        else:
-            block_wrapper = FunctionalBlockWrapper(self.block)
-        return block_wrapper
+        return builder.wrap(self.block)(*pfn_args, **pfn_kwargs)
 
 
 class Input(PlaceholderFunction):
