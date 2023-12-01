@@ -106,6 +106,7 @@ def auto_block(_implicit_cls=None,  # noqa: C901
                 execution_props=execution_props
             )
 
+            @wraps(cls.__init__)
             def __init__(self, *args, **kwargs):
                 super().__init__()
                 self.__instance = cls(*args, **kwargs)

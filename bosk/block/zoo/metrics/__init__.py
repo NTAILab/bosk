@@ -2,6 +2,7 @@
 """
 
 from sklearn.metrics import roc_auc_score, accuracy_score, f1_score, r2_score
+from functools import wraps
 
 from ...base import BaseBlock, BlockInputData, TransformOutputData
 from ...meta import BlockMeta, BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
@@ -64,6 +65,7 @@ class RocAucBlock(BaseBlock):
         execution_props=BlockExecutionProperties()
     )
 
+    @wraps(roc_auc_score)
     def __init__(self, **kwargs):
         super().__init__()
         self.roc_auc_score_kwargs = kwargs
@@ -247,6 +249,7 @@ class F1ScoreBlock(BaseBlock):
         execution_props=BlockExecutionProperties()
     )
 
+    @wraps(f1_score)
     def __init__(self, **kwargs):
         super().__init__()
         self.f1_score_kwargs = kwargs
@@ -313,6 +316,7 @@ class R2ScoreBlock(BaseBlock):
         execution_props=BlockExecutionProperties()
     )
 
+    @wraps(r2_score)
     def __init__(self, **kwargs):
         super().__init__()
         self.r2_score_kwargs = kwargs

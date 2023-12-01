@@ -16,7 +16,6 @@ from sklearn.metrics import roc_auc_score
 from bosk.block import BaseBlock
 from functools import wraps
 from typing import Mapping
-from collections import deque
 
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.pipeline.builder.eager import EagerPipelineBuilder
@@ -32,59 +31,8 @@ from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
 from bosk.block.zoo.data_conversion import AverageBlock, ConcatBlock, ArgmaxBlock, StackBlock
 from bosk.block.zoo.metrics import RocAucBlock
 
-
-global_active_builders = deque()
-
-
-def get_active_builder():
-    global global_active_builders
-    if len(global_active_builders) == 0:
-        return None
-    return global_active_builders[-1]
-
-
-def set_active_builder(value):
-    global global_active_builders
-    if value is None:
-        global_active_builders.pop()
-    else:
-        global_active_builders.append(value)
-
-
-
-class ContextManagerBuilderMixin:
-    def __enter__(self):
-        set_active_builder(self)
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        assert get_active_builder() is self
-        set_active_builder(None)
-        return False
-
-
-class BetterFunctionalPipelineBuilder(ContextManagerBuilderMixin, FunctionalPipelineBuilder):
-    ...
-
-
-class BetterEagerPipelineBuilder(ContextManagerBuilderMixin, EagerPipelineBuilder):
-    ...
-
-
-class PlaceholderFunction:
-    def __init__(self, block):
-        self.block = block
-
-    def _get_builder(self):
-        builder = get_active_builder()
-        assert builder is not None, \
-            'No active builder found. ' \
-            'Please, enter a builder scope by `with BetterFunctionalPipelineBuilder() as b:`'
-        return builder
-
-    def __call__(self, *pfn_args, **pfn_kwargs):
-        builder = self._get_builder()
-        return builder.wrap(self.block)(*pfn_args, **pfn_kwargs)
+from bosk.block.placeholder import PlaceholderFunction
+from bosk.state import BoskState
 
 
 class Input(PlaceholderFunction):
@@ -114,36 +62,36 @@ class ETC(PlaceholderFunction):
 class Concat(PlaceholderFunction):
     @wraps(ConcatBlock.__init__)
     def __init__(self, *args, **kwargs):
-        self.block = ConcatBlock(*args, **kwargs)
+        super().__init__(ConcatBlock(*args, **kwargs))
 
 
 class Stack(PlaceholderFunction):
     @wraps(StackBlock.__init__)
     def __init__(self, *args, **kwargs):
-        self.block = StackBlock(*args, **kwargs)
+        super().__init__(StackBlock(*args, **kwargs))
 
 
 class Average(PlaceholderFunction):
     @wraps(AverageBlock.__init__)
     def __init__(self, *args, **kwargs):
-        self.block = AverageBlock(*args, **kwargs)
+        super().__init__(AverageBlock(*args, **kwargs))
 
 
 class Argmax(PlaceholderFunction):
     @wraps(ArgmaxBlock.__init__)
     def __init__(self, *args, **kwargs):
-        self.block = ArgmaxBlock(*args, **kwargs)
+        super().__init__(ArgmaxBlock(*args, **kwargs))
 
 
 class RocAuc(PlaceholderFunction):
     @wraps(RocAucBlock.__init__)
     def __init__(self, *args, **kwargs):
-        self.block = RocAucBlock(*args, **kwargs)
+        super().__init__(RocAucBlock(*args, **kwargs))
 
 
 def nested_function_with_pipeline(train_X: np.ndarray, train_y: np.ndarray,
                                   block_executor) -> np.ndarray:
-    with BetterEagerPipelineBuilder(block_executor) as b:
+    with EagerPipelineBuilder(block_executor) as b:
         X, y = Input()(CPUData(train_X)), TargetInput()(CPUData(train_y))
         rf = RFC(n_estimators=5, random_state=42)(X=X, y=y)
         train_score = RocAuc()(gt_y=y, pred_probas=rf)
@@ -154,7 +102,7 @@ def make_deep_forest_functional(executor, forest_params=None, **ex_kw):
     if forest_params is None:
         forest_params = dict()
 
-    with BetterFunctionalPipelineBuilder() as b:
+    with FunctionalPipelineBuilder() as b:
         X, y = Input()(), TargetInput()()
         rf_1 = RFC(random_state=42, **forest_params)(X=X, y=y)
         et_1 = ETC(random_state=42, **forest_params)(X=X, y=y)
@@ -222,7 +170,7 @@ def main_eager():
     block_executor = DefaultBlockExecutor()
     forest_params = dict()
 
-    with BetterEagerPipelineBuilder(block_executor) as b:
+    with EagerPipelineBuilder(block_executor) as b:
         X, y = Input()(CPUData(train_X)), TargetInput()(CPUData(train_y))
         # alternative ways to define input blocks:
         # X, y = Input()(X=CPUData(train_X)), TargetInput()(y=CPUData(train_y))
