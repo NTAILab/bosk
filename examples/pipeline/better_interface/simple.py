@@ -35,58 +35,15 @@ from bosk.block.placeholder import PlaceholderFunction
 from bosk.state import BoskState
 
 
-class Input(PlaceholderFunction):
-    @wraps(InputBlock.__init__)
-    def __init__(self, *args, **kwargs):
-        super().__init__(InputBlock(*args, **kwargs))
-
-
-class TargetInput(PlaceholderFunction):
-    @wraps(TargetInputBlock.__init__)
-    def __init__(self, *args, **kwargs):
-        super().__init__(TargetInputBlock(*args, **kwargs))
-        
-
-class RFC(PlaceholderFunction):
-    @wraps(RFCBlock.__init__)
-    def __init__(self, *args, **kwargs):
-        super().__init__(RFCBlock(*args, **kwargs))
-
-
-class ETC(PlaceholderFunction):
-    @wraps(ETCBlock.__init__)
-    def __init__(self, *args, **kwargs):
-        super().__init__(ETCBlock(*args, **kwargs))
-        
-
-class Concat(PlaceholderFunction):
-    @wraps(ConcatBlock.__init__)
-    def __init__(self, *args, **kwargs):
-        super().__init__(ConcatBlock(*args, **kwargs))
-
-
-class Stack(PlaceholderFunction):
-    @wraps(StackBlock.__init__)
-    def __init__(self, *args, **kwargs):
-        super().__init__(StackBlock(*args, **kwargs))
-
-
-class Average(PlaceholderFunction):
-    @wraps(AverageBlock.__init__)
-    def __init__(self, *args, **kwargs):
-        super().__init__(AverageBlock(*args, **kwargs))
-
-
-class Argmax(PlaceholderFunction):
-    @wraps(ArgmaxBlock.__init__)
-    def __init__(self, *args, **kwargs):
-        super().__init__(ArgmaxBlock(*args, **kwargs))
-
-
-class RocAuc(PlaceholderFunction):
-    @wraps(RocAucBlock.__init__)
-    def __init__(self, *args, **kwargs):
-        super().__init__(RocAucBlock(*args, **kwargs))
+Input = InputBlock
+TargetInput = TargetInputBlock
+RFC = RFCBlock
+ETC = ETCBlock
+Average = AverageBlock
+Concat = ConcatBlock
+Argmax = ArgmaxBlock
+Stack = StackBlock
+RocAuc = RocAucBlock
 
 
 def nested_function_with_pipeline(train_X: np.ndarray, train_y: np.ndarray,
