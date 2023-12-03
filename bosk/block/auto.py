@@ -20,6 +20,7 @@ from numpy.random import Generator
 from typing import Any, Optional, Type, Mapping, Protocol, Union
 from .base import BaseBlock, BlockInputData, TransformOutputData
 from .meta import BlockMeta, BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
+from .placeholder import PlaceholderMixin
 from ..data import BaseData, CPUData
 from ..stages import Stages
 from ..utility import get_random_generator, get_rand_int
@@ -88,7 +89,7 @@ def auto_block(_implicit_cls=None,  # noqa: C901
         transform_argnames = set(cls.transform.__code__.co_varnames[1:cls.transform.__code__.co_argcount])
 
         @wraps(cls, updated=())
-        class AutoBlock(BaseBlock):
+        class AutoBlock(PlaceholderMixin, BaseBlock):
             meta: BlockMeta = BlockMeta(
                 inputs=[
                     InputSlotMeta(

@@ -38,16 +38,7 @@ from bosk.state import BoskState
 class Input(PlaceholderMixin, InputBlock):
     ...
 
-class Input(PlaceholderMixin, InputBlock):
-    ...
-
 class TargetInput(PlaceholderMixin, TargetInputBlock):
-    ...
-
-class RFC(PlaceholderMixin, RFCBlock):
-    ...
-
-class ETC(PlaceholderMixin, ETCBlock):
     ...
 
 class Average(PlaceholderMixin, AverageBlock):
@@ -65,6 +56,9 @@ class Stack(PlaceholderMixin, StackBlock):
 class RocAuc(PlaceholderMixin, RocAucBlock):
     ...
 
+
+RFC = RFCBlock
+ETC = ETCBlock
 
 
 def nested_function_with_pipeline(train_X: np.ndarray, train_y: np.ndarray,
