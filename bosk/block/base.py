@@ -7,7 +7,6 @@ from .meta import BaseSlotMeta, BlockMeta, InputSlotMeta, OutputSlotMeta
 from ..data import BaseData
 from ..visitor.base import BaseVisitor
 from ..exceptions import MultipleBlockInputsError, MultipleBlockOutputsError, NoDefaultBlockOutputError
-from .placeholder import PlaceholderFunction
 
 
 BlockT = TypeVar('BlockT', bound='BaseBlock')
@@ -136,7 +135,7 @@ It is indexed by output slots, not their names.
 """
 
 
-class BaseBlock(ABC, PlaceholderFunction):
+class BaseBlock(ABC):
     """Base block, the parent of every computation block.
 
     Block has meta information, that defines the inputs and outputs as well as block execution properties,
@@ -157,7 +156,7 @@ class BaseBlock(ABC, PlaceholderFunction):
 
     """
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
         self.slots = self._make_slots()
 
     def _make_slots(self):

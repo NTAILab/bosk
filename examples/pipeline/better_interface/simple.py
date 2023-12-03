@@ -31,19 +31,40 @@ from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
 from bosk.block.zoo.data_conversion import AverageBlock, ConcatBlock, ArgmaxBlock, StackBlock
 from bosk.block.zoo.metrics import RocAucBlock
 
-from bosk.block.placeholder import PlaceholderFunction
+from bosk.block.placeholder import PlaceholderMixin
 from bosk.state import BoskState
 
 
-Input = InputBlock
-TargetInput = TargetInputBlock
-RFC = RFCBlock
-ETC = ETCBlock
-Average = AverageBlock
-Concat = ConcatBlock
-Argmax = ArgmaxBlock
-Stack = StackBlock
-RocAuc = RocAucBlock
+class Input(PlaceholderMixin, InputBlock):
+    ...
+
+class Input(PlaceholderMixin, InputBlock):
+    ...
+
+class TargetInput(PlaceholderMixin, TargetInputBlock):
+    ...
+
+class RFC(PlaceholderMixin, RFCBlock):
+    ...
+
+class ETC(PlaceholderMixin, ETCBlock):
+    ...
+
+class Average(PlaceholderMixin, AverageBlock):
+    ...
+
+class Concat(PlaceholderMixin, ConcatBlock):
+    ...
+
+class Argmax(PlaceholderMixin, ArgmaxBlock):
+    ...
+
+class Stack(PlaceholderMixin, StackBlock):
+    ...
+
+class RocAuc(PlaceholderMixin, RocAucBlock):
+    ...
+
 
 
 def nested_function_with_pipeline(train_X: np.ndarray, train_y: np.ndarray,
