@@ -9,6 +9,7 @@ from typing import List, Optional, Union
 
 
 from ....base import BaseBlock, TransformOutputData, BlockInputData
+from ....placeholder import PlaceholderMixin
 from ....meta import BlockMeta, BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
 from .....stages import Stages
 from .....data import CPUData, GPUData
@@ -16,6 +17,8 @@ from .....utility import get_random_generator, get_rand_int
 
 
 __all__ = [
+    "RandomFerns",
+    # for backward compatibility:
     "RandomFernsBlock",
 ]
 
@@ -191,7 +194,7 @@ def predict_proba(pred_bucket_indices: jnp.ndarray, bucket_stats: jnp.ndarray, p
     return proba
 
 
-class RandomFernsBlock(BaseBlock):
+class RandomFerns(PlaceholderMixin, BaseBlock):
     """Random Ferns Classifier Block.
 
     Args:
@@ -394,3 +397,7 @@ class RandomFernsBlock(BaseBlock):
             return {'probas': GPUData(result)}
         else:
             raise NotImplementedError(f'Not implemented for input type: {type(inputs["X"])!r}')
+
+
+RandomFernsBlock = RandomFerns
+

@@ -3,12 +3,19 @@ from typing import Optional, Union
 from sklearn.model_selection import StratifiedKFold
 
 from ...base import BaseBlock
+from ...placeholder import PlaceholderMixin
 from ....stages import Stages
 from ....data import CPUData
-from ...meta import BlockMeta, BlockExecutionProperties, DynamicBlockMetaStub, InputSlotMeta, OutputSlotMeta
+from ...meta import (
+    BlockMeta,
+    BlockExecutionProperties,
+    DynamicBlockMetaStub,
+    InputSlotMeta,
+    OutputSlotMeta,
+)
 
 
-class CVTrainIndicesBlock(BaseBlock):
+class CVTrainIndices(PlaceholderMixin, BaseBlock):
     """Cross-validation Training Indices Block.
 
     Generates training indices for `size` models.
@@ -79,7 +86,7 @@ class CVTrainIndicesBlock(BaseBlock):
         }
 
 
-class SubsetTrainWrapperBlock(BaseBlock):
+class SubsetTrainWrapper(PlaceholderMixin, BaseBlock):
     """Block wrapper that fits the base block on the indices subset.
 
     The base block may have an arbitrary number of inputs of any type,
@@ -166,3 +173,8 @@ class SubsetTrainWrapperBlock(BaseBlock):
 
     def set_random_state(self, seed: Optional[Union[int, np.random.Generator]]) -> None:
         return self.block.set_random_state(seed)
+
+
+CVTrainIndicesBlock = CVTrainIndices
+SubsetTrainWrapperBlock = SubsetTrainWrapper
+

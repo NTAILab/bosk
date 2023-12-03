@@ -1,5 +1,5 @@
-from catboost import CatBoostClassifier
-from xgboost import XGBClassifier
+from catboost import CatBoostClassifier as _CatBoostClassifier
+from xgboost import XGBClassifier as _XGBClassifier
 from sklearn.ensemble import (
     RandomForestClassifier,
     ExtraTreesClassifier,
@@ -11,13 +11,22 @@ from .....data import CPUData, np, jnp
 
 
 if jnp != np:
-    from .ferns import RandomFernsBlock
-    from .mgs_ferns import MGSRandomFernsBlock
-    from .jax import RFCGBlock, ETCGBlock
+    from .ferns import RandomFerns, RandomFernsBlock
+    from .mgs_ferns import MGSRandomFerns, MGSRandomFernsBlock
+    from .jax import RFCG, ETCG, RFCGBlock, ETCGBlock
 
 
 
 __all__ = [
+    "RFC",
+    "RFCG",
+    "ETC",
+    "ETCG",
+    "CatBoostClassifier",
+    "XGBClassifier",
+    "RandomFerns",
+    "MGSRandomFerns",
+    # for backward compatibility:
     "RFCBlock",
     "RFCGBlock",
     "ETCGBlock",
@@ -30,7 +39,7 @@ __all__ = [
 
 
 @auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
-class RFCBlock(RandomForestClassifier):
+class RFC(RandomForestClassifier):
     """Random Forest Classifier.
 
     Input slots
@@ -58,7 +67,7 @@ class RFCBlock(RandomForestClassifier):
 
 
 @auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
-class ETCBlock(ExtraTreesClassifier):
+class ETC(ExtraTreesClassifier):
     """Extremely Randomized Trees Classifier.
 
     Input slots
@@ -86,7 +95,7 @@ class ETCBlock(ExtraTreesClassifier):
 
 
 @auto_block(execution_props=BlockExecutionProperties())
-class CatBoostClassifierBlock(CatBoostClassifier):
+class CatBoostClassifier(_CatBoostClassifier):
     """CatBoost Classifier.
 
     Input slots
@@ -114,7 +123,7 @@ class CatBoostClassifierBlock(CatBoostClassifier):
 
 
 @auto_block(execution_props=BlockExecutionProperties())
-class XGBClassifierBlock(XGBClassifier):
+class XGBClassifier(_XGBClassifier):
     """XGBoost Classifier.
 
     Input slots
@@ -144,11 +153,17 @@ class XGBClassifierBlock(XGBClassifier):
         return CPUData(self.predict_proba(X))
 
 
+RFCBlock = RFC
+ETCBlock = ETC
+CatBoostClassifierBlock = CatBoostClassifier
+XGBClassifierBlock = XGBClassifier
+
+
 try:
-    from lightgbm import LGBMClassifier
+    from lightgbm import LGBMClassifier as _LGBMClassifier
 
     @auto_block(execution_props=BlockExecutionProperties())
-    class LGBMClassifierBlock(LGBMClassifier):
+    class LGBMClassifier(_LGBMClassifier):
         """LightGBM Classifier.
 
         Input slots
@@ -177,5 +192,8 @@ try:
         def transform(self, X):
             return CPUData(self.predict_proba(X))
 
+    LGBMClassifierBlock = LGBMClassifier
+
 except ModuleNotFoundError:
     pass
+

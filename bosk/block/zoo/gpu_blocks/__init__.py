@@ -1,11 +1,19 @@
 from typing import Union
 
 from ...base import BaseBlock, TransformOutputData, BlockInputData
+from ...placeholder import PlaceholderMixin
 from ...meta import make_simple_meta, BlockExecutionProperties
 from ....data import CPUData, GPUData, BaseData
 
 
-class MoveToBlock(BaseBlock):
+__all__ = [
+    "MoveTo",
+    # for backward compatibility:
+    "MoveToBlock",
+]
+
+
+class MoveTo(PlaceholderMixin, BaseBlock):
     """Move-to block.
 
     Moves the input data to the specified device.
@@ -54,3 +62,7 @@ class MoveToBlock(BaseBlock):
             return {'X': input_data.to_gpu()}
         else:
             return inputs
+
+
+MoveToBlock = MoveTo
+

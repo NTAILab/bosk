@@ -3,6 +3,7 @@ import numpy as np
 from typing import List, Optional, Tuple, Union, NamedTuple
 from functools import partial
 from ...base import BaseBlock, BlockInputData, TransformOutputData
+from ...placeholder import PlaceholderMixin
 from ...meta import BlockMeta, make_simple_meta, BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
 from ....data import CPUData, GPUData
 from ._convolution_helpers import (
@@ -12,7 +13,7 @@ from ._convolution_helpers import (
 )
 
 
-class MultiGrainedScanningNDBlock(BaseBlock):
+class MultiGrainedScanningND(PlaceholderMixin, BaseBlock):
     """N-dimensional Multi Grained Scanning Block.
 
     Main use case is to process data with spatial dimensions, like images and sequences.
@@ -150,3 +151,7 @@ class MultiGrainedScanningNDBlock(BaseBlock):
         n_out_channels = result.shape[1]
         result = result.reshape((n_samples, n_out_channels, *self.pooling_indices_.pooled_shape))
         return {'output': CPUData(result)}
+
+
+MultiGrainedScanningNDBlock = MultiGrainedScanningND
+

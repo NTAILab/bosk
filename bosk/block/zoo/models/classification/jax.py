@@ -9,6 +9,7 @@ from jax import vmap
 from jax.tree_util import register_pytree_node_class
 
 from ....base import BaseBlock, TransformOutputData, BlockInputData
+from ....placeholder import PlaceholderMixin
 from ....meta import BlockMeta, BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
 from .....stages import Stages
 from .....data import GPUData
@@ -17,13 +18,16 @@ from ._jax_util import DecisionTreeClassifier, ExtraTreeClassifier
 
 
 __all__ = [
+    "RFCG",
+    "ETCG",
+    # for backward compatibility:
     "RFCGBlock",
     "ETCGBlock",
 ]
 
 
 @register_pytree_node_class
-class RFCGBlock(BaseBlock):
+class RFCG(PlaceholderMixin, BaseBlock):
     """JAX implementation of Random Forest Classifier for GPU.
 
     Args:
@@ -141,7 +145,7 @@ class RFCGBlock(BaseBlock):
 
 
 @register_pytree_node_class
-class ETCGBlock(BaseBlock):
+class ETCG(PlaceholderMixin, BaseBlock):
     """JAX implementation of Extremely Randomized Trees Classifier for GPU.
 
     Args:
@@ -255,3 +259,8 @@ class ETCGBlock(BaseBlock):
             self.predictors, X
         )
         return jnp.mean(preds, axis=0)
+
+
+RFCGBlock = RFCG
+ETCGBlock = ETCG
+

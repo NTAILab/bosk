@@ -5,15 +5,19 @@ from typing import Callable, Sequence
 from ...meta import BlockExecutionProperties, DynamicBlockMetaStub, InputSlotMeta, OutputSlotMeta
 from ....stages import Stages
 from ...base import BaseBlock, BlockInputData, BlockMeta, TransformOutputData
+from ...placeholder import PlaceholderMixin
 
 
 __all__ = [
+    'FitLambda',
+    'TransformLambda',
+    # for backward compatibility:
     'FitLambdaBlock',
-    'TransformLambdaBlock'
+    'TransformLambdaBlock',
 ]
 
 
-class FitLambdaBlock(BaseBlock):
+class FitLambda(PlaceholderMixin, BaseBlock):
     meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, function: Callable, inputs: Sequence[str]):
@@ -78,7 +82,7 @@ class FitLambdaBlock(BaseBlock):
         return inputs
 
 
-class TransformLambdaBlock(BaseBlock):
+class TransformLambda(PlaceholderMixin, BaseBlock):
     """Transform-Lambda Block that executes some function at the fit stage
     and bypasses input ad the transform stage.
 
@@ -140,3 +144,8 @@ class TransformLambdaBlock(BaseBlock):
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         self.function(inputs)
         return inputs
+
+
+FitLambdaBlock = FitLambda
+TransformLambdaBlock = TransformLambda
+

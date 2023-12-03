@@ -3,6 +3,7 @@ import numpy as np
 from typing import Literal, Optional, Sequence, Tuple, Union, NamedTuple
 from functools import partial, reduce
 from ...base import BaseBlock, BlockInputData, TransformOutputData
+from ...placeholder import PlaceholderMixin
 from ...meta import make_simple_meta, BlockExecutionProperties
 from ....data import CPUData, GPUData, jnp
 from ._convolution_helpers import (
@@ -30,7 +31,7 @@ AGGREGATION_FUNCTIONS = {
 }
 
 
-class PoolingBlock(BaseBlock):
+class Pooling(PlaceholderMixin, BaseBlock):
     """Pooling Block implements n-dimensional downsampling with an aggregation operation.
 
     It takes `X` of shape `(n_samples, n_channels, n_features_1, ..., n_features_k)`
@@ -253,7 +254,7 @@ class PoolingBlock(BaseBlock):
             raise NotImplementedError(f'Not implemented for type {type(inputs["X"])!r}')
 
 
-class GlobalAveragePoolingBlock(BaseBlock):
+class GlobalAveragePoolingBlock(PlaceholderMixin, BaseBlock):
     meta = make_simple_meta(['X'], ['output'], execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True))
 
     def __init__(self):
@@ -303,3 +304,7 @@ class GlobalAveragePoolingBlock(BaseBlock):
             return {'output': CPUData(averaged)}
         else:
             return {'output': GPUData(averaged)}
+
+
+PoolingBlock = Pooling
+

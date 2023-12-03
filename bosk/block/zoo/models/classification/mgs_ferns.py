@@ -9,6 +9,7 @@ from typing import List, Optional, Tuple, Union
 from functools import partial, reduce
 
 from ....base import BaseBlock, TransformOutputData, BlockInputData
+from ....placeholder import PlaceholderMixin
 from ....meta import BlockMeta, BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
 from .....stages import Stages
 from .....data import CPUData, GPUData
@@ -18,6 +19,8 @@ from .ferns import calculate_bucket_stats, predict_proba
 
 
 __all__ = [
+    "MGSRandomFerns",
+    # for backward compatibility:
     "MGSRandomFernsBlock",
 ]
 
@@ -169,7 +172,7 @@ def apply_window_binary_ferns(xs: jnp.ndarray, raveled_pooling_indices,
     return result
 
 
-class MGSRandomFernsBlock(BaseBlock):
+class MGSRandomFerns(PlaceholderMixin, BaseBlock):
     """Multi-Grained Scanning Random Ferns Classifier Block.
     It applies multiple tests to each sample across spatial dimensions.
     The result is of the same shape as pooling result (with the same convolution parameters).
@@ -384,7 +387,7 @@ class MGSRandomFernsBlock(BaseBlock):
         bucket_stats = jnp.concatenate(bucket_stats, axis=1)
         return bucket_stats
 
-    def fit(self, inputs: BlockInputData) -> 'MGSRandomFernsBlock':
+    def fit(self, inputs: BlockInputData) -> 'MGSRandomFerns':
         """Fit the MGS Random Ferns Block.
         The implementation is device-agnostic.
 
@@ -464,3 +467,7 @@ class MGSRandomFernsBlock(BaseBlock):
             return {'probas': GPUData(result)}
         else:
             raise NotImplementedError(f'Not implemented for input type: {type(inputs["X"])!r}')
+
+
+MGSRandomFernsBlock = MGSRandomFerns
+

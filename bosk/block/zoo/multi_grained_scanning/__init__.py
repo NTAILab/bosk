@@ -30,15 +30,21 @@ has simpler interface and do not require data reshaping before applying MGS bloc
 
 """
 
-from .multi_grained_scanning_1d import MultiGrainedScanning1DBlock
-from .multi_grained_scanning_2d import MultiGrainedScanning2DBlock
-from .multi_grained_scanning_nd import MultiGrainedScanningNDBlock
-from .pooling import PoolingBlock
+from .multi_grained_scanning_1d import MultiGrainedScanning1D, MultiGrainedScanning1DBlock
+from .multi_grained_scanning_2d import MultiGrainedScanning2D, MultiGrainedScanning2DBlock
+from .multi_grained_scanning_nd import MultiGrainedScanningND, MultiGrainedScanningNDBlock
+from .pooling import Pooling, PoolingBlock
 
 
 __all__ = [
+    'MultiGrainedScanning1D',
+    'MultiGrainedScanning2D',
+    'MultiGrainedScanningND',
+    'Pooling',
+    # for backward compatibility:
     'MultiGrainedScanning1DBlock',
     'MultiGrainedScanning2DBlock',
     'MultiGrainedScanningNDBlock',
     'PoolingBlock',
 ]
+

@@ -3,21 +3,29 @@ from typing import List, Optional, Tuple
 import numpy as np
 
 from ...base import BaseBlock, BlockInputData, TransformOutputData
+from ...placeholder import PlaceholderMixin
 from ...meta import BlockMeta, DynamicBlockMetaStub, make_simple_meta, BlockExecutionProperties
 from ....data import BaseData, GPUData, CPUData, jnp
 
 
 __all__ = [
+    "Concat",
+    "Argmax",
+    "Average",
+    "Stack",
+    "Reshape",
+    "Flatten",
+    # for backward compatibility:
     "ConcatBlock",
     "ArgmaxBlock",
     "AverageBlock",
     "StackBlock",
     "ReshapeBlock",
-    "FlattenBlock"
+    "FlattenBlock",
 ]
 
 
-class ReshapeBlock(BaseBlock):
+class Reshape(PlaceholderMixin, BaseBlock):
     """Reshaping block.
 
     Dynamically specifies the meta information.
@@ -71,7 +79,7 @@ class ReshapeBlock(BaseBlock):
         return {name: reshaped}
 
 
-class FlattenBlock(BaseBlock):
+class Flatten(PlaceholderMixin, BaseBlock):
     """Flattening block. Flattens all dimensions except the first one.
 
     Dynamically specifies the meta information.
@@ -123,7 +131,7 @@ class FlattenBlock(BaseBlock):
         return {name: reshaped}
 
 
-class ConcatBlock(BaseBlock):
+class Concat(PlaceholderMixin, BaseBlock):
     """Concatenation block.
 
     Dynamically specifies the meta information.
@@ -193,7 +201,7 @@ class ConcatBlock(BaseBlock):
         return {'output': concatenated}
 
 
-class StackBlock(BaseBlock):
+class Stack(PlaceholderMixin, BaseBlock):
     """Stacking block.
 
     Dynamically specifies the meta information.
@@ -258,7 +266,7 @@ class StackBlock(BaseBlock):
         return {'output': stacked}
 
 
-class AverageBlock(BaseBlock):
+class Average(PlaceholderMixin, BaseBlock):
     """Averaging block.
 
     Args:
@@ -305,7 +313,7 @@ class AverageBlock(BaseBlock):
             return {'output': GPUData(averaged)}
 
 
-class ArgmaxBlock(BaseBlock):
+class Argmax(PlaceholderMixin, BaseBlock):
     """Argmax block.
 
     Args:
@@ -350,3 +358,12 @@ class ArgmaxBlock(BaseBlock):
             return {'output': CPUData(ids)}
         else:
             return {'output': GPUData(ids)}
+
+
+ConcatBlock = Concat
+ArgmaxBlock = Argmax
+AverageBlock = Average
+StackBlock = Stack
+ReshapeBlock = Reshape
+FlattenBlock = Flatten
+
