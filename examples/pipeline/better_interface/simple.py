@@ -20,45 +20,12 @@ from typing import Mapping
 from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
 from bosk.pipeline.builder.eager import EagerPipelineBuilder
 from bosk.data import BaseData
-from bosk.pipeline.connection import Connection
-from bosk.executor.block import BaseBlockExecutor, InputSlotToDataMapping
 from bosk.executor.block import DefaultBlockExecutor
-from bosk.block.functional import FunctionalBlockWrapper
-from bosk.block.eager import EagerBlockWrapper
-from bosk.block.base import BaseInputBlock
-from bosk.block.zoo.input_plugs import InputBlock, TargetInputBlock
-from bosk.block.zoo.models.classification import RFCBlock, ETCBlock
-from bosk.block.zoo.data_conversion import AverageBlock, ConcatBlock, ArgmaxBlock, StackBlock
-from bosk.block.zoo.metrics import RocAucBlock
 
-from bosk.block.placeholder import PlaceholderMixin
-from bosk.state import BoskState
-
-
-class Input(PlaceholderMixin, InputBlock):
-    ...
-
-class TargetInput(PlaceholderMixin, TargetInputBlock):
-    ...
-
-class Average(PlaceholderMixin, AverageBlock):
-    ...
-
-class Concat(PlaceholderMixin, ConcatBlock):
-    ...
-
-class Argmax(PlaceholderMixin, ArgmaxBlock):
-    ...
-
-class Stack(PlaceholderMixin, StackBlock):
-    ...
-
-class RocAuc(PlaceholderMixin, RocAucBlock):
-    ...
-
-
-RFC = RFCBlock
-ETC = ETCBlock
+from bosk.block.zoo.input_plugs import Input, TargetInput
+from bosk.block.zoo.models.classification import RFC, ETC
+from bosk.block.zoo.data_conversion import Average, Concat, Argmax, Stack
+from bosk.block.zoo.metrics import RocAuc
 
 
 def nested_function_with_pipeline(train_X: np.ndarray, train_y: np.ndarray,
