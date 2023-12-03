@@ -5,12 +5,19 @@ from sklearn.metrics import roc_auc_score, accuracy_score, f1_score, r2_score
 from functools import wraps
 
 from ...base import BaseBlock, BlockInputData, TransformOutputData
+from ...placeholder import PlaceholderMixin
 from ...meta import BlockMeta, BlockExecutionProperties, InputSlotMeta, OutputSlotMeta
 from ....data import CPUData
 from ....stages import Stages
 
 
 __all__ = [
+    "Accuracy",
+    "RocAuc",
+    "RocAucMultiLabel",
+    "F1Score",
+    "R2Score",
+    # for backward compatibility:
     "AccuracyBlock",
     "RocAucBlock",
     "RocAucMultiLabelBlock",
@@ -19,7 +26,7 @@ __all__ = [
 ]
 
 
-class RocAucBlock(BaseBlock):
+class RocAuc(PlaceholderMixin, BaseBlock):
     """ROC-AUC block.
 
     Args:
@@ -90,7 +97,7 @@ class RocAucBlock(BaseBlock):
         }
 
 
-class RocAucMultiLabelBlock(BaseBlock):
+class RocAucMultiLabel(PlaceholderMixin, BaseBlock):
     """ROC-AUC Multilabel block.
 
     Input slots
@@ -146,7 +153,7 @@ class RocAucMultiLabelBlock(BaseBlock):
         }
 
 
-class AccuracyBlock(BaseBlock):
+class Accuracy(PlaceholderMixin, BaseBlock):
     """Accuracy block.
 
     Input slots
@@ -202,7 +209,7 @@ class AccuracyBlock(BaseBlock):
         }
 
 
-class F1ScoreBlock(BaseBlock):
+class F1Score(PlaceholderMixin, BaseBlock):
     """F1 metric block.
 
     Args:
@@ -270,7 +277,7 @@ class F1ScoreBlock(BaseBlock):
         }
 
 
-class R2ScoreBlock(BaseBlock):
+class R2Score(PlaceholderMixin, BaseBlock):
     """R2 metric block.
 
     Args:
@@ -335,3 +342,11 @@ class R2ScoreBlock(BaseBlock):
                 )
             )
         }
+
+
+AccuracyBlock = Accuracy
+RocAucBlock = RocAuc
+RocAucMultiLabelBlock = RocAucMultiLabel
+F1ScoreBlock = F1Score
+R2ScoreBlock = R2Score
+

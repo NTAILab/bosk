@@ -37,6 +37,7 @@ from .base import (
     BaseSlotMeta,
     BlockGroup
 )
+from .placeholder import PlaceholderMixin
 from .meta import BlockMeta, InputSlotMeta, OutputSlotMeta
 
 __all__ = [
@@ -56,4 +57,5 @@ __all__ = [
     "SlotT",
     "BlockGroup",
     "BaseSlotMeta",
+    "PlaceholderMixin",
 ]

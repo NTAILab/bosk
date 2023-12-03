@@ -1,9 +1,10 @@
 from typing import Optional
 from ...base import BaseOutputBlock, BlockInputData, TransformOutputData
+from ...placeholder import PlaceholderMixin
 from ...meta import BlockExecutionProperties, BlockMeta, DynamicBlockMetaStub, make_simple_meta
 
 
-class OutputBlock(BaseOutputBlock):
+class Output(PlaceholderMixin, BaseOutputBlock):
     """Output block.
 
     Bypasses its input. Can be used to mark outputs when building pipeline in functional style.
@@ -52,3 +53,7 @@ class OutputBlock(BaseOutputBlock):
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         return inputs
+
+
+OutputBlock = Output
+

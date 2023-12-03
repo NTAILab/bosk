@@ -6,11 +6,17 @@ For example, to implement stacing where each block is trained independently
 on some subset of the data.
 
 """
-from .cs import CSBlock, CSJoinBlock, CSFilterBlock
-from .cv import CVTrainIndicesBlock, SubsetTrainWrapperBlock
+from .cs import CS, CSJoin, CSFilter, CSBlock, CSJoinBlock, CSFilterBlock
+from .cv import CVTrainIndices, SubsetTrainWrapper, CVTrainIndicesBlock, SubsetTrainWrapperBlock
 
 
 __all__ = [
+    "CS",
+    "CSJoin",
+    "CSFilter",
+    "CVTrainIndices",
+    "SubsetTrainWrapper",
+    # for backward compatibility:
     "CSBlock",
     "CSJoinBlock",
     "CSFilterBlock",

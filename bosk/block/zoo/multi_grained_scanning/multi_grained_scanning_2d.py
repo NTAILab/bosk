@@ -8,7 +8,7 @@ from .base import MultiGrainedScanningBlock
 
 
 @auto_block(auto_state=True, random_state_field=None)
-class MultiGrainedScanning2DBlock(MultiGrainedScanningBlock):
+class MultiGrainedScanning2D(MultiGrainedScanningBlock):
     """2-dimensional Multi Grained Scanning Block.
 
     Main use case is to process data with two spatial dimensions, like images.
@@ -65,3 +65,7 @@ class MultiGrainedScanning2DBlock(MultiGrainedScanningBlock):
         if y is not None:
             sliced_target = np.repeat(y, len_iter_x * len_iter_y)
         return sliced_imgs, sliced_target
+
+
+MultiGrainedScanning2DBlock = MultiGrainedScanning2D
+

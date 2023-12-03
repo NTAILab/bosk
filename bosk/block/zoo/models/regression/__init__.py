@@ -1,5 +1,5 @@
-from catboost import CatBoostRegressor
-from xgboost import XGBRegressor
+from catboost import CatBoostRegressor as _CatBoostRegressor
+from xgboost import XGBRegressor as _XGBRegressor
 from sklearn.ensemble import (
     RandomForestRegressor,
     ExtraTreesRegressor,
@@ -11,6 +11,11 @@ from .....data import CPUData
 
 
 __all__ = [
+    "RFR",
+    "ETR",
+    "CatBoostRegressor",
+    "XGBCRegressor",
+    # for backward compatibility:
     "RFRBlock",
     "ETRBlock",
     "CatBoostRegressorBlock",
@@ -19,25 +24,25 @@ __all__ = [
 
 
 @auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
-class RFRBlock(RandomForestRegressor):
+class RFR(RandomForestRegressor):
     def transform(self, X):
         return CPUData(self.predict(X))
 
 
 @auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
-class ETRBlock(ExtraTreesRegressor):
+class ETR(ExtraTreesRegressor):
     def transform(self, X):
         return CPUData(self.predict(X))
 
 
 @auto_block(execution_props=BlockExecutionProperties())
-class CatBoostRegressorBlock(CatBoostRegressor):
+class CatBoostRegressor(_CatBoostRegressor):
     def transform(self, X):
         return CPUData(self.predict(X))
 
 
 @auto_block(execution_props=BlockExecutionProperties())
-class XGBCRegressorBlock(XGBRegressor):
+class XGBCRegressor(_XGBRegressor):
     def fit(self, X, y):
         super().fit(X, y)
 
@@ -45,16 +50,25 @@ class XGBCRegressorBlock(XGBRegressor):
         return CPUData(self.predict(X))
 
 
+RFRBlock = RFR
+ETRBlock = ETR
+CatBoostRegressorBlock = CatBoostRegressor
+XGBCRegressorBlock = XGBCRegressor
+
+
 try:
-    from lightgbm import LGBMRegressor
+    from lightgbm import LGBMRegressor as _LGBMRegressor
 
     @auto_block(execution_props=BlockExecutionProperties())
-    class LGBMRegressorBlock(LGBMRegressor):
+    class LGBMRegressor(_LGBMRegressor):
         def fit(self, X, y):
             super().fit(X, y)
 
         def transform(self, X):
             return CPUData(self.predict(X))
+
+
+    LGBMRegressorBlock = LGBMRegressor
 
 except ModuleNotFoundError:
     pass

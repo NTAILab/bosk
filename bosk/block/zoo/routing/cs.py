@@ -3,11 +3,12 @@ from typing import List
 import numpy as np
 
 from ...base import BaseBlock, BlockInputData, TransformOutputData
+from ...placeholder import PlaceholderMixin
 from ...meta import BlockExecutionProperties, BlockMeta, DynamicBlockMetaStub, make_simple_meta
 from ....data import CPUData
 
 
-class CSBlock(BaseBlock):
+class CS(PlaceholderMixin, BaseBlock):
     """Confidence screening block.
 
     Args:
@@ -59,7 +60,7 @@ class CSBlock(BaseBlock):
         }
 
 
-class CSFilterBlock(BaseBlock):
+class CSFilter(PlaceholderMixin, BaseBlock):
     """Confidence screening filtering block.
 
     Input slots
@@ -119,7 +120,7 @@ class CSFilterBlock(BaseBlock):
         }
 
 
-class CSJoinBlock(BaseBlock):
+class CSJoin(PlaceholderMixin, BaseBlock):
     """Confidence screening joining (merging) block.
 
     Input slots
@@ -165,3 +166,9 @@ class CSJoinBlock(BaseBlock):
         result[~mask] = best
         result[mask] = refined
         return {'output': CPUData(result)}
+
+
+CSBlock = CS
+CSFilterBlock = CSFilter
+CSJoinBlock = CSJoin
+

@@ -7,7 +7,7 @@ from ...auto import auto_block
 
 
 @auto_block(auto_state=True, random_state_field=None)
-class MultiGrainedScanning1DBlock(MultiGrainedScanningBlock):
+class MultiGrainedScanning1D(MultiGrainedScanningBlock):
     """1-dimensional Multi Grained Scanning Block.
 
     Main use case is to process data with one spatial dimension, like sequences.
@@ -58,3 +58,7 @@ class MultiGrainedScanning1DBlock(MultiGrainedScanningBlock):
         if y is not None:
             sliced_target = np.repeat(y, len_iter)
         return sliced_sqce, sliced_target
+
+
+MultiGrainedScanning1DBlock = MultiGrainedScanning1D
+

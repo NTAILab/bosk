@@ -24,7 +24,7 @@ class PlaceholderMixin:
         >>>     ...
 
     """
-    def __call__(self: BaseBlock, *pfn_args, **pfn_kwargs) -> FunctionalBlockWrapper:
+    def __call__(self, *pfn_args, **pfn_kwargs) -> FunctionalBlockWrapper:
         assert isinstance(self, BaseBlock), 'Placeholder can be mixed only to a block'
         builder = BoskState().active_builders.peek()
         assert builder is not None, \

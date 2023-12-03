@@ -1,10 +1,20 @@
 from typing import Optional
 from ...base import BaseInputBlock, BlockInputData, TransformOutputData
+from ...placeholder import PlaceholderMixin
 from ....stages import Stages
 from ...meta import BlockMeta, BlockExecutionProperties, DynamicBlockMetaStub, make_simple_meta
 
 
-class InputBlock(BaseInputBlock):
+__all__ = [
+    "Input",
+    "TargetInput",
+    # for backward compatibility:
+    "InputBlock",
+    "TargetInputBlock",
+]
+
+
+class Input(PlaceholderMixin, BaseInputBlock):
     """Input block.
 
     Bypasses the input. Can be used to make pipeline in functional style.
@@ -55,7 +65,7 @@ class InputBlock(BaseInputBlock):
         return inputs
 
 
-class TargetInputBlock(BaseInputBlock):
+class TargetInput(PlaceholderMixin, BaseInputBlock):
     """Target input block.
 
     Bypasses the input. Can be used to make pipeline in a functional style.
@@ -104,3 +114,8 @@ class TargetInputBlock(BaseInputBlock):
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         return inputs
+
+
+InputBlock = Input
+TargetInputBlock = TargetInput
+
