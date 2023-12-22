@@ -70,6 +70,11 @@ Deep Forest can be built manually by using
 It allows to create arbitrary complex pipeline
 by combining block placeholders (wrappers).
 
+`FunctionalPipelineBuilder` is a context manager, and thus can be used to specify context
+for `with` block.
+Any block inherited from `PlaceholderMixin`, can be added to the current context builder,
+without direct referencing the builder.
+
 For example, to create Deep Forest with two layers, the following code can be used:
 
 .. code-block:: python
@@ -77,25 +82,30 @@ For example, to create Deep Forest with two layers, the following code can be us
    from bosk.executor import TopologicalExecutor
    from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
    from bosk.executor.sklearn_interface import BoskPipelineClassifier
+   # import blocks for IDE suggestions
+   from bosk.block.zoo.input_plugs import Input, TargetInput
+   from bosk.block.zoo.data_conversion import Concat
+   from bosk.block.zoo.models.classification import RFC, ETC
+   from bosk.block.zoo.output_plugs import Output
 
    # make a pipeline
-   b = FunctionalPipelineBuilder()
-   # placeholders for input features `X` and target variable `y`
-   x_ = b.Input('X')()
-   y_ = b.TargetInput('y')()
-   # make random forests for the first layer
-   rf_ = b.RFC(random_state=123)(X=x_, y=y_)
-   et_ = b.ETC(random_state=123)(X=x_, y=y_)
-   # concatenate predictions of forests with `X`
-   concat_ = b.Concat(['X', 'rf', 'et'], axis=1)(X=x_, rf=rf_, et=et_)
-   # make the second layer
-   rf2_ = b.RFC(random_state=456)(X=concat_, y=y_)
-   et2_ = b.ETC(random_state=456)(X=concat_, y=y_)
-   concat2_ = b.Concat(['X', 'rf2', 'et2'], axis=1)(X=x_, rf2=rf2_, et2=et2_)
-   # make the final model
-   proba_ = b.ETC(random_state=12345)(X=concat2_, y=y_)
-   # use its predictions as a pipeline output
-   b.Output('proba')(proba_)
+   with FunctionalPipelineBuilder() as b:
+       # placeholders for input features `X` and target variable `y`
+       x_ = Input('X')()
+       y_ = TargetInput('y')()
+       # make random forests for the first layer
+       rf_ = RFC(random_state=123)(X=x_, y=y_)
+       et_ = ETC(random_state=123)(X=x_, y=y_)
+       # concatenate predictions of forests with `X`
+       concat_ = Concat(['X', 'rf', 'et'], axis=1)(X=x_, rf=rf_, et=et_)
+       # make the second layer
+       rf2_ = RFC(random_state=456)(X=concat_, y=y_)
+       et2_ = ETC(random_state=456)(X=concat_, y=y_)
+       concat2_ = Concat(['X', 'rf2', 'et2'], axis=1)(X=x_, rf2=rf2_, et2=et2_)
+       # make the final model
+       proba_ = ETC(random_state=12345)(X=concat2_, y=y_)
+       # use its predictions as a pipeline output
+       Output('proba')(proba_)
    # build pipeline
    pipeline = b.build()
    # wrap pipeline into a scikit-learn model
