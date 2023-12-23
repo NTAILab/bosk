@@ -131,7 +131,41 @@ class Flatten(PlaceholderMixin, BaseBlock):
         return {name: reshaped}
 
 
-class Concat(PlaceholderMixin, BaseBlock):
+class BaseOrderedInputsBlock(PlaceholderMixin, BaseBlock):
+    """Base Block with inputs names and order determined at initialization.
+
+    """
+    meta: BlockMeta = DynamicBlockMetaStub()
+
+    def __init__(self, input_names: List[str], execution_props: BlockExecutionProperties):
+        self.meta = make_simple_meta(
+            input_names, ['output'],
+            execution_props=execution_props
+        )
+        super().__init__()
+        self.ordered_input_names: List[str] = input_names
+
+    def _check_inputs(self, inputs: BlockInputData):
+        """Check that inputs are valid: have names from `input_names`.
+
+        Raises:
+            ValueError if inputs are not valid for the block.
+
+        """
+        input_names = set(inputs.keys())
+        extra = input_names.difference(self.ordered_input_names)
+        if len(extra) > 0:
+            raise ValueError(
+                f'The inputs given which are not listed in `input_names` at initialization: ' +
+                repr(extra)
+            )
+
+    def fit(self, inputs: BlockInputData) -> 'BaseOrderedInputsBlock':
+        self._check_inputs(inputs)
+        return self
+
+
+class Concat(BaseOrderedInputsBlock):
     """Concatenation block.
 
     Dynamically specifies the meta information.
@@ -163,19 +197,10 @@ class Concat(PlaceholderMixin, BaseBlock):
         - output: Concatenated data array.
 
     """
-    meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, input_names: List[str], axis: int = -1):
-        self.meta = make_simple_meta(input_names, ['output'],
-                                     execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True))
-        super().__init__()
+        super().__init__(input_names, BlockExecutionProperties(cpu=True, gpu=True, plain=True))
         self.axis = axis
-        self.ordered_input_names: Optional[List[str]] = None
-
-    def fit(self, inputs: BlockInputData) -> 'ConcatBlock':
-        self.ordered_input_names = list(inputs.keys())
-        self.ordered_input_names.sort()
-        return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         assert self.ordered_input_names is not None
@@ -201,7 +226,7 @@ class Concat(PlaceholderMixin, BaseBlock):
         return {'output': concatenated}
 
 
-class Stack(PlaceholderMixin, BaseBlock):
+class Stack(BaseOrderedInputsBlock):
     """Stacking block.
 
     Dynamically specifies the meta information.
@@ -233,19 +258,10 @@ class Stack(PlaceholderMixin, BaseBlock):
         - output: Stacked data array.
 
     """
-    meta: BlockMeta = DynamicBlockMetaStub()
 
     def __init__(self, input_names: List[str], axis: int = -1):
-        self.meta = make_simple_meta(input_names, ['output'],
-                                     execution_props=BlockExecutionProperties(cpu=True, gpu=True, plain=True))
-        super().__init__()
+        super().__init__(input_names, BlockExecutionProperties(cpu=True, gpu=True, plain=True))
         self.axis = axis
-        self.ordered_input_names: Optional[List[str]] = None
-
-    def fit(self, inputs: BlockInputData) -> 'StackBlock':
-        self.ordered_input_names = list(inputs.keys())
-        self.ordered_input_names.sort()
-        return self
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         assert self.ordered_input_names is not None
