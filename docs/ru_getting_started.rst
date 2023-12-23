@@ -10,7 +10,7 @@
 - :ref:`Блок <block>` – базовый вычислительный узел, у которого определены входы и выходы (слоты). \
   Может быть обучен методом `fit`, после чего возможно использование метода `transform` \
   для преобразования входных данных и получения выходов;
-- :ref:`Конвейер <pipeline>` – модель Глубокого леса, представленная в форме вычислительного \
+- :ref:`Схема (конвейер) <pipeline>` – модель Глубокого леса, представленная в форме вычислительного \
   графа, определенного посредством указания связей между слотами разных блоков. \
   Конвейер реализует как стадию `обучения <fit>`_ (fit), так и `преобразования <transform>`_;
 - :ref:`Исполнитель <executor>` – менеджер, который обслуживает конвейер и запускает вычислительный граф \
@@ -45,8 +45,8 @@
 
 .. _pipeline:
 
-Конвейер
-~~~~~~~~
+Схема (Конвейер)
+~~~~~~~~~~~~~~~~
 
 Конвейер определяется набором узлов (блоков) и связями между ними.
 
@@ -64,7 +64,11 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Глубокий лес может быть создан в ручном режиме с помощью `FunctionalPipelineBuilder`.
-Он позволяет создавать конвейеры любой сложности с помощью комбинаций оберток блоков.
+Он позволяет создавать глубокие леса любой сложности с помощью комбинаций оберток блоков.
+
+`FunctionalPipelineBuilder` является контекстным менеджером, то есть может быть использован
+в заголовке блока `with`. Любой блок, наследованный от `PlaceholderMixin`, может быть добавлен
+в построитель текущего контекста.
 
 В данном примере обучающие данные представлены в виде `X_train` – матрицы размера N×M,
 состоящей из N векторов признаков размерности M,
@@ -76,45 +80,50 @@
 
 .. code-block:: python
 
-   from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
-   from bosk.executor.sklearn_interface import BoskPipelineClassifier
-   from sklearn.datasets import make_moons
-   from sklearn.model_selection import train_test_split
+    from bosk.pipeline.builder.functional import FunctionalPipelineBuilder
+    from bosk.executor.sklearn_interface import BoskPipelineClassifier
+    from sklearn.datasets import make_moons
+    from sklearn.model_selection import train_test_split
+    # подключение блоков для обеспечения подсказок IDE
+    from bosk.block.zoo.input_plugs import Input, TargetInput
+    from bosk.block.zoo.data_conversion import Concat
+    from bosk.block.zoo.models.classification import RFC, ETC
+    from bosk.block.zoo.output_plugs import Output
 
-   # создание построителя конвейера
-   b = FunctionalPipelineBuilder()
-   # блоки для маршрутизации входных данных:
-   # `x` для вектора факторов и `y`
-   # для откликов
-   x_ = b.Input('X')()
-   y_ = b.TargetInput('y')()
-   # создание случайных лесов для первого слоя
-   rf_ = b.RFC(random_state=123)(X=x_, y=y_)
-   et_ = b.ETC(random_state=123)(X=x_, y=y_)
-   # конкатенация предсказаний лесов с `X`
-   concat_ = b.Concat(['X', 'rf', 'et'], axis=1)(X=x_, rf=rf_, et=et_)
-   # создание второго слоя
-   rf2_ = b.RFC(random_state=456)(X=concat_, y=y_)
-   et2_ = b.ETC(random_state=456)(X=concat_, y=y_)
-   concat2_ = b.Concat(['X', 'rf2', 'et2'], axis=1)(X=x_, rf2=rf2_, et2=et2_)
-   # создание финальной модели
-   proba_ = b.ETC(random_state=12345)(X=concat2_, y=y_)
-   # используем ее вывод в качестве выхода конвейера
-   b.Output('proba')(proba_)
-   # создание конвейера
-   pipeline = b.build()
-   # сделаем модель scikit-learn из нашего конвейера
-   model = BoskPipelineClassifier(pipeline)
+    # создание построителя конвейера
+    with FunctionalPipelineBuilder() as b:
+        # блоки для маршрутизации входных данных:
+        # `x` для вектора факторов и `y`
+        # для откликов
+        x_ = Input('X')()
+        y_ = TargetInput('y')()
+        # создание случайных лесов для первого слоя
+        rf_ = RFC(random_state=123)(X=x_, y=y_)
+        et_ = ETC(random_state=123)(X=x_, y=y_)
+        # конкатенация предсказаний лесов с `X`
+        concat_ = Concat(['X', 'rf', 'et'], axis=1)(X=x_, rf=rf_, et=et_)
+        # создание второго слоя
+        rf2_ = RFC(random_state=456)(X=concat_, y=y_)
+        et2_ = ETC(random_state=456)(X=concat_, y=y_)
+        concat2_ = Concat(['X', 'rf2', 'et2'], axis=1)(X=x_, rf2=rf2_, et2=et2_)
+        # создание финальной модели
+        proba_ = ETC(random_state=12345)(X=concat2_, y=y_)
+        # используем ее вывод в качестве выхода конвейера
+        Output('proba')(proba_)
+    # создание конвейера
+    pipeline = b.build()
+    # сделаем модель scikit-learn из нашего конвейера
+    model = BoskPipelineClassifier(pipeline)
 
-   # для примера, сгенерируем набор обучающих и тестовых данных:
-   all_X, all_y = make_moons(noise=0.1)
-   X_train, X_test, y_train, _ = train_test_split(
-      all_X, all_y, test_size=0.2)
+    # для примера, сгенерируем набор обучающих и тестовых данных:
+    all_X, all_y = make_moons(noise=0.1)
+    X_train, X_test, y_train, _ = train_test_split(
+       all_X, all_y, test_size=0.2)
 
-   # обучение модели
-   model.fit(X_train, y_train)
-   # использование модели для вычисления предсказаний
-   test_preds = model.predict(X_test)
+    # обучение модели
+    model.fit(X_train, y_train)
+    # использование модели для вычисления предсказаний
+    test_preds = model.predict(X_test)
 
 .. _automatic-pipeline:
 

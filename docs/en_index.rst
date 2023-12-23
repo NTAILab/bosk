@@ -24,31 +24,45 @@ forest, the following code could be used:
 
 .. code-block:: python
 
-   # make a pipeline
-   b = FunctionalPipelineBuilder()
-   # placeholders for input features `x` and target variable `y`
-   x = b.Input('x')()
-   y = b.TargetInput('y')()
-   # random forests
-   random_forest = b.RFC(max_depth=5)
-   extra_trees = b.ETC(n_estimators=200)
-   # concatenation
-   cat = b.Concat(['x', 'rf', 'et'])
-   # layer that concatenates random forests outputs
-   layer_1 = cat(x=x, rf=rf(X=x, y=y), et=extra_trees(X=x, y=y))
-   # forest for the final prediction
-   final_extra_trees = b.ETC()
-   # pipeline output
-   b.Output('proba')(final_extra_trees(X=layer_1, y=y))
-   # build pipeline
-   pipeline = b.build()
+    from bosk.pipeline.builder import FunctionalPipelineBuilder
+    from bosk.executor import RecursiveExecutor, BoskPipelineClassifier
 
-   # wrap pipeline into a scikit-learn model
-   model = BoskPipelineClassifier(pipeline, executor_cls=RecursiveExecutor)
-   # fit the model
-   model.fit(X_train, y_train)
-   # predict with the model
-   test_preds = model.predict(X_test)
+    # import blocks to get IDE suggestions
+    from bosk.block.zoo.input_plugs import Input, TargetInput
+    from bosk.block.zoo.data_conversion import Concat
+    from bosk.block.zoo.models.classification import RFC, ETC
+    from bosk.block.zoo.output_plugs import Output
+
+    # make a pipeline
+    with FunctionalPipelineBuilder() as b:
+        # placeholders for input features `x` and target variable `y`
+        x = Input('x')()
+        y = TargetInput('y')()
+        # random forests
+        random_forest = RFC(max_depth=5)
+        extra_trees = ETC(n_estimators=200)
+        # concatenation
+        cat = Concat(['x', 'rf', 'et'])
+        # layer that concatenates random forests outputs
+        layer_1 = cat(x=x, rf=rf(X=x, y=y), et=extra_trees(X=x, y=y))
+        # forest for the final prediction
+        final_extra_trees = ETC()
+        # pipeline output
+        Output('proba')(final_extra_trees(X=layer_1, y=y))
+
+        # any block from `bosk.block.zoo` is also available through the builder without import:
+        b.Output('alternative_proba')(b.XGBClassifier(max_depth=5)(X=layer_1, y=y))
+        # by default this block will not be trained, because its output is not used
+
+    # build pipeline
+    pipeline = b.build()
+
+    # wrap pipeline into a scikit-learn model
+    model = BoskPipelineClassifier(pipeline, executor_cls=RecursiveExecutor)
+    # fit the model
+    model.fit(X_train, y_train)
+    # predict with the model
+    test_preds = model.predict(X_test)
 
 For more examples look at :doc:`getting_started`
 

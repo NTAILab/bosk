@@ -8,7 +8,17 @@ class PlaceholderMixin:
 
     Adds self to the active builder when called with `__call__`.
 
-    To make a placeholder function from block just derive from the mixin first.
+    A placeholder function can be used to build a pipeline in a `with` scope.
+    Example:
+
+        Let `SomePlaceholderFunction` be a block, derived from `PlaceholderMixin`
+
+        >>> with FunctionalPipelineBuilder() as b:
+        >>>     y = SomePlaceholderFunction(x)
+
+        This code implicitly adds the underlying block of `SomePlaceholderFunction` to the builder.
+
+    To make a placeholder function from a block just derive from the mixin first.
 
     Example:
 

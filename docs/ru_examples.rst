@@ -18,25 +18,30 @@
    from sklearn.datasets import make_moons
    from sklearn.model_selection import train_test_split
    from sklearn.metrics import roc_auc_score
+   # подключение блоков для обеспечения подсказок IDE
+   from bosk.block.zoo.input_plugs import Input, TargetInput
+   from bosk.block.zoo.data_conversion import Concat
+   from bosk.block.zoo.models.classification import RFC, ETC
+   from bosk.block.zoo.output_plugs import Output
 
    n_estimators = 20
    random_state = 42
 
    # создание объекта, конструирующего конвейер
-   b = FunctionalPipelineBuilder()
-   # создание оберток вычислительных блоков
-   # и их соединение в функциональном стиле
-   X, y = b.Input()(), b.TargetInput()()
-   rf_1 = b.RFC(n_estimators=n_estimators)(X=X, y=y)
-   et_1 = b.ETC(n_estimators=n_estimators)(X=X, y=y)
-   concat_1 = b.Concat(['X', 'rf_1', 'et_1'])(X=X, rf_1=rf_1, et_1=et_1)
-   rf_2 = b.RFC(n_estimators=n_estimators)(X=concat_1, y=y)
-   et_2 = b.ETC(n_estimators=n_estimators)(X=concat_1, y=y)
-   stack = b.Stack(['rf_2', 'et_2'], axis=1)(rf_2=rf_2, et_2=et_2)
-   average = b.Average(axis=1)(X=stack)
-   argmax = b.Argmax(axis=1)(X=average)
-   rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
-   roc_auc = b.RocAuc()(gt_y=y, pred_probas=average)
+   with FunctionalPipelineBuilder() as b:
+       # создание оберток вычислительных блоков
+       # и их соединение в функциональном стиле
+       X, y = Input()(), TargetInput()()
+       rf_1 = RFC(n_estimators=n_estimators)(X=X, y=y)
+       et_1 = ETC(n_estimators=n_estimators)(X=X, y=y)
+       concat_1 = Concat(['X', 'rf_1', 'et_1'])(X=X, rf_1=rf_1, et_1=et_1)
+       rf_2 = RFC(n_estimators=n_estimators)(X=concat_1, y=y)
+       et_2 = ETC(n_estimators=n_estimators)(X=concat_1, y=y)
+       stack = b.Stack(['rf_2', 'et_2'], axis=1)(rf_2=rf_2, et_2=et_2)
+       average = b.Average(axis=1)(X=stack)
+       argmax = b.Argmax(axis=1)(X=average)
+       rf_1_roc_auc = b.RocAuc()(gt_y=y, pred_probas=rf_1)
+       roc_auc = b.RocAuc()(gt_y=y, pred_probas=average)
    # после задания структуры вычислительного графа
    # мы создаем конвейер
    pipeline = b.build(

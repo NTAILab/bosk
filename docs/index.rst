@@ -37,34 +37,49 @@ Bosk (в переводе чаща леса) - это фреймворк для 
 
 .. code-block:: python
 
-   # создание построителя конвейера
-   b = FunctionalPipelineBuilder()
-   # блоки для маршрутизации входных данных:
-   # `x` для вектора факторов и `y`
-   # для откликов
-   x = b.Input('x')()
-   y = b.TargetInput('y')()
-   # блоки моделей лесов
-   random_forest = b.RFC(max_depth=5)
-   extra_trees = b.ETC(n_estimators=200)
-   # блок конкатенации
-   cat = b.Concat(['x', 'rf', 'et'])
-   # слой, конкатенирующий выходные векторы лесов
-   # и вектор входных признаков
-   layer_1 = cat(x=x, rf=rf(X=x, y=y), et=extra_trees(X=x, y=y))
-   # лес для осуществления итогового предсказания
-   final_extra_trees = b.ETC()
-   # выход конвейера
-   b.Output('proba')(final_extra_trees(X=layer_1, y=y))
-   # создание конвейера
-   pipeline = b.build()
+    from bosk.pipeline.builder import FunctionalPipelineBuilder
+    from bosk.executor import RecursiveExecutor, BoskPipelineClassifier
 
-   # scikit-learn обертка для конвейера
-   model = BoskPipelineClassifier(pipeline, executor_cls=RecursiveExecutor)
-   # обучаем модель
-   model.fit(X_train, y_train)
-   # осуществляем предсказание
-   test_preds = model.predict(X_test)
+    # подключение блоков для обеспечения подсказок IDE
+    from bosk.block.zoo.input_plugs import Input, TargetInput
+    from bosk.block.zoo.data_conversion import Concat
+    from bosk.block.zoo.models.classification import RFC, ETC
+    from bosk.block.zoo.output_plugs import Output
+
+    # создание построителя конвейера
+    with FunctionalPipelineBuilder() as b:
+        # блоки для маршрутизации входных данных:
+        # `x` для вектора факторов и `y`
+        # для откликов
+        x = Input('X')()  # вход input-блока пустой
+        y = TargetInput('y')()
+        # блоки моделей лесов
+        random_forest = RFC(max_depth=5)
+        extra_trees = ETC(n_estimators=200)
+        # блок конкатенации
+        cat = Concat(['x', 'rf', 'et'])
+        # слой, конкатенирующий выходные векторы лесов
+        # и вектор входных признаков
+        layer_1 = cat(x=x, rf=random_forest(X=x, y=y), et=extra_trees(X=x, y=y))
+        # лес для осуществления итогового предсказания
+        final_extra_trees = ETC()
+        # выход конвейера
+        Output('proba')(final_extra_trees(X=layer_1, y=y))
+
+        # любой блок из `bosk.block.zoo` также доступен через построитель, без импорта:
+        b.Output('alternative_proba')(b.XGBClassifier(max_depth=5)(X=layer_1, y=y))
+        # данный блок не будет обучен по умолчанию, поскольку выход не используется для предсказаний
+
+    # создание конвейера
+    pipeline = b.build()
+
+    # scikit-learn обертка для конвейера
+    model = BoskPipelineClassifier(pipeline, executor_cls=RecursiveExecutor)
+    # обучаем модель
+    model.fit(X_train, y_train)
+    # осуществляем предсказание
+    test_preds = model.predict(X_test)
+
 
 Больше примеров Вы можете найти :doc:`здесь <ru_getting_started>`.
 
