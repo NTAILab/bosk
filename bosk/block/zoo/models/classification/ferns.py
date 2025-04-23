@@ -24,7 +24,7 @@ __all__ = [
 
 
 @partial(jax.jit, static_argnames=('n_ferns', 'fern_size'))
-def make_unary_ferns(xs: jnp.ndarray, n_ferns: int, fern_size: int, key: random.KeyArray):
+def make_unary_ferns(xs: jnp.ndarray, n_ferns: int, fern_size: int, key):
     """Generate indices and threshold values for unary fern.
     An unary fern represents a function that maps x to an integer number:
         x -> [ x[i[0]] >= t[0], ..., x[i[k]] >= t[k] ].
@@ -77,7 +77,7 @@ def apply_unary_ferns(xs: jnp.ndarray, feature_indices, feature_thresholds):
 
 
 @partial(jax.jit, static_argnames=('n_ferns', 'fern_size'))
-def make_binary_ferns(xs: jnp.ndarray, n_ferns: int, fern_size: int, key: random.KeyArray):
+def make_binary_ferns(xs: jnp.ndarray, n_ferns: int, fern_size: int, key):
     """Generate indices and threshold values for unary fern.
     An unary fern represents a function that maps x to an integer number:
         x -> [ x[i[0]] >= x[j[0]], ..., x[i[k]] >= x[j[k]] ].

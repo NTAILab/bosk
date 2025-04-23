@@ -57,7 +57,8 @@ class FitTransformClass(Protocol):
 def auto_block(_implicit_cls=None,  # noqa: C901
                execution_props: Optional[BlockExecutionProperties] = None,
                random_state_field: Optional[str] = 'random_state',
-               auto_state: bool = False):
+               auto_state: bool = False,
+               fit_argnames: Optional[set] = None):
     """Decorator for conversion from a fit-transform class into a block.
 
     Args:
@@ -75,6 +76,7 @@ def auto_block(_implicit_cls=None,  # noqa: C901
         Block wrapping function.
 
     """
+    default_fit_argnames = fit_argnames
     def _auto_block_impl(cls: Type[FitTransformClass]) -> Type[BaseBlock]:
         """Make auto block wrapper instance.
 
@@ -85,7 +87,10 @@ def auto_block(_implicit_cls=None,  # noqa: C901
             Block class.
 
         """
-        fit_argnames = set(cls.fit.__code__.co_varnames[1:cls.fit.__code__.co_argcount])
+        if default_fit_argnames is None:
+            fit_argnames = set(cls.fit.__code__.co_varnames[1:cls.fit.__code__.co_argcount])
+        else:
+            fit_argnames = default_fit_argnames
         transform_argnames = set(cls.transform.__code__.co_varnames[1:cls.transform.__code__.co_argcount])
 
         @wraps(cls, updated=())

@@ -31,7 +31,7 @@ def make_window_unary_ferns(xs: jnp.ndarray,
                             window_size: int,
                             n_ferns: int,
                             fern_size: int,
-                            key: random.KeyArray):
+                            key):
     """Generate indices and threshold values for unary fern that is applied to a sliding window.
     The sliding window captures all channels simultaneously.
 
@@ -106,7 +106,7 @@ def make_window_binary_ferns(n_channels: int,
                              window_size: int,
                              n_ferns: int,
                              fern_size: int,
-                             key: random.KeyArray):
+                             key):
     """Generate pair indices for binary fern which is applied to a sliding window.
     The sliding window captures all channels simultaneously.
 

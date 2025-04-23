@@ -23,13 +23,13 @@ __all__ = [
 ]
 
 
-@auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
+@auto_block(execution_props=BlockExecutionProperties(threadsafe=True), fit_argnames={'X', 'y', 'sample_weight'})
 class RFR(RandomForestRegressor):
     def transform(self, X):
         return CPUData(self.predict(X))
 
 
-@auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
+@auto_block(execution_props=BlockExecutionProperties(threadsafe=True), fit_argnames={'X', 'y', 'sample_weight'})
 class ETR(ExtraTreesRegressor):
     def transform(self, X):
         return CPUData(self.predict(X))
