@@ -20,6 +20,11 @@ dynamic = ["dependencies"]
 dependencies = { file = "requirements.txt" }
 readme = { file = "README.md" }
 
+[project.optional-dependencies]
+catboost = ["catboost>=1.1"]
+xgboost = ["xgboost>=1.6.2"]
+lightgbm = ["lightgbm"]
+
 [project.urls]
 "Homepage" = "https://github.com/ntailab/bosk"
 "Documentation" = "https://ntailab.github.io/bosk/"
