@@ -1,3 +1,4 @@
+import inspect
 from typing import Literal, Mapping, Type, Union
 from ...block import BaseBlock, BaseInputBlock, BaseOutputBlock
 from ...block.functional import FunctionalBlockWrapper
@@ -6,6 +7,7 @@ from ...block.base import BlockInputSlot, BlockOutputSlot
 from ..connection import Connection
 from ..base import BasePipeline
 from .base import BasePipelineBuilder
+from ...exceptions import BlockReuseError
 from typing import List, Optional, Callable
 
 
@@ -45,6 +47,8 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
         self._nodes.append(block)
 
     def _make_placeholder_fn(self, block: BaseBlock) -> Callable[..., FunctionalBlockWrapper]:
+        call_history = []
+
         def placeholder_fn(*pfn_args, **pfn_kwargs) -> FunctionalBlockWrapper:
             """Placeholder function.
 
@@ -59,6 +63,9 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
                 *pfn_args: Not supported.
                 *pfn_kwargs: Inputs functional wrappers.
             """
+            if len(call_history) > 0:
+                raise BlockReuseError(block)
+
             if len(pfn_args) != 0:
                 assert len(pfn_kwargs) == 0, "All arguments should be either named or unnamed"
                 assert len(block.slots.inputs), "Please, specify argument names: `block(arg1=value1, ..)`"
@@ -82,8 +89,18 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
                             dst=block.slots.inputs[input_name],
                         )
                     )
+            # on success update call history
+            call_history.append(None)
             return FunctionalBlockWrapper(block)
 
+        # make appropriate docstring and function signature
+        placeholder_fn.__doc__ = f'Execute the block {block} and get the result wrapper.' \
+            '\n\n' + ('=' * (25 + len(repr(block)))) + '\n' \
+            f'The block {block} documentation:\n\n' + str(inspect.getdoc(block.__class__))
+        placeholder_fn.__signature__ = inspect.Signature([
+            inspect.Parameter(name, inspect.Parameter.KEYWORD_ONLY)
+            for name in block.slots.inputs.keys()
+        ])
         return placeholder_fn
 
     def wrap(self, block: BaseBlock) -> Callable[..., FunctionalBlockWrapper]:

@@ -1,5 +1,3 @@
-from catboost import CatBoostClassifier as _CatBoostClassifier
-from xgboost import XGBClassifier as _XGBClassifier
 from sklearn.ensemble import (
     RandomForestClassifier,
     ExtraTreesClassifier,
@@ -38,7 +36,7 @@ __all__ = [
 ]
 
 
-@auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
+@auto_block(execution_props=BlockExecutionProperties(threadsafe=True), fit_argnames={'X', 'y', 'sample_weight'})
 class RFC(RandomForestClassifier):
     """Random Forest Classifier.
 
@@ -66,7 +64,7 @@ class RFC(RandomForestClassifier):
         return CPUData(self.predict_proba(X))
 
 
-@auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
+@auto_block(execution_props=BlockExecutionProperties(threadsafe=True), fit_argnames={'X', 'y', 'sample_weight'})
 class ETC(ExtraTreesClassifier):
     """Extremely Randomized Trees Classifier.
 
@@ -94,69 +92,83 @@ class ETC(ExtraTreesClassifier):
         return CPUData(self.predict_proba(X))
 
 
-@auto_block(execution_props=BlockExecutionProperties())
-class CatBoostClassifier(_CatBoostClassifier):
-    """CatBoost Classifier.
+try:
+    from catboost import CatBoostClassifier as _CatBoostClassifier
 
-    Input slots
-    -----------
+    @auto_block(execution_props=BlockExecutionProperties())
+    class CatBoostClassifier(_CatBoostClassifier):
+        """CatBoost Classifier.
 
-    Fit inputs
-    ~~~~~~~~~~
+        Input slots
+        -----------
 
-        - X: Input features.
-        - y: Ground truth labels.
+        Fit inputs
+        ~~~~~~~~~~
 
-    Transform inputs
-    ~~~~~~~~~~~~~~~~
+            - X: Input features.
+            - y: Ground truth labels.
 
-        - X: Input features.
+        Transform inputs
+        ~~~~~~~~~~~~~~~~
 
-    Output slots
-    ------------
+            - X: Input features.
 
-        - output: Predicted probabilities.
+        Output slots
+        ------------
 
-    """
-    def transform(self, X):
-        return CPUData(self.predict_proba(X))
+            - output: Predicted probabilities.
+
+        """
+        def transform(self, X):
+            return CPUData(self.predict_proba(X))
+
+    CatBoostClassifierBlock = CatBoostClassifier
+
+except ModuleNotFoundError:
+    pass
 
 
-@auto_block(execution_props=BlockExecutionProperties())
-class XGBClassifier(_XGBClassifier):
-    """XGBoost Classifier.
+try:
+    from xgboost import XGBClassifier as _XGBClassifier
 
-    Input slots
-    -----------
+    @auto_block(execution_props=BlockExecutionProperties())
+    class XGBClassifier(_XGBClassifier):
+        """XGBoost Classifier.
 
-    Fit inputs
-    ~~~~~~~~~~
+        Input slots
+        -----------
 
-        - X: Input features.
-        - y: Ground truth labels.
+        Fit inputs
+        ~~~~~~~~~~
 
-    Transform inputs
-    ~~~~~~~~~~~~~~~~
+            - X: Input features.
+            - y: Ground truth labels.
 
-        - X: Input features.
+        Transform inputs
+        ~~~~~~~~~~~~~~~~
 
-    Output slots
-    ------------
+            - X: Input features.
 
-        - output: Predicted probabilities.
+        Output slots
+        ------------
 
-    """
-    def fit(self, X, y):
-        super().fit(X, y)
+            - output: Predicted probabilities.
 
-    def transform(self, X):
-        return CPUData(self.predict_proba(X))
+        """
+        def fit(self, X, y):
+            super().fit(X, y)
+
+        def transform(self, X):
+            return CPUData(self.predict_proba(X))
+
+    XGBClassifierBlock = XGBClassifier
+
+except ModuleNotFoundError:
+    pass
 
 
 RFCBlock = RFC
 ETCBlock = ETC
-CatBoostClassifierBlock = CatBoostClassifier
-XGBClassifierBlock = XGBClassifier
 
 
 try:

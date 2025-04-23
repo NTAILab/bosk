@@ -266,6 +266,16 @@ class BaseBlock(ABC):
             raise NoDefaultBlockOutputError(self)
         return self.slots.outputs[default_output]
 
+    def get_single_input(self) -> BlockInputSlot:
+        """Get the single block input slot.
+
+        Returns:
+            The block input slot.
+        """
+        if len(self.slots.inputs) != 1:
+            raise MultipleBlockInputsError(self)
+        return next(iter(self.slots.inputs.values()))
+
 
 class BaseInputBlock(BaseBlock, metaclass=ABCMeta):
     """Base input block. It is guaranteed that is has a single input and some name.
@@ -287,16 +297,6 @@ class BaseInputBlock(BaseBlock, metaclass=ABCMeta):
         Returns:
             The block instance name.
         """
-
-    def get_single_input(self) -> BlockInputSlot:
-        """Get the single block input slot.
-
-        Returns:
-            The block input slot.
-        """
-        if len(self.slots.inputs) != 1:
-            raise MultipleBlockInputsError(self)
-        return next(iter(self.slots.inputs.values()))
 
 
 class BaseOutputBlock(BaseBlock, metaclass=ABCMeta):

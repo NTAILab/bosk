@@ -1,3 +1,4 @@
+import numpy as np
 from ..executor.block import BaseBlockExecutor, InputSlotToDataMapping
 from ..block.base import BaseBlock, BlockOutputData
 from ..data import BaseData
@@ -73,8 +74,23 @@ class EagerBlockWrapper(FunctionalBlockWrapper):
             Output data for the current output.
 
         """
-        assert self.state.fit_output_values is not None
+        assert self.state.fit_output_values is not None, \
+            'The block should be executed first to get a result. ' \
+            'Check that the inputs are correctly passed to the block.'
         return self.state.fit_output_values[self.get_output_slot()]
+
+    @property
+    def data(self) -> np.ndarray:
+        """Return the output data as a NumPy array.
+
+        This property provides convenient access to the block's output data as a NumPy array,
+        assuming the output is of a numerical type that can be represented by NumPy arrays.
+        It retrieves the data from the internal state and returns it.
+
+        Returns:
+            The output data as a NumPy array.
+        """
+        return self.get_output_data().to_cpu().data
 
     def __getitem__(self, output_name: str) -> 'EagerBlockWrapper':
         """Get the eager block wrapper of the same block for the different output name.
