@@ -1,9 +1,12 @@
 from ...executor.block import BaseBlockExecutor, InputSlotToDataMapping
 from ...block.eager import EagerBlockWrapper
 from ...block.base import BaseBlock, BaseInputBlock
-from ...data import BaseData
+from ...data import BaseData, CPUData
 from .functional import FunctionalPipelineBuilder, BaseBlockClassRepository, Connection
+from ...exceptions import BlockReuseError
 from typing import Optional, Callable
+import numpy as np
+import inspect
 
 
 class EagerPipelineBuilder(FunctionalPipelineBuilder):
@@ -37,6 +40,8 @@ class EagerPipelineBuilder(FunctionalPipelineBuilder):
             This function will execute the block.
 
         """
+        call_history = []
+
         def placeholder_fn(*pfn_args, **pfn_kwargs) -> EagerBlockWrapper:
             """Execute the block with the given arguments.
 
@@ -50,12 +55,15 @@ class EagerPipelineBuilder(FunctionalPipelineBuilder):
                 Block wrapper.
 
             """
+            if len(call_history) > 0:
+                raise BlockReuseError(block)
+
             if len(pfn_args) > 0:
                 assert len(pfn_kwargs) == 0, \
                     'Either unnamed or named arguments can be used, but not at the same time'
                 assert len(pfn_args) == 1, \
                     'Only one unnamed argument is supported (we can infer name only in this case)'
-                assert isinstance(block, BaseInputBlock)
+                # assert isinstance(block, BaseInputBlock), 'Only input blocks support unnamed arguments'
                 pfn_kwargs = {
                     block.get_single_input().meta.name: pfn_args[0]
                 }
@@ -72,6 +80,8 @@ class EagerPipelineBuilder(FunctionalPipelineBuilder):
                     block_input_mapping[block_input] = input_block_wrap_or_data.get_output_data()
                 elif isinstance(input_block_wrap_or_data, BaseData):
                     block_input_mapping[block_input] = input_block_wrap_or_data
+                elif isinstance(input_block_wrap_or_data, np.ndarray):
+                    block_input_mapping[block_input] = CPUData(input_block_wrap_or_data)
                 else:
                     raise ValueError(
                         f'Wrong placeholder input type: {type(input_block_wrap_or_data)}'
@@ -79,7 +89,16 @@ class EagerPipelineBuilder(FunctionalPipelineBuilder):
             eager_block = EagerBlockWrapper(block, executor=self.block_executor)
             if len(block_input_mapping) > 0:
                 eager_block.execute(block_input_mapping)
+            call_history.append(None)
             return eager_block
 
+        # make appropriate docstring and function signature
+        placeholder_fn.__doc__ = f'Execute the block {block} and get the result wrapper.' \
+            '\n\n' + ('=' * (25 + len(repr(block)))) + '\n' \
+            f'The block {block} documentation:\n\n' + str(inspect.getdoc(block.__class__))
+        placeholder_fn.__signature__ = inspect.Signature([
+            inspect.Parameter(name, inspect.Parameter.KEYWORD_ONLY)
+            for name in block.slots.inputs.keys()
+        ])
         return placeholder_fn
 

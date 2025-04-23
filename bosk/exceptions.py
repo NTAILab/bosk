@@ -39,3 +39,17 @@ class MultipleBlockOutputsError(MultipleBlockSlotsError):
     """
     def __init__(self, block):
         super().__init__(block, slot='output')
+
+
+class BlockReuseError(Exception):
+    """Raised when the same block is tried to be reused (used twice in the pipeline).
+
+    For example, when using the `FunctionalPipelineBuilder`, "calling" the same block
+    twice leads to this exception.
+    """
+    def __init__(self, block):
+        super().__init__(
+            f'The block {block!r} is tried to be reused, which is prohibited. ' \
+            'If it is intended, please implement separate blocks, one for each use. '
+            'If the blocks have to share some state, return it from the first block and consume in the second block.'
+        )
