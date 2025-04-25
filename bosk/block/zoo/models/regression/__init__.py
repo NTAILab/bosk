@@ -1,5 +1,3 @@
-from catboost import CatBoostRegressor as _CatBoostRegressor
-from xgboost import XGBRegressor as _XGBRegressor
 from sklearn.ensemble import (
     RandomForestRegressor,
     ExtraTreesRegressor,
@@ -35,25 +33,41 @@ class ETR(ExtraTreesRegressor):
         return CPUData(self.predict(X))
 
 
-@auto_block(execution_props=BlockExecutionProperties())
-class CatBoostRegressor(_CatBoostRegressor):
-    def transform(self, X):
-        return CPUData(self.predict(X))
+try:
+    from catboost import CatBoostRegressor as _CatBoostRegressor
+
+    @auto_block(execution_props=BlockExecutionProperties())
+    class CatBoostRegressor(_CatBoostRegressor):
+        def transform(self, X):
+            return CPUData(self.predict(X))
 
 
-@auto_block(execution_props=BlockExecutionProperties())
-class XGBCRegressor(_XGBRegressor):
-    def fit(self, X, y):
-        super().fit(X, y)
+    CatBoostRegressorBlock = CatBoostRegressor
 
-    def transform(self, X):
-        return CPUData(self.predict(X))
+except ModuleNotFoundError:
+    pass
+
+
+try:
+    from xgboost import XGBRegressor as _XGBRegressor
+
+    @auto_block(execution_props=BlockExecutionProperties())
+    class XGBCRegressor(_XGBRegressor):
+        def fit(self, X, y):
+            super().fit(X, y)
+
+        def transform(self, X):
+            return CPUData(self.predict(X))
+
+
+    XGBCRegressorBlock = XGBCRegressor
+
+except ModuleNotFoundError:
+    pass
 
 
 RFRBlock = RFR
 ETRBlock = ETR
-CatBoostRegressorBlock = CatBoostRegressor
-XGBCRegressorBlock = XGBCRegressor
 
 
 try:
