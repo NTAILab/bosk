@@ -53,3 +53,12 @@ class BlockReuseError(Exception):
             'If it is intended, please implement separate blocks, one for each use. '
             'If the blocks have to share some state, return it from the first block and consume in the second block.'
         )
+
+
+class BlockInputMissingError(Exception):
+    """Raised when the block is tried to be executed without one of required inputs.
+    """
+    def __init__(self, block, input):
+        super().__init__(
+            f'The block {block!r} is tried to be executed without the input {input!r}.'
+        )

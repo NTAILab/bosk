@@ -1,6 +1,6 @@
 import numpy as np
 from ..executor.block import BaseBlockExecutor, InputSlotToDataMapping
-from ..block.base import BaseBlock, BlockOutputData
+from ..block.base import BaseBlock, BlockOutputData, BlockOutputSlot
 from ..data import BaseData
 from ..stages import Stage
 from .functional import FunctionalBlockWrapper
@@ -19,7 +19,7 @@ class EagerBlockState:
 
     """
     def __init__(self):
-        self.fit_output_values: Optional[Mapping[str, BaseData]] = None
+        self.fit_output_values: Optional[Mapping[BlockOutputSlot, BaseData]] = None
 
 
 class EagerBlockWrapper(FunctionalBlockWrapper):
@@ -45,6 +45,13 @@ class EagerBlockWrapper(FunctionalBlockWrapper):
         super().__init__(block, output_name=output_name)
         self.executor = executor
         self.state = EagerBlockState()
+
+    def set_block(self, block):
+        super().set_block(block)
+        self.state.fit_output_values = {
+            self.block.slots.outputs[key.meta.name]: value
+            for key, value in self.state.fit_output_values.items()
+        }
 
     def execute(self, block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
         """Execute the underlying block with the given inputs and store the result in the state.
