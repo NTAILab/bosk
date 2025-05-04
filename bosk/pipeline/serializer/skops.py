@@ -2,8 +2,12 @@
 """
 from .base import BasePipelineSerializer, BaseBlockSerializer, BasePipeline
 from ...block.base import BaseBlock
-from skops.io import load as skops_load, dump as skops_dump
 from typing import Any, Optional
+
+try:
+    from skops.io import load as skops_load, dump as skops_dump
+except ImportError:
+    pass
 
 
 class SkopsBlockSerializer(BaseBlockSerializer):
