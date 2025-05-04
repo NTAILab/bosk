@@ -10,7 +10,7 @@ from ..base import BasePipeline
 from .base import BasePipelineBuilder
 from ...exceptions import BlockReuseError
 import inspect
-from typing import Literal, Mapping, Set, Tuple, Type, Union
+from typing import Dict, Literal, Mapping, Set, Tuple, Type, Union
 from typing import List, Optional, Callable
 from collections import defaultdict
 
@@ -47,10 +47,10 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
             block_repo = DEFAULT_BLOCK_CLASS_REPOSITORY
         self._block_repo: BaseBlockClassRepository = block_repo
         self._called_blocks: Set[BaseBlock] = set()
-        self._block_wrappers: Mapping[BaseBlock,
-                                      List[FunctionalBlockWrapper]] = defaultdict(list)
-        self._wrapped_states: Mapping[PlaceholderMixin,
-                                      PlaceholderFunctionState] = dict()
+        self._block_wrappers: Dict[BaseBlock,
+                                   List[FunctionalBlockWrapper]] = defaultdict(list)
+        self._wrapped_states: Dict[BaseBlock,
+                                   PlaceholderFunctionState] = dict()
         self.allow_block_reuse = allow_block_reuse
 
     def __getattr__(self, name: str) -> Callable:
@@ -126,7 +126,7 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
 
         """
         block = state.block
-        producer_block = None
+        producer_block: Optional[SharedProducer] = None
         if block in self._called_blocks or isinstance(block, SharedProducer):
             if not self.allow_block_reuse:
                 raise BlockReuseError(block)
@@ -135,8 +135,8 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
                     block, output_block_name=f'__block_{id(block)}')
                 self._replace_block(block, producer_block)
                 state.block = producer_block
+            assert isinstance(state.block, SharedProducer)
             producer_block = state.block
-            assert isinstance(producer_block, SharedProducer)
             # current block becomes the state consumer
             block = SharedConsumer(
                 producer_block.meta,

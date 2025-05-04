@@ -197,7 +197,7 @@ class GreedyParallelExecutor(BaseExecutor):
         return result
 
     def _prepare_inputs(self, block,
-                        input_slot_values: Mapping[BlockInputSlot, BaseData]) -> Mapping[BlockInputSlot, BaseData]:
+                        input_slot_values: Mapping[BlockInputSlot, BaseData]) -> Dict[BlockInputSlot, BaseData]:
         """Prepare the mapping of inputs needed for the block.
 
         Args:

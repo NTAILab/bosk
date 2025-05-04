@@ -1,3 +1,4 @@
+from bosk.data import CPUData
 import numpy as np
 from typing import Optional, Union
 
@@ -137,7 +138,7 @@ class SharedProducer(PlaceholderMixin, BaseBlock):
 
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         return self.block.transform(inputs) | {
-            self.output_block_name: self.block
+            self.output_block_name: CPUData(np.array(self.block))
         }
 
     def get_default_output(self):
@@ -214,7 +215,8 @@ class SharedConsumer(PlaceholderMixin, BaseBlock):
     def transform(self, inputs: BlockInputData) -> TransformOutputData:
         if self.input_block_name not in inputs:
             raise BlockInputMissingError(self, self.input_block_name)
-        block = inputs.pop(self.input_block_name)
+        block: BaseBlock = inputs.pop(self.input_block_name).data.item()
+        assert isinstance(block, BaseBlock)
         return block.transform(inputs)
 
     def get_default_output(self):

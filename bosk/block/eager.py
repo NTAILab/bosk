@@ -71,7 +71,7 @@ class EagerBlockWrapper(FunctionalBlockWrapper):
         self.state.fit_output_values = block_output_data
         return block_output_data
 
-    def get_output_data(self) -> BlockOutputData:
+    def get_output_data(self) -> BaseData:
         """Get the output data from the state for the current output slot.
 
         Use `[...]` operator to obtain block wrapper with the same state, but different

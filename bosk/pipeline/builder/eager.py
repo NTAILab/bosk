@@ -93,7 +93,9 @@ class EagerPipelineBuilder(FunctionalPipelineBuilder):
                     )
             if isinstance(block, SharedConsumer):
                 assert producer_block is not None
-                block_input_mapping[block.slots.inputs[block.input_block_name]] = producer_block.block
+                block_input_mapping[block.slots.inputs[block.input_block_name]] = CPUData(
+                    np.array(producer_block.block)
+                )
             eager_block = EagerBlockWrapper(block, executor=self.block_executor)
             if len(block_input_mapping) > 0:
                 eager_block.execute(block_input_mapping)

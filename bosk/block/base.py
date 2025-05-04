@@ -1,7 +1,7 @@
 from abc import ABC, ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from numpy.random import Generator
-from typing import Mapping, Set, TypeVar, Optional, Union
+from typing import Dict, Mapping, Set, TypeVar, Optional, Union
 
 from .meta import BaseSlotMeta, BlockMeta, InputSlotMeta, OutputSlotMeta
 from ..data import BaseData
@@ -116,13 +116,13 @@ class BlockSlots:
     groups: Set[BlockGroup] = field(default_factory=lambda: set())
 
 
-BlockInputData = Mapping[str, BaseData]
+BlockInputData = Dict[str, BaseData]
 """Block input values container data type.
 
 It is indexed by input slot names.
 """
 
-TransformOutputData = Mapping[str, BaseData]
+TransformOutputData = Dict[str, BaseData]
 """Block transform output values container data type.
 
 It is indexed by output slot names.

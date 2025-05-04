@@ -6,7 +6,7 @@ are used to evaluate result of each block.
 """
 
 from abc import ABC, abstractmethod
-from typing import Mapping, MutableMapping, Optional, Sequence
+from typing import Dict, Mapping, MutableMapping, Optional, Sequence
 
 from ..data import BaseData, CPUData, GPUData
 from ..stages import Stage
@@ -22,7 +22,7 @@ __all__ = [
 ]
 
 
-InputSlotToDataMapping = Mapping[BlockInputSlot, BaseData]
+InputSlotToDataMapping = Dict[BlockInputSlot, BaseData]
 """Block input slot data mapping.
 
 It is indexed by input slots.
@@ -79,7 +79,7 @@ class GPUBlockExecutor(BaseBlockExecutor):
                       block: BaseBlock,
                       block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
         if stage == Stage.FIT:
-            filtered_block_input_mapping_fit: MutableMapping[str, BaseData] = dict()
+            filtered_block_input_mapping_fit: Dict[str, BaseData] = dict()
             for slot, values in block_input_mapping.items():
                 if slot.meta.stages.fit:
                     if slot.parent_block.meta.execution_props.gpu:
@@ -98,7 +98,7 @@ class GPUBlockExecutor(BaseBlockExecutor):
                             filtered_block_input_mapping_fit[slot.meta.name] = CPUData(values)
             block.fit(filtered_block_input_mapping_fit)
 
-        filtered_block_input_mapping: MutableMapping[str, BaseData] = dict()
+        filtered_block_input_mapping: Dict[str, BaseData] = dict()
         for slot, values in block_input_mapping.items():
             if slot.meta.stages.transform or (stage == Stage.FIT and slot.meta.stages.transform_on_fit):
                 if slot.parent_block.meta.execution_props.gpu:
@@ -129,7 +129,7 @@ class CPUBlockExecutor(BaseBlockExecutor):
                       block: BaseBlock,
                       block_input_mapping: InputSlotToDataMapping) -> BlockOutputData:
         if stage == Stage.FIT:
-            filtered_block_input_mapping_fit: MutableMapping[str, BaseData] = dict()
+            filtered_block_input_mapping_fit: Dict[str, BaseData] = dict()
             for slot, values in block_input_mapping.items():
                 if slot.meta.stages.fit:
                     if slot.parent_block.meta.execution_props.cpu:
@@ -148,7 +148,7 @@ class CPUBlockExecutor(BaseBlockExecutor):
                             filtered_block_input_mapping_fit[slot.meta.name] = GPUData(values)
             block.fit(filtered_block_input_mapping_fit)
 
-        filtered_block_input_mapping: MutableMapping[str, BaseData] = dict()
+        filtered_block_input_mapping: Dict[str, BaseData] = dict()
         for slot, values in block_input_mapping.items():
             if slot.meta.stages.transform or (stage == Stage.FIT and slot.meta.stages.transform_on_fit):
                 if slot.parent_block.meta.execution_props.cpu:
