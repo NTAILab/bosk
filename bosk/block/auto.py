@@ -71,6 +71,8 @@ def auto_block(_implicit_cls=None,  # noqa: C901
             the `set_random_state` method, it won't be redefined.
         auto_state: Automatically implement `__getstate__` and `__setstate__` methods.
                     These methods are required for serialization.
+        fit_argnames: Argument names for the `fit` method.
+                     If None, argument names will be inferred automatically.
 
     Returns:
         Block wrapping function.
