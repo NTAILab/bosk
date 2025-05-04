@@ -72,7 +72,7 @@ class RocAuc(PlaceholderMixin, BaseBlock):
         execution_props=BlockExecutionProperties()
     )
 
-    @wraps(roc_auc_score)
+    @wraps(roc_auc_score)  # type: ignore
     def __init__(self, **kwargs):
         super().__init__()
         self.roc_auc_score_kwargs = kwargs
@@ -256,7 +256,7 @@ class F1Score(PlaceholderMixin, BaseBlock):
         execution_props=BlockExecutionProperties()
     )
 
-    @wraps(f1_score)
+    @wraps(f1_score)  # type: ignore
     def __init__(self, **kwargs):
         super().__init__()
         self.f1_score_kwargs = kwargs
@@ -323,7 +323,7 @@ class R2Score(PlaceholderMixin, BaseBlock):
         execution_props=BlockExecutionProperties()
     )
 
-    @wraps(r2_score)
+    @wraps(r2_score)  # type: ignore
     def __init__(self, **kwargs):
         super().__init__()
         self.r2_score_kwargs = kwargs
