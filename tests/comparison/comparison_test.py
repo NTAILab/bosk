@@ -11,8 +11,7 @@ from bosk.utility import timer_wrap
 from sklearn.datasets import make_moons
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import KFold
-from sklearn.ensemble import RandomForestClassifier
-from catboost import CatBoostClassifier
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 import numpy as np
 import random
 from typing import Dict
@@ -37,20 +36,20 @@ class RFCModel(BaseForeignModel):
         self.forest.random_state = random_state
 
 
-class CatBoostModel(BaseForeignModel):
+class GBMModel(BaseForeignModel):
     def __init__(self) -> None:
         super().__init__()
-        self.grad_boost = CatBoostClassifier(30, verbose=0)
+        self.forest = GradientBoostingClassifier(n_estimators=30)
 
     def fit(self, data: Dict[str, BaseData]) -> None:
-        self.grad_boost.fit(data['X'].to_cpu().data,
-                            data['y'].to_cpu().data)
+        self.forest.fit(data['X'].to_cpu().data,
+                        data['y'].to_cpu().data)
 
     def predict(self, data: Dict[str, BaseData]) -> Dict[str, BaseData]:
-        return {'output': CPUData(self.grad_boost.predict_proba(data['X'].to_cpu().data))}
+        return {'output': CPUData(self.forest.predict_proba(data['X'].to_cpu().data))}
 
     def set_random_state(self, random_state: int) -> None:
-        self.grad_boost.random_state = random_state
+        self.forest.random_state = random_state
 
 
 def get_pipeline_1(n_trees):
@@ -110,7 +109,7 @@ def comparison_cv_basic_test():
     log_test_name()
     random_state = 42
     pipelines = get_pipelines()
-    models = [RFCModel(), CatBoostModel()]
+    models = [RFCModel(), GBMModel()]
     cv_strat = KFold(shuffle=True, n_splits=3)
     comparator = CVComparator(pipelines, models, cv_strat, random_state=random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
@@ -141,7 +140,7 @@ def shuffle_test():
         random.shuffle(pip_nodes)
         random.shuffle(pip_conns)
         pipelines[i] = BasePipeline(pip_nodes, pip_conns, pip.inputs, pip.outputs)
-    models = [RFCModel(), CatBoostModel()]
+    models = [RFCModel(), GBMModel()]
     cv_strat = KFold(shuffle=True, n_splits=3)
     comparator = CVComparator(pipelines, models, cv_strat, random_state=random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
@@ -194,7 +193,7 @@ def no_intersect_pipelines_test():
 def no_pipelines_test():
     log_test_name()
     random_state = 42
-    models = [RFCModel(), CatBoostModel()]
+    models = [RFCModel(), GBMModel()]
     cv_strat = KFold(shuffle=True, n_splits=3)
     comparator = CVComparator(None, models, cv_strat, random_state=random_state)
     x, y = make_moons(noise=0.5, random_state=random_state)
@@ -325,7 +324,7 @@ def blocks_times_test():
     log_test_name()
     random_state = 42
     pipelines = get_pipelines()
-    models = [RFCModel(), CatBoostModel()]
+    models = [RFCModel(), GBMModel()]
     cv_strat = KFold(shuffle=True, n_splits=3)
     comparator = CVComparator(pipelines, models, cv_strat,
                               get_blocks_times=True, random_state=random_state)
