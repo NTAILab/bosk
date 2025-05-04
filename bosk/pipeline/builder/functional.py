@@ -222,10 +222,14 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
             '\n\n' + ('=' * (25 + len(repr(block)))) + '\n' \
             f'The block {block} documentation:\n\n' + \
             str(inspect.getdoc(block.__class__))
-        placeholder_fn.__signature__ = inspect.Signature([
-            inspect.Parameter(name, inspect.Parameter.KEYWORD_ONLY)
-            for name in block.slots.inputs.keys()
-        ])
+        setattr(
+            placeholder_fn,
+            '__signature__',
+            inspect.Signature([
+                inspect.Parameter(name, inspect.Parameter.KEYWORD_ONLY)
+                for name in block.slots.inputs.keys()
+            ])
+        )
         return placeholder_fn
 
     def wrap(self, block: BaseBlock) -> Callable[..., FunctionalBlockWrapper]:
