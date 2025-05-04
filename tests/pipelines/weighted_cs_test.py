@@ -9,7 +9,7 @@ from typing import Dict, Optional, Sequence, Tuple
 
 class WeightedCSForestTest(BPT):
 
-    n_trees: int = 23
+    n_trees: int = 7
 
     def make_deep_forest_layer(self, b, **inputs):
         rf = b.RFC(n_estimators=self.n_trees)(**inputs)
@@ -21,8 +21,8 @@ class WeightedCSForestTest(BPT):
     def _get_pipeline(self):
         b = FunctionalPipelineBuilder()
         X, y = b.Input()(), b.TargetInput()()
-        rf_1 = b.RFC()(X=X, y=y)
-        et_1 = b.ETC()(X=X, y=y)
+        rf_1 = b.RFC(n_estimators=self.n_trees, random_state=1)(X=X, y=y)
+        et_1 = b.ETC(n_estimators=self.n_trees, random_state=2)(X=X, y=y)
         concat_1 = b.Concat(['rf_1', 'et_1'])(rf_1=rf_1, et_1=et_1)
         stack_1 = b.Stack(['rf_1', 'et_1'], axis=1)(rf_1=rf_1, et_1=et_1)
         average_1 = b.Average(axis=1)(X=stack_1)
