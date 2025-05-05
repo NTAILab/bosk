@@ -253,8 +253,8 @@ class FunctionalPipelineBuilder(BasePipelineBuilder):
             >>> result = rf(X=x)
 
         """
-        self._register_block(block)
         if block not in self._wrapped_states:
+            self._register_block(block)
             self._wrapped_states[block] = PlaceholderFunctionState(block)
         state = self._wrapped_states[block]
         return self._make_placeholder_fn(block, state=state)
