@@ -56,6 +56,6 @@ class MetricsEvaluator:
             A mapping (dictionary) of metric names to average metric values.
         """
         return {
-            k: np.mean(v)
+            k: float(np.mean(v))
             for k, v in self.results.items()
         }

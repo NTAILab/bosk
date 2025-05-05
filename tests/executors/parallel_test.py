@@ -20,13 +20,13 @@ from ..utility import log_test_name
 import logging
 
 
-@auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
+@auto_block(execution_props=BlockExecutionProperties(threadsafe=True), fit_argnames={'X', 'y'})
 class ParallelRFC(RandomForestClassifier):
     def transform(self, X):
         return CPUData(self.predict_proba(X))
 
 
-@auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
+@auto_block(execution_props=BlockExecutionProperties(threadsafe=True), fit_argnames={'X', 'y'})
 class ParallelETC(ExtraTreesClassifier):
     def transform(self, X):
         return CPUData(self.predict_proba(X))

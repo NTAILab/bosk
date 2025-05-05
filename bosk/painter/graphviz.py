@@ -107,6 +107,7 @@ class GraphvizPainter(BasePainter):
         self._graph.attr(rankdir=self._rankdir, ranksep=str(self._levels_sep), dpi=str(self._dpi))
         self._graph.render(outfile=output_filename, cleanup=True)
 
+    @property
     def available_formats(self) -> Sequence[str]:
         return gv.FORMATS
 

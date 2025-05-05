@@ -25,13 +25,13 @@ from bosk.block.auto import auto_block
 from joblib import parallel_backend
 
 
-@auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
+@auto_block(execution_props=BlockExecutionProperties(threadsafe=True), fit_argnames={'X', 'y'})
 class ParallelRFC(RandomForestClassifier):
     def transform(self, X):
         return self.predict_proba(X)
 
 
-@auto_block(execution_props=BlockExecutionProperties(threadsafe=True))
+@auto_block(execution_props=BlockExecutionProperties(threadsafe=True), fit_argnames={'X', 'y'})
 class ParallelETC(ExtraTreesClassifier):
     def transform(self, X):
         return self.predict_proba(X)

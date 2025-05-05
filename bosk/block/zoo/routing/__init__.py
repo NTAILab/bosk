@@ -8,6 +8,7 @@ on some subset of the data.
 """
 from .cs import CS, CSJoin, CSFilter, CSBlock, CSJoinBlock, CSFilterBlock
 from .cv import CVTrainIndices, SubsetTrainWrapper, CVTrainIndicesBlock, SubsetTrainWrapperBlock
+from .shared import NaiveShared, SharedProducer, SharedConsumer
 
 
 __all__ = [
@@ -16,6 +17,9 @@ __all__ = [
     "CSFilter",
     "CVTrainIndices",
     "SubsetTrainWrapper",
+    "NaiveShared",
+    "SharedProducer",
+    "SharedConsumer",
     # for backward compatibility:
     "CSBlock",
     "CSJoinBlock",

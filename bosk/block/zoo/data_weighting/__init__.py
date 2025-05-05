@@ -42,10 +42,11 @@ class WeightsBlock:
     """
     _weights: Optional[BaseData]
 
-    def __init__(self, ord: int = 1, device="CPU"):
+    def __init__(self, ord: int = 1, eps: float = 1.e-9, device="CPU"):
         self._weights = None
         self.ord = ord
         self.device = device
+        self.eps = eps
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> 'WeightsBlock':
         """Fit the weights block.
@@ -61,10 +62,18 @@ class WeightsBlock:
         if self.device not in ["CPU", "GPU"]:
             raise TypeError("All inputs must be of type: CPUData or GPUData.")
         if self.device == "CPU":
-            cpu_weights = 1 - (np.take_along_axis(X, y[:, np.newaxis], axis=1)) ** self.ord
+            cpu_weights = np.clip(
+                1 - (np.take_along_axis(X, y[:, np.newaxis], axis=1)) ** self.ord,
+                self.eps,
+                None
+            )
             self._weights = CPUData(cpu_weights.reshape((-1,)))
         else:
-            gpu_weights = 1 - (jnp.take_along_axis(X, y[:, jnp.newaxis], axis=1)) ** self.ord
+            gpu_weights = jnp.clip(
+                1 - (jnp.take_along_axis(X, y[:, jnp.newaxis], axis=1)) ** self.ord,
+                self.eps,
+                None
+            )
             self._weights = GPUData(gpu_weights.reshape((-1,)))
         return self
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from functools import partial
-from typing import Callable, Tuple, Dict, List
+from typing import Callable, Optional, Tuple, Dict, List
 
 import jax
 import jax.numpy as jnp
@@ -161,6 +161,9 @@ class TreeNode:
         return cls(*children)
 
 
+TreeNodesT = Optional[Dict[int, List[TreeNode]]]
+
+
 @register_pytree_node_class
 class DecisionTree:
     def __init__(
@@ -172,7 +175,7 @@ class DecisionTree:
         loss_fn: Callable,
         value_fn: Callable,
         score_fn: Callable,
-        nodes: Dict[int, List[TreeNode]] = None,
+        nodes: TreeNodesT = None,
     ):
         self.n_classes = n_classes
         self.min_samples = min_samples
@@ -206,7 +209,7 @@ class DecisionTree:
         self,
         X: jnp.ndarray,
         y: jnp.ndarray,
-        mask: jnp.ndarray = None,
+        mask: Optional[jnp.ndarray] = None,
     ) -> DecisionTree:
         n_samples = X.shape[0]
         if mask is None:
@@ -262,7 +265,7 @@ class DecisionTree:
     def predict(
         self,
         X: jnp.ndarray,
-        mask: jnp.ndarray = None,
+        mask: Optional[jnp.ndarray] = None,
     ) -> jnp.ndarray:
         X = X.astype("float32")
         n_samples = X.shape[0]
@@ -304,7 +307,7 @@ class DecisionTree:
 @register_pytree_node_class
 class ExtraTree(DecisionTree):
     def __init__(self, n_classes: int, min_samples: int, max_depth: int, max_splits: int, loss_fn: Callable,
-                 value_fn: Callable, score_fn: Callable, nodes: Dict[int, List[TreeNode]] = None):
+                 value_fn: Callable, score_fn: Callable, nodes: TreeNodesT = None):
         super().__init__(n_classes, min_samples, max_depth, max_splits, loss_fn, value_fn, score_fn, nodes)
         self.split_node = make_split_node_function(self.loss_fn, random=True)
 
@@ -317,7 +320,7 @@ class DecisionTreeClassifier(DecisionTree):
         min_samples: int = 2,
         max_depth: int = 4,
         max_splits: int = 25,
-        nodes: Dict[int, List[TreeNode]] = None,
+        nodes: TreeNodesT = None,
     ):
         self.n_classes = n_classes
 
@@ -351,7 +354,7 @@ class ExtraTreeClassifier(ExtraTree):
         min_samples: int = 2,
         max_depth: int = 4,
         max_splits: int = 25,
-        nodes: Dict[int, List[TreeNode]] = None,
+        nodes: TreeNodesT = None,
     ):
         self.n_classes = n_classes
 
@@ -395,7 +398,7 @@ def entropy(y: jnp.ndarray, mask: jnp.ndarray, n_classes: int) -> jnp.ndarray:
 
 
 @partial(jit, static_argnames=["n_classes"])
-def most_frequent(y: jnp.ndarray, mask: jnp.ndarray, n_classes: int) -> int:
+def most_frequent(y: jnp.ndarray, mask: jnp.ndarray, n_classes: int) -> jnp.ndarray:
     counts = jnp.bincount(y.astype(jnp.int8), weights=mask, length=n_classes)
     res = jnp.nanargmax(counts)
     return res

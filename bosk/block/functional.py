@@ -44,6 +44,9 @@ class FunctionalBlockWrapper:
         self.block = block
         self.output_name = output_name
 
+    def set_block(self, block):
+        self.block = block
+
     def get_input_slot(self, slot_name: Optional[str] = None) -> BlockInputSlot:
         """Get block input slot by name.
 
@@ -86,10 +89,11 @@ class FunctionalBlockWrapper:
 
         """
         if self.output_name is None:
-            if self.block.default_output is None:
-                raise RuntimeError('Block has more than one output and the default is not specified')
-            else:
-                return self.block.slots.outputs[self.block.default_output]
+            # if self.block.default_output is None:
+            #     raise RuntimeError('Block has more than one output and the default is not specified')
+            # else:
+            #     return self.block.slots.outputs[self.block.default_output]
+            return self.block.get_default_output()
         return self.block.slots.outputs[self.output_name]
 
     def __getitem__(self, output_name: str) -> 'FunctionalBlockWrapper':
